@@ -163,5 +163,23 @@
     "platform": "wordpress_mail",
     "posted_at": "2026-09-14T13:58:23.663370",
     "date": "2026-09-14"
+  },
+  {
+    "dataset_id": "worldbank_education_indicators",
+    "title": "【世界銀行 EdStats】世界各国の数学的習熟度と公的教育支出・デジタル普及率の相関分析 (2026年09月14日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_mail",
+    "posted_at": "2026-09-14T14:44:36.964274",
+    "date": "2026-09-14"
   }
 ]
