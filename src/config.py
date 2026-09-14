@@ -42,7 +42,7 @@ class Config:
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USER: str = os.getenv("SMTP_USER", "").strip()
-    SMTP_PASS: str = os.getenv("SMTP_PASS", "").strip()
+    SMTP_PASS: str = os.getenv("SMTP_PASS", "").replace(" ", "").strip()
 
     # WordPress REST API settings
     WP_SITE_URL: str = os.getenv("WP_SITE_URL", "").strip().rstrip("/")

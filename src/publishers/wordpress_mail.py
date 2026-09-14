@@ -29,7 +29,7 @@ class WordPressMailPublisher(BasePublisher):
         self.smtp_host = (smtp_host or Config.SMTP_HOST).strip()
         self.smtp_port = smtp_port or Config.SMTP_PORT
         self.smtp_user = (smtp_user or Config.SMTP_USER).strip()
-        self.smtp_pass = (smtp_pass or Config.SMTP_PASS).strip()
+        self.smtp_pass = (smtp_pass or Config.SMTP_PASS).replace(" ", "").strip()
         self.wp_post_email = (wp_post_email or Config.WP_POST_EMAIL).strip()
 
     def publish(self, report: GeneratedReport) -> bool:
