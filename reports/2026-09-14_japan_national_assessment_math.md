@@ -4,8 +4,8 @@
 
 ---
 
-> 📄 **学術論文形式PDF（学部の卒論水準）を公開中**:
-> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（A4判）をGitHub上で閲覧・ダウンロードできます。
+> 📄 **学術論文形式PDF（査読論文様式）を公開中**:
+> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（JIS B5判・2段組）をGitHub上で閲覧・ダウンロードできます。
 > [👉 学術論文PDFを閲覧・ダウンロード（GitHub）](https://github.com/k518-2026/EduDataToBlogActions/blob/main/reports/pdf/2026-09-14_japan_national_assessment_math_paper.pdf)
 
 ---
