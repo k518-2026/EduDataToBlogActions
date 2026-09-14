@@ -47,10 +47,16 @@ class WordPressMailPublisher(BasePublisher):
         alt_part = MIMEMultipart("alternative")
         msg.attach(alt_part)
 
-        # Plain text version
+        # Plain text version with WordPress Post by Email shortcodes
+        cat_str = ",".join(report.categories)
+        tag_str = ",".join(report.tags)
+        wp_status = Config.WP_POST_STATUS or "publish"
         plain_text = (
             f"{report.title}\n\n"
-            "この投稿を表示するにはHTML対応のメールクライアントまたはWordPressビューアーをご利用ください。\n"
+            f"[status {wp_status}]\n"
+            f"[category {cat_str}]\n"
+            f"[tags {tag_str}]\n\n"
+            "本記事はHTML形式でフォーマットされています。\n"
         )
         alt_part.attach(MIMEText(plain_text, "plain", "utf-8"))
 

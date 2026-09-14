@@ -1,8 +1,9 @@
 """
 Report Generator for Educational Data Analysis.
 Combines statistical tables, visualization charts, and pedagogical insights into
-polished HTML (for WordPress email/web) and Markdown (for repository archiving).
+polished HTML (with Base64 embedded charts for WordPress) and Markdown.
 """
+import base64
 from dataclasses import dataclass
 from datetime import datetime
 import logging
@@ -51,11 +52,34 @@ class EduReportBuilder:
         else:
             categories.extend(["情報教育", "プログラミング教育", "GIGAスクール"])
 
-        tags = [dataset.region.upper(), dataset.source_name.split()[0], "オープンデータ", "統計分析"]
+        # Clean tags (alphanumeric and Japanese without slashes or quotes)
+        tags = ["オープンデータ", "統計分析", dataset.region.upper()]
+        if dataset.category == "math":
+            tags.append("算数数学")
+        else:
+            tags.append("情報教育")
+
+        # Encode chart to Base64 so it can be viewed anywhere without 404 Not Found
+        chart_b64 = ""
+        if chart_path and chart_path.exists():
+            try:
+                with open(chart_path, "rb") as f:
+                    chart_b64 = base64.b64encode(f.read()).decode("utf-8")
+            except Exception as e:
+                logger.warning(f"Failed to base64 encode chart image: {e}")
+
+        # GitHub raw image URL for Step Summary and Markdown
+        dest_chart_filename = f"{date_iso}_{chart_path.name}"
+        raw_github_img_url = (
+            f"https://raw.githubusercontent.com/k518-2026/EduDataToBlogActions/main/"
+            f"reports/assets/{dest_chart_filename}"
+        )
 
         # 1. Build Markdown Table for Descriptive Stats
-        desc_table_rows_md = ["| 指標名 | データ数 | 平均値 | 中央値 | 標準偏差 | 最小値 | 最大値 | 四分位範囲 (IQR) |",
-                              "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"]
+        desc_table_rows_md = [
+            "| 指標名 | データ数 | 平均値 | 中央値 | 標準偏差 | 最小値 | 最大値 | 四分位範囲 (IQR) |",
+            "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
+        ]
         desc_table_rows_html = []
         for m, s in analysis.descriptive_stats.items():
             desc_table_rows_md.append(
@@ -76,8 +100,10 @@ class EduReportBuilder:
         trend_table_md = ""
         trend_table_html = ""
         if analysis.trends:
-            trend_rows_md = ["| 指標 / グループ | 調査開始 | 初期値 | 調査最新 | 最新値 | 変化量 | 変化率 | 年平均成長率 (CAGR) | 決定係数 (R²) |",
-                             "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"]
+            trend_rows_md = [
+                "| 指標 / グループ | 調査開始 | 初期値 | 調査最新 | 最新値 | 変化量 | 変化率 | 年平均成長率 (CAGR) | 決定係数 (R²) |",
+                "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
+            ]
             trend_rows_html = []
             for tr in analysis.trends:
                 grp_str = f"[{tr.group_name}] " if tr.group_name else ""
@@ -123,8 +149,7 @@ class EduReportBuilder:
             </div>
             """
 
-        # 3. Assemble Markdown Content
-        chart_filename = chart_path.name
+        # 3. Assemble Markdown Content (Uses GitHub raw URL so it displays properly in GitHub Step Summary)
         insights_bullets_md = "\n".join([f"- {ins}" for ins in analysis.key_insights])
 
         markdown_content = f"""# {title}
@@ -161,7 +186,7 @@ class EduReportBuilder:
 
 ## 🖼️ データ可視化グラフ
 
-![{dataset.title}のグラフ画像]({chart_filename})
+![{dataset.title}のグラフ画像]({raw_github_img_url})
 
 ---
 
@@ -179,29 +204,27 @@ class EduReportBuilder:
 *Generated automatically by EduDataToBlogActions pipeline.*
 """
 
-        # 4. Assemble HTML Content (Formatted for WordPress Post by Email & Web Rendering)
-        # Note: WordPress email posting supports [status publish], [category ...], [tags ...]
-        wp_status = Config.WP_POST_STATUS
+        # 4. Assemble HTML Content (Uses Base64 image + direct shortcodes at bottom for WordPress)
+        wp_status = Config.WP_POST_STATUS or "publish"
         cat_str = ",".join(categories)
         tag_str = ",".join(tags)
 
-        # Convert linebreaks in insights
         pedagogy_html = insights.pedagogical_implications.replace("\n", "<br/>")
         policy_html = insights.future_challenges_and_policy.replace("\n", "<br/>")
         summary_html = insights.executive_summary.replace("\n", "<br/>")
-        insights_bullets_html = "".join([f"<li style='margin-bottom:6px;'>{ins}</li>" for ins in analysis.key_insights])
+        insights_bullets_html = "".join(
+            [f"<li style='margin-bottom:6px;'>{ins}</li>" for ins in analysis.key_insights]
+        )
 
-        chart_cid = chart_path.stem
-        # For WordPress Post by Email, attached images are inserted or referenced via cid or media
+        # Base64 image tag for web rendering in WordPress
+        img_src = (
+            f"data:image/png;base64,{chart_b64}"
+            if chart_b64
+            else raw_github_img_url
+        )
+
         html_content = f"""
         <div style="font-family:'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif; line-height:1.8; color:#2b2d42; max-width:820px; margin:auto; padding:15px;">
-          
-          <!-- WordPress Control Shortcodes (Hidden/Processed by WP) -->
-          <div style="display:none;">
-            [status {wp_status}]
-            [category {cat_str}]
-            [tags {tag_str}]
-          </div>
 
           <!-- Header Badge -->
           <div style="margin-bottom:20px;">
@@ -222,10 +245,10 @@ class EduReportBuilder:
             <b>調査概要:</b> {dataset.description}
           </div>
 
-          <!-- Chart Section -->
+          <!-- Chart Section with Base64 embedded PNG -->
           <div style="margin:30px 0; text-align:center;">
             <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px; text-align:left;">🖼️ データ可視化グラフ</h3>
-            <img src="cid:{chart_cid}" alt="{dataset.title}" style="max-width:100%; height:auto; border-radius:6px; box-shadow:0 3px 8px rgba(0,0,0,0.12); margin-top:10px;" />
+            <img src="{img_src}" alt="{dataset.title}" style="max-width:100%; height:auto; border-radius:6px; box-shadow:0 3px 8px rgba(0,0,0,0.12); margin-top:10px;" />
             <p style="font-size:12px; color:#6c757d; margin-top:6px;">図: {dataset.title}（EduDataToBlogActions 統計分析パイプラインにて生成）</p>
           </div>
 
@@ -284,7 +307,12 @@ class EduReportBuilder:
             © EduDataToBlogActions Project / Open Education Statistics Pipeline
           </p>
         </div>
-        """
+
+<!-- WordPress Post by Email Shortcodes (Must be at root level) -->
+[status {wp_status}]
+[category {cat_str}]
+[tags {tag_str}]
+"""
 
         return GeneratedReport(
             title=title,
