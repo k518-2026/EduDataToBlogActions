@@ -126,5 +126,24 @@
     "platform": "wordpress_mail",
     "posted_at": "2026-09-14T13:31:14.869865",
     "date": "2026-09-14"
+  },
+  {
+    "dataset_id": "japan_stem_cs_enrollment",
+    "title": "【学校基本調査】大学・高専における情報系・理数系学科入学者数と女子比率の10年推移 (2026年09月14日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_mail",
+    "posted_at": "2026-09-14T13:56:54.739968",
+    "date": "2026-09-14"
   }
 ]
