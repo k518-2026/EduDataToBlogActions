@@ -1,0 +1,44 @@
+name: Test WordPress & SMTP Connection
+
+on:
+  workflow_dispatch:
+    inputs:
+      send_test:
+        description: 'Send actual test email post to WordPress'
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  check-connection:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Diagnostics
+        env:
+          WP_POST_EMAIL: ${{ secrets.WP_POST_EMAIL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          INPUT_SEND_TEST: ${{ inputs.send_test }}
+        run: |
+          ARGS=""
+          if [ "$INPUT_SEND_TEST" = "true" ] || [ "${{ github.event.inputs.send_test }}" = "true" ]; then
+            ARGS="--send-test"
+          fi
+          python -m tools.check_connection $ARGS
