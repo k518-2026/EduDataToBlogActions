@@ -167,16 +167,18 @@ class GeminiInsightGenerator:
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> EducationalInsights:
         import json
+        import re
         import urllib.request
 
         prompt = self._build_insight_prompt(dataset, analysis)
-        prompt += "\n\n必ず executive_summary, pedagogical_implications, future_challenges_and_policy の3キーを含む単一のJSONオブジェクト（マークダウンコードブロックなし）のみを出力してください。"
+        prompt += "\n\n必ず executive_summary, pedagogical_implications, future_challenges_and_policy の3キーを含む単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
 
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": self.anthropic_api_key,
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
+            "user-agent": "EduDataToBlogActions/1.0",
         }
         payload = {
             "model": self.anthropic_model,
@@ -191,24 +193,22 @@ class GeminiInsightGenerator:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=45) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
 
         raw_text = res_data["content"][0]["text"].strip()
-        if raw_text.startswith("```"):
-            lines = raw_text.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            raw_text = "\n".join(lines).strip()
+        json_match = re.search(r"\{[\s\S]*\}", raw_text)
+        if json_match:
+            raw_text = json_match.group(0)
 
         data = json.loads(raw_text)
+        logger.info("Successfully generated educational insights via Claude 3.5 Sonnet!")
         return EducationalInsights(
             executive_summary=data.get("executive_summary", ""),
             pedagogical_implications=data.get("pedagogical_implications", ""),
             future_challenges_and_policy=data.get("future_challenges_and_policy", ""),
         )
+
 
 
     def _generate_template_fallback(

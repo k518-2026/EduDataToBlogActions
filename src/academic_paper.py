@@ -205,16 +205,18 @@ class AcademicPaperGenerator:
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> AcademicPaper:
         import json
+        import re
         import urllib.request
 
         prompt = self._build_academic_prompt(dataset, analysis)
-        prompt += "\n\n必ず上記全フィールドを含む有効な単一のJSONオブジェクト（マークダウンのコードブロックなし）のみを出力してください。"
+        prompt += "\n\n必ず上記全フィールドを含む有効な単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
 
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": self.anthropic_api_key,
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
+            "user-agent": "EduDataToBlogActions/1.0",
         }
         payload = {
             "model": self.anthropic_model,
@@ -229,17 +231,13 @@ class AcademicPaperGenerator:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=120) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
 
         raw_text = res_data["content"][0]["text"].strip()
-        if raw_text.startswith("```"):
-            lines = raw_text.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            raw_text = "\n".join(lines).strip()
+        json_match = re.search(r"\{[\s\S]*\}", raw_text)
+        if json_match:
+            raw_text = json_match.group(0)
 
         data = json.loads(raw_text)
         keywords = data.get("keywords", [])
@@ -249,6 +247,7 @@ class AcademicPaperGenerator:
         if isinstance(references, str):
             references = [r.strip() for r in references.split("\n") if r.strip()]
 
+        logger.info("Successfully generated academic paper via Claude 3.5 Sonnet!")
         return AcademicPaper(
             title=data.get("title", f"{dataset.title}に関する実証的計量分析"),
             subtitle=data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明"),
@@ -261,6 +260,7 @@ class AcademicPaperGenerator:
             discussion=data.get("discussion", ""),
             references=references,
         )
+
 
 
     def _generate_template_fallback(
