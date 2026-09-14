@@ -467,7 +467,7 @@ plt.show()
         date_iso = datetime.now().strftime("%Y-%m-%d")
 
         category_label = "算数・数学教育" if dataset.category == "math" else "情報教育・プログラミング"
-        title = f"【教育オープンデータ統計分析】{dataset.title} ({today_str})"
+        title = f"{dataset.title} ({today_str})"
 
         categories = ["教育データ分析"]
         if dataset.category == "math":

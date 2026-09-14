@@ -44,11 +44,12 @@ def test_reporter_builds_valid_documents(tmp_path):
 
     # Validate report attributes
     assert "テスト算数レポート" in report.title
+    assert "【教育オープンデータ統計分析】" not in report.title
     assert "教育データ分析" in report.categories
     assert "算数数学教育" in report.categories
 
     # Validate Markdown
-    assert "# 【教育オープンデータ統計分析】" in report.markdown_content
+    assert f"# {dataset.title}" in report.markdown_content
     assert "テストサマリーです。" in report.markdown_content
     assert "正答率" in report.markdown_content
     assert "💻 統計処理に利用した Python スクリプト" in report.markdown_content
