@@ -51,8 +51,13 @@ def test_reporter_builds_valid_documents(tmp_path):
     assert "# 【教育オープンデータ統計分析】" in report.markdown_content
     assert "テストサマリーです。" in report.markdown_content
     assert "正答率" in report.markdown_content
+    assert "💻 統計処理に利用した Python コード" in report.markdown_content
+    assert "import pandas as pd" in report.markdown_content
 
     # Validate HTML
     assert "[status publish]" in report.html_content
     assert "data:image/png;base64," in report.html_content
     assert "テスト授業示唆です。" in report.html_content
+    assert "edu-data-code-block" in report.html_content
+    assert "copyEduDataPythonCode" in report.html_content
+    assert "📋 コードをコピー" in report.html_content
