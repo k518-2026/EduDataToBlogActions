@@ -4,21 +4,27 @@ Unit tests for Academic Paper and PDF Generator modules.
 from pathlib import Path
 import pytest
 
-from src.academic_paper import AcademicPaperGenerator, AcademicPaper
+from src.academic_paper import AcademicPaperGenerator, AcademicPaper, normalize_jset_text
 from src.analyzer import EduDataAnalyzer
 from src.fetchers.catalog import DatasetCatalog
 from src.pdf.font_loader import register_japanese_fonts
-from src.pdf.pdf_generator import EduPaperPdfGenerator
+from src.pdf.pdf_generator import EduPaperPdfGenerator, JIS_B5
 from src.reporter import EduReportBuilder
 from src.insights import EducationalInsights
 
 
 def test_japanese_font_registration():
-    reg, bold = register_japanese_fonts()
-    assert reg is not None
-    assert bold is not None
-    assert len(reg) > 0
-    assert len(bold) > 0
+    mincho, gothic = register_japanese_fonts()
+    assert mincho is not None
+    assert gothic is not None
+    assert len(mincho) > 0
+    assert len(gothic) > 0
+
+
+def test_jset_text_normalization():
+    raw = "本研究では、オープンデータを活用し、学力構造を分析した。その結果、有意な差が認められた。"
+    expected = "本研究では，オープンデータを活用し，学力構造を分析した．その結果，有意な差が認められた．"
+    assert normalize_jset_text(raw) == expected
 
 
 def test_academic_paper_generator_creates_all_sections():
@@ -32,6 +38,7 @@ def test_academic_paper_generator_creates_all_sections():
 
     assert isinstance(paper, AcademicPaper)
     assert len(paper.title) > 0
+    assert paper.title.endswith("†")
     assert len(paper.abstract) > 50
     assert len(paper.keywords) >= 3
     assert len(paper.background) > 100
@@ -40,6 +47,10 @@ def test_academic_paper_generator_creates_all_sections():
     assert len(paper.results_text) > 50
     assert len(paper.discussion) > 100
     assert len(paper.references) >= 3
+    assert len(paper.title_en) > 0
+    assert len(paper.authors_en) > 0
+    assert len(paper.summary_en) > 0
+    assert len(paper.keywords_en) >= 3
 
 
 def test_pdf_generator_builds_valid_pdf(tmp_path):
