@@ -1,9 +1,9 @@
 name: Daily Educational Open Data Analysis & Blog Auto-Poster
 
 on:
-  # Daily scheduled run (21:00 UTC = 06:00 JST / 毎朝6時)
+  # Daily scheduled run (20:00 UTC = 05:00 JST / 毎朝5時)
   schedule:
-    - cron: '0 21 * * *'
+    - cron: '0 20 * * *'
 
   # Manual execution from GitHub Actions UI
   workflow_dispatch:
