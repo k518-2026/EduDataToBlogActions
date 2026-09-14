@@ -56,6 +56,7 @@ def test_reporter_builds_valid_documents(tmp_path):
     assert "import pandas as pd" in report.python_code
 
     # Validate HTML
+    assert f"[title {report.title}]" in report.html_content
     assert "[status publish]" in report.html_content
     assert "data:image/png;base64," in report.html_content
     assert "テスト授業示唆です。" in report.html_content

@@ -724,6 +724,7 @@ plt.show()
         </div>
 
 <!-- WordPress Post by Email Shortcodes (Must be at root level) -->
+[title {title}]
 [category {cat_str}]
 [tags {tag_str}]
 [status {wp_status}]
