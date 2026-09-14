@@ -9,12 +9,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 TEMP_DIR = BASE_DIR / "temp"
 REPORTS_DIR = BASE_DIR / "reports"
+PDF_REPORTS_DIR = REPORTS_DIR / "pdf"
 CATALOG_DIR = DATA_DIR / "catalog"
 
 # Ensure runtime directories exist
 DATA_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
 REPORTS_DIR.mkdir(exist_ok=True)
+PDF_REPORTS_DIR.mkdir(exist_ok=True)
 CATALOG_DIR.mkdir(exist_ok=True)
 
 class Config:
@@ -51,6 +53,11 @@ class Config:
     # Execution defaults
     DEFAULT_TOPIC: str = os.getenv("DEFAULT_TOPIC", "all").strip().lower()
 
+    # GitHub Repository settings for public file linking
+    GITHUB_REPOSITORY: str = os.getenv("GITHUB_REPOSITORY", "k518-2026/EduDataToBlogActions").strip()
+    GITHUB_BRANCH: str = os.getenv("GITHUB_BRANCH", "main").strip()
+
     # Storage paths
     POSTED_REPORTS_PATH = DATA_DIR / "posted_reports.json"
     REPORT_ARCHIVE_PATH = DATA_DIR / "REPORT_ARCHIVE.md"
+    PDF_ARCHIVE_DIR = PDF_REPORTS_DIR

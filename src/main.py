@@ -4,15 +4,18 @@ Coordinates fetching, statistical analysis, visualization, AI insight generation
 report assembly, blog publishing, and history storage.
 """
 import argparse
+from datetime import datetime
 import logging
 import os
 from pathlib import Path
 import sys
 
+from src.academic_paper import AcademicPaperGenerator
 from src.analyzer import EduDataAnalyzer
 from src.config import Config, REPORTS_DIR, TEMP_DIR
 from src.fetchers.catalog import DatasetCatalog
 from src.insights import GeminiInsightGenerator
+from src.pdf.pdf_generator import EduPaperPdfGenerator
 from src.publishers.markdown_file import MarkdownFilePublisher
 from src.publishers.wordpress_mail import WordPressMailPublisher
 from src.publishers.wordpress_rest import WordPressRestPublisher
@@ -122,9 +125,41 @@ def main():
     logger.info("💡 Generating educational pedagogical insights...")
     insights = insight_gen.generate_insights(dataset, analysis)
 
-    # 6. Assemble report
-    logger.info("📝 Assembling comprehensive HTML and Markdown report...")
-    report = report_builder.build_report(dataset, analysis, insights, chart_path)
+    # 6. Generate undergraduate thesis-level academic paper and PDF
+    logger.info("🎓 Generating undergraduate thesis-level academic paper...")
+    paper_gen = AcademicPaperGenerator()
+    academic_paper = paper_gen.generate_paper(dataset, analysis)
+
+    logger.info("📑 Compiling academic thesis PDF document...")
+    pdf_gen = EduPaperPdfGenerator()
+    today_iso = datetime.now().strftime("%Y-%m-%d")
+    pdf_filename = f"{today_iso}_{dataset.id}_paper.pdf"
+    local_pdf_path = TEMP_DIR / pdf_filename
+    pdf_gen.generate_pdf(
+        paper=academic_paper,
+        dataset=dataset,
+        analysis=analysis,
+        chart_path=chart_path,
+        output_pdf_path=local_pdf_path,
+    )
+
+    # Construct public GitHub viewing/download URL
+    pdf_github_url = (
+        f"https://github.com/{Config.GITHUB_REPOSITORY}/blob/"
+        f"{Config.GITHUB_BRANCH}/reports/pdf/{pdf_filename}"
+    )
+    logger.info(f"PDF generated: {local_pdf_path} (Public GitHub URL: {pdf_github_url})")
+
+    # 7. Assemble report
+    logger.info("📝 Assembling comprehensive HTML and Markdown report with PDF links...")
+    report = report_builder.build_report(
+        dataset=dataset,
+        analysis=analysis,
+        insights=insights,
+        chart_path=chart_path,
+        pdf_path=local_pdf_path,
+        pdf_url=pdf_github_url,
+    )
 
     # Save local previews
     preview_html_path = TEMP_DIR / "preview_post.html"

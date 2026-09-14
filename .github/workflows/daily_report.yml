@@ -57,7 +57,7 @@ jobs:
       - name: Install Japanese Fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk
+          sudo apt-get install -y fonts-noto-cjk fonts-ipafont-gothic
 
       - name: Install Python Dependencies
         run: |
@@ -79,6 +79,8 @@ jobs:
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
           INPUT_FORCE: ${{ inputs.force }}
           INPUT_TOPIC: ${{ inputs.topic }}
@@ -107,6 +109,8 @@ jobs:
           name: generated-edu-report-assets
           path: |
             temp/*.png
+            temp/*.pdf
+            reports/pdf/*.pdf
             temp/preview_post.html
             temp/preview_report.md
           if-no-files-found: ignore

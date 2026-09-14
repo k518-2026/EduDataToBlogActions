@@ -31,6 +31,8 @@ class GeneratedReport:
     chart_path: Path
     dataset_id: str
     created_at: str
+    pdf_path: Optional[Path] = None
+    pdf_url: Optional[str] = None
 
 
 class EduReportBuilder:
@@ -188,6 +190,8 @@ plt.show()
         analysis: AnalysisResult,
         insights: EducationalInsights,
         chart_path: Path,
+        pdf_path: Optional[Path] = None,
+        pdf_url: Optional[str] = None,
     ) -> GeneratedReport:
         today_str = datetime.now().strftime("%Y年%m月%d日")
         date_iso = datetime.now().strftime("%Y-%m-%d")
@@ -302,6 +306,38 @@ plt.show()
             </div>
             """
 
+        # Academic Thesis PDF download links
+        pdf_badge_md = ""
+        pdf_banner_html = ""
+        if pdf_url:
+            pdf_badge_md = f"""
+> 📄 **学術論文形式PDF（学部の卒論水準）を公開中**:
+> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（A4判）をGitHub上で閲覧・ダウンロードできます。
+> [👉 学術論文PDFを閲覧・ダウンロード（GitHub）]({pdf_url})
+
+---
+"""
+            pdf_banner_html = f"""
+          <!-- Academic Thesis PDF Download Callout -->
+          <div style="background:linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border:1px solid #bae6fd; border-left:5px solid #0284c7; border-radius:8px; padding:16px 20px; margin-bottom:26px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="max-width:540px;">
+                <div style="font-size:11px; font-weight:bold; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Academic Paper &amp; Full Report (PDF)</div>
+                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート（卒論水準・査読様式PDF）</h4>
+                <p style="margin:0; font-size:13px; line-height:1.5; color:#334155;">
+                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（A4判）をGitHub上で公開しています。
+                </p>
+              </div>
+              <div style="text-align:right;">
+                <a href="{pdf_url}" target="_blank" rel="noopener noreferrer" style="background-color:#0284c7; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); transition:background-color 0.2s;">
+                  📥 論文PDFをダウンロード / 閲覧
+                </a>
+                <div style="font-size:11px; color:#64748b; margin-top:4px;">※GitHubビューアで直接閲覧可能</div>
+              </div>
+            </div>
+          </div>
+"""
+
         # 3. Assemble Markdown Content (Includes raw URL chart and full Python script)
         insights_bullets_md = "\n".join([f"- {ins}" for ins in analysis.key_insights])
 
@@ -310,7 +346,7 @@ plt.show()
 **更新日:** {today_str} | **カテゴリ:** {category_label} | **データ対象地域:** {dataset.region.upper()}
 
 ---
-
+{pdf_badge_md}
 ## 📌 本日の分析要約（エグゼクティブサマリー）
 
 {insights.executive_summary}
@@ -401,6 +437,7 @@ plt.show()
             <p style="margin-bottom:0; font-size:15px; line-height:1.7;">{summary_html}</p>
           </div>
 
+          {pdf_banner_html}
           <!-- Open Data Source Details -->
           <div style="background-color:#edf2f4; padding:12px 18px; border-radius:6px; margin-bottom:25px; font-size:13px; color:#495057;">
             <b>データ出典:</b> <a href="{dataset.source_url}" target="_blank" style="color:#1d3557; text-decoration:underline;">{dataset.source_name}</a><br/>
@@ -548,4 +585,6 @@ plt.show()
             chart_path=chart_path,
             dataset_id=dataset.id,
             created_at=date_iso,
+            pdf_path=pdf_path,
+            pdf_url=pdf_url,
         )
