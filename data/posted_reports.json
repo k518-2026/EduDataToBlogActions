@@ -89,5 +89,23 @@
     "platform": "wordpress_mail",
     "posted_at": "2026-09-14T13:08:11.315967",
     "date": "2026-09-14"
+  },
+  {
+    "dataset_id": "oecd_pisa_math_ict",
+    "title": "【教育オープンデータ統計分析】【OECD PISA】主要国の数学的リテラシー得点推移とデジタル機器活用状況の国際比較 (2026年09月14日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_mail",
+    "posted_at": "2026-09-14T13:20:40.139443",
+    "date": "2026-09-14"
   }
 ]
