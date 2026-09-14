@@ -93,26 +93,20 @@ class JSETNumberedCanvas(canvas.Canvas):
         dataset = self.current_dataset
 
         if p == 1:
-            # 1. Top-Left Category Box (JSET template: 論文種別枠)
+            # 1. Top-Left Category Box (論文種別枠)
             self.setLineWidth(0.6)
             self.setStrokeColor(colors.black)
             self.rect(MARGIN_X, PAGE_HEIGHT - MARGIN_TOP + 4, 96, 16)
             self.setFont(self.gothic_font, 8.5)
             self.drawCentredString(MARGIN_X + 48, PAGE_HEIGHT - MARGIN_TOP + 8.5, "教育実践研究論文")
 
-            # 2. Top-Right Running Journal Identifier
-            self.setFont(self.mincho_font, 8.5)
-            self.drawRightString(
-                PAGE_WIDTH - MARGIN_X,
-                PAGE_HEIGHT - MARGIN_TOP + 8.5,
-                "日本教育工学会論文誌 XX (xxxxx) ， 0-0， 20xx",
-            )
+            # 2. Top-Right: 学会名・雑誌名は掲載しない（体裁・レイアウトのみ利用）
 
             # 3. Bottom-Left English Metadata Box
             self.rect(MARGIN_X, MARGIN_BOTTOM, COL_W, BOX_H)
             self.setFont(self.mincho_font, 7.0)
-            today_received = datetime.now().strftime("%Y年%m月%d日受理")
-            self.drawString(MARGIN_X + 5, MARGIN_BOTTOM + BOX_H - 11, today_received)
+            today_date = datetime.now().strftime("%Y年%m月%d日執筆")
+            self.drawString(MARGIN_X + 5, MARGIN_BOTTOM + BOX_H - 11, today_date)
 
             self.setFont(self.mincho_font, 6.5)
             authors_str = paper.authors_en if paper and paper.authors_en else "EduData Research Group*1, Educational Data Science Team*2"
@@ -125,24 +119,18 @@ class JSETNumberedCanvas(canvas.Canvas):
             self.drawString(MARGIN_X + 5, MARGIN_BOTTOM + BOX_H - 43, "*1 Open Education Data Project, Tokyo, Japan")
             self.drawString(MARGIN_X + 5, MARGIN_BOTTOM + BOX_H - 53, "*2 Educational Data Science Unit, Tokyo, Japan")
 
-            # 4. Page 1 Footer
+            # 4. Page 1 Footer (Page number on outer margin)
             self.setFont(self.mincho_font, 8.5)
-            self.drawString(MARGIN_X, MARGIN_BOTTOM - 16, "Vol． XX，Suppl． (20XX)")
             self.drawRightString(PAGE_WIDTH - MARGIN_X, MARGIN_BOTTOM - 16, "1")
 
         else:
-            # Later Pages Footers (alternating even/odd)
+            # Later Pages Footers (alternating even/odd: page numbers on outer margin)
             self.setFont(self.mincho_font, 8.5)
             if p % 2 == 0:
-                # Even page footer: [PageNum]  日本教育工学会論文誌 (Jpn．J．Educ．Technol．)
-                self.drawString(
-                    MARGIN_X,
-                    MARGIN_BOTTOM - 16,
-                    f"{p}  日本教育工学会論文誌 (Jpn．J．Educ．Technol．)",
-                )
+                # Even page footer: [PageNum] on outer left
+                self.drawString(MARGIN_X, MARGIN_BOTTOM - 16, f"{p}")
             else:
-                # Odd page footer: Vol. XX, Suppl. (20XX) [PageNum]
-                self.drawString(MARGIN_X, MARGIN_BOTTOM - 16, "Vol． XX，Suppl． (20XX)")
+                # Odd page footer: [PageNum] on outer right
                 self.drawRightString(PAGE_WIDTH - MARGIN_X, MARGIN_BOTTOM - 16, f"{p}")
 
         self.restoreState()
@@ -657,7 +645,7 @@ class EduPaperPdfGenerator:
                 )
             summary_elements.append(
                 Paragraph(
-                    f"(Received {datetime.now().strftime('%B %d， %Y')})",
+                    f"({datetime.now().strftime('%B %d， %Y')})",
                     self.styles["SummaryDate"],
                 )
             )

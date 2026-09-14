@@ -78,6 +78,35 @@ def test_pdf_generator_builds_valid_pdf(tmp_path):
         assert header == b"%PDF-"
 
 
+def test_no_society_name_in_paper_and_pdf(tmp_path):
+    """Ensures academic society names and fictitious journal IDs are never published."""
+    catalog = DatasetCatalog()
+    forbidden_strings = ["日本教育工学会", "Jpn．J．Educ．Technol．", "Vol． XX，Suppl．"]
+
+    for dataset_id in ["japan_national_assessment_math", "japan_mext_ict_informatization"]:
+        dataset = catalog.get_by_id(dataset_id)
+        analyzer = EduDataAnalyzer()
+        analysis = analyzer.analyze(dataset)
+        paper_gen = AcademicPaperGenerator()
+        paper = paper_gen.generate_paper(dataset, analysis)
+
+        all_text = " ".join([
+            paper.title, paper.subtitle, paper.abstract, " ".join(paper.keywords),
+            paper.background, paper.objectives, paper.methodology,
+            paper.results_text, paper.discussion, " ".join(paper.references),
+            paper.title_en, paper.summary_en,
+        ])
+        for forbidden in forbidden_strings:
+            assert forbidden not in all_text, f"Forbidden society string '{forbidden}' found in paper text!"
+
+    # Verify PDF compiles cleanly without errors
+    pdf_gen = EduPaperPdfGenerator()
+    out_pdf = tmp_path / "check_no_society.pdf"
+    res_path = pdf_gen.generate_pdf(paper, dataset, analysis, None, out_pdf)
+    assert res_path.exists()
+    assert res_path.stat().st_size > 10000
+
+
 def test_reporter_integrates_pdf_link(tmp_path):
     catalog = DatasetCatalog()
     dataset = catalog.get_by_id("japan_national_assessment_math")

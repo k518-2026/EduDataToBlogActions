@@ -521,8 +521,8 @@ plt.show()
         pdf_banner_html = ""
         if pdf_url:
             pdf_badge_md = f"""
-> 📄 **学術論文形式PDF（学部の卒論水準）を公開中**:
-> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（A4判）をGitHub上で閲覧・ダウンロードできます。
+> 📄 **学術論文形式PDF（査読論文様式）を公開中**:
+> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（JIS B5判・2段組）をGitHub上で閲覧・ダウンロードできます。
 > [👉 学術論文PDFを閲覧・ダウンロード（GitHub）]({pdf_url})
 
 ---
@@ -533,9 +533,9 @@ plt.show()
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
               <div style="max-width:540px;">
                 <div style="font-size:11px; font-weight:bold; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Academic Paper &amp; Full Report (PDF)</div>
-                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート（卒論水準・査読様式PDF）</h4>
+                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート（学術論文誌様式PDF）</h4>
                 <p style="margin:0; font-size:13px; line-height:1.5; color:#334155;">
-                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（A4判）をGitHub上で公開しています。
+                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）をGitHub上で公開しています。
                 </p>
               </div>
               <div style="text-align:right;">
