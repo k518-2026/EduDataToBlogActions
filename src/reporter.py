@@ -193,6 +193,265 @@ plt.show()
 '''
         return code.strip()
 
+    def _build_kpi_cards_html(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> str:
+        """Constructs an executive KPI highlight card row for primary metrics."""
+        if not analysis.descriptive_stats:
+            return ""
+        first_metric = dataset.metrics[0] if dataset.metrics else list(analysis.descriptive_stats.keys())[0]
+        stat = analysis.descriptive_stats.get(first_metric)
+        if not stat:
+            return ""
+
+        diff_range = stat.max_val - stat.min_val
+        unit_label = dataset.unit or ""
+
+        return f"""
+          <!-- Key Metrics KPI Summary Cards -->
+          <div style="margin:24px 0 20px 0;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(175px, 1fr)); gap:12px;">
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-top:4px solid #3b82f6; border-radius:8px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:4px;">🎯 平均値 ({first_metric})</div>
+                <div style="font-size:22px; font-weight:bold; color:#0f172a; font-family:Consolas, Monaco, monospace;">
+                  {stat.mean:.2f} <span style="font-size:12px; font-weight:normal; color:#64748b;">{unit_label}</span>
+                </div>
+              </div>
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-top:4px solid #10b981; border-radius:8px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:4px;">📊 中央値 (Median)</div>
+                <div style="font-size:22px; font-weight:bold; color:#0f172a; font-family:Consolas, Monaco, monospace;">
+                  {stat.median:.2f} <span style="font-size:12px; font-weight:normal; color:#64748b;">{unit_label}</span>
+                </div>
+              </div>
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-top:4px solid #f59e0b; border-radius:8px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:4px;">📏 標準偏差 (σ)</div>
+                <div style="font-size:22px; font-weight:bold; color:#0f172a; font-family:Consolas, Monaco, monospace;">
+                  {stat.std:.2f}
+                </div>
+              </div>
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-top:4px solid #8b5cf6; border-radius:8px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:4px;">↕️ 全変動幅 (Max - Min)</div>
+                <div style="font-size:22px; font-weight:bold; color:#0f172a; font-family:Consolas, Monaco, monospace;">
+                  {diff_range:.2f} <span style="font-size:12px; font-weight:normal; color:#64748b;">{unit_label}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        """
+
+    def _build_descriptive_stats_tables(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> tuple[str, str]:
+        """Constructs modern, polished Markdown and HTML descriptive statistics tables."""
+        unit_str = f" ({dataset.unit})" if dataset.unit else ""
+        md_rows = [
+            f"| 指標名 | 標本数 (N) | 平均値{unit_str} | 中央値{unit_str} | 標準偏差 (σ) | 最小値{unit_str} | 最大値{unit_str} | 四分位範囲 (IQR) |",
+            "| :--- | :---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+        html_rows = []
+        for i, (m, s) in enumerate(analysis.descriptive_stats.items()):
+            md_rows.append(
+                f"| **{m}** | {s.count:,} | {s.mean:.2f} | {s.median:.2f} | {s.std:.2f} | {s.min_val:.2f} | {s.max_val:.2f} | {s.iqr:.2f} |"
+            )
+            bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+            html_rows.append(
+                f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                  <td style="padding:10px 14px; font-weight:bold; color:#0f172a; white-space:nowrap;">{m}</td>
+                  <td style="padding:10px 12px; text-align:center; color:#64748b; font-family:Consolas, Monaco, monospace;">{s.count:,}</td>
+                  <td style="padding:10px 14px; text-align:right; font-weight:bold; color:#1e293b; font-family:Consolas, Monaco, monospace;">{s.mean:.2f}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#334155; font-family:Consolas, Monaco, monospace;">{s.median:.2f}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#64748b; font-family:Consolas, Monaco, monospace;">{s.std:.2f}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#0369a1; font-family:Consolas, Monaco, monospace;">{s.min_val:.2f}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#b45309; font-family:Consolas, Monaco, monospace;">{s.max_val:.2f}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#475569; font-family:Consolas, Monaco, monospace;">{s.iqr:.2f}</td>
+                </tr>"""
+            )
+
+        md_table = "\n".join(md_rows) + "\n"
+        html_table = f"""
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+          <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="font-weight:bold; color:#1e293b; font-size:14px; display:inline-flex; align-items:center; gap:6px;">
+              📊 基本記述統計量一覧（代表値・ばらつき）
+            </div>
+            <span style="font-size:11.5px; background-color:#e0f2fe; color:#0369a1; font-weight:600; padding:3px 10px; border-radius:12px;">
+              単位: {dataset.unit}
+            </span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:left;">
+              <thead>
+                <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; letter-spacing:0.3px; border-bottom:2px solid #cbd5e1;">
+                  <th style="padding:10px 14px; text-align:left;">指標名</th>
+                  <th style="padding:10px 12px; text-align:center;">標本数 (N)</th>
+                  <th style="padding:10px 14px; text-align:right;">平均値</th>
+                  <th style="padding:10px 14px; text-align:right;">中央値</th>
+                  <th style="padding:10px 14px; text-align:right;">標準偏差 (σ)</th>
+                  <th style="padding:10px 14px; text-align:right;">最小値</th>
+                  <th style="padding:10px 14px; text-align:right;">最大値</th>
+                  <th style="padding:10px 14px; text-align:right;">四分位範囲 (IQR)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {''.join(html_rows)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        """
+        return md_table, html_table
+
+    def _build_trend_tables(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> tuple[str, str]:
+        """Constructs modern, styled Markdown and HTML trend/regression analysis tables."""
+        if not analysis.trends:
+            return "", ""
+
+        unit_str = f" ({dataset.unit})" if dataset.unit else ""
+        md_rows = [
+            f"| 指標 / グループ | 調査開始 | 初期値{unit_str} | 最新調査 | 最新値{unit_str} | 増減量{unit_str} | 変化率 | 年平均成長率 (CAGR) | 決定係数 (R²) |",
+            "| :--- | :---: | ---: | :---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+        html_rows = []
+        for i, tr in enumerate(analysis.trends):
+            grp_str = f"[{tr.group_name}] " if tr.group_name else ""
+            cagr_val_str = f"{tr.cagr:+.2f}%" if tr.cagr is not None else "-"
+            md_rows.append(
+                f"| {grp_str}{tr.metric} | {tr.start_time} | {tr.start_val:.2f} | "
+                f"{tr.end_time} | {tr.end_val:.2f} | {tr.diff:+.2f} | {tr.pct_change:+.1f}% | "
+                f"{cagr_val_str} | {tr.r_squared:.3f} |"
+            )
+
+            # Diff badge
+            if tr.diff > 0:
+                diff_pill = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; font-weight:bold; font-size:12px;">+{tr.diff:.2f}</span>'
+                pct_pill = f'<span style="color:#15803d; font-weight:bold;">{tr.pct_change:+.1f}%</span>'
+            elif tr.diff < 0:
+                diff_pill = f'<span style="background-color:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:10px; font-weight:bold; font-size:12px;">{tr.diff:.2f}</span>'
+                pct_pill = f'<span style="color:#b91c1c; font-weight:bold;">{tr.pct_change:+.1f}%</span>'
+            else:
+                diff_pill = f'<span style="background-color:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:10px; font-size:12px;">±0.00</span>'
+                pct_pill = f'<span style="color:#64748b;">0.0%</span>'
+
+            # R^2 badge
+            if tr.r_squared >= 0.5:
+                r2_badge = f'<span style="background-color:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:12px;">{tr.r_squared:.3f}</span>'
+            else:
+                r2_badge = f'<span style="color:#64748b; font-size:12px;">{tr.r_squared:.3f}</span>'
+
+            bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+            html_rows.append(
+                f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                  <td style="padding:10px 14px; font-weight:bold; color:#0f172a; white-space:nowrap;">{grp_str}{tr.metric}</td>
+                  <td style="padding:10px 12px; text-align:center; color:#64748b; font-family:Consolas, monospace;">{tr.start_time}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#334155; font-family:Consolas, monospace;">{tr.start_val:.2f}</td>
+                  <td style="padding:10px 12px; text-align:center; color:#64748b; font-family:Consolas, monospace;">{tr.end_time}</td>
+                  <td style="padding:10px 14px; text-align:right; font-weight:bold; color:#0f172a; font-family:Consolas, monospace;">{tr.end_val:.2f}</td>
+                  <td style="padding:10px 14px; text-align:right;">{diff_pill}</td>
+                  <td style="padding:10px 14px; text-align:right; font-family:Consolas, monospace;">{pct_pill}</td>
+                  <td style="padding:10px 14px; text-align:right; color:#475569; font-family:Consolas, monospace;">{cagr_val_str}</td>
+                  <td style="padding:10px 14px; text-align:right; font-family:Consolas, monospace;">{r2_badge}</td>
+                </tr>"""
+            )
+
+        md_table = "### 📈 経年変化・トレンド推移\n\n" + "\n".join(md_rows) + "\n\n"
+        html_table = f"""
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+          <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="font-weight:bold; color:#1e293b; font-size:14px; display:inline-flex; align-items:center; gap:6px;">
+              📈 経年変化トレンド・線形回帰分析表
+            </div>
+            <span style="font-size:11.5px; background-color:#e0f2fe; color:#0369a1; font-weight:600; padding:3px 10px; border-radius:12px;">
+              単位: {dataset.unit}
+            </span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:left;">
+              <thead>
+                <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; letter-spacing:0.3px; border-bottom:2px solid #cbd5e1;">
+                  <th style="padding:10px 14px; text-align:left;">指標 / グループ</th>
+                  <th style="padding:10px 12px; text-align:center;">開始年</th>
+                  <th style="padding:10px 14px; text-align:right;">初期値</th>
+                  <th style="padding:10px 12px; text-align:center;">最新年</th>
+                  <th style="padding:10px 14px; text-align:right;">最新値</th>
+                  <th style="padding:10px 14px; text-align:right;">増減変化量</th>
+                  <th style="padding:10px 14px; text-align:right;">変化率</th>
+                  <th style="padding:10px 14px; text-align:right;">CAGR</th>
+                  <th style="padding:10px 14px; text-align:right;">決定係数 (R²)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {''.join(html_rows)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        """
+        return md_table, html_table
+
+    def _build_correlation_tables(
+        self, analysis: AnalysisResult
+    ) -> tuple[str, str]:
+        """Constructs modern, styled Markdown and HTML correlation analysis tables."""
+        if not analysis.correlations:
+            return "", ""
+
+        md_rows = [
+            "| 分析指標ペア (X × Y) | 相関係数 (r) | 有意確率 (p値) | 相関の強さ・判定 |",
+            "| :--- | :---: | :---: | :--- |",
+        ]
+        html_rows = []
+        for i, cr in enumerate(analysis.correlations):
+            md_rows.append(
+                f"| **{cr.metric_x}** × **{cr.metric_y}** | {cr.pearson_r:+.3f} | {cr.p_value:.4f} | {cr.interpretation} |"
+            )
+
+            # Correlation badge
+            if cr.pearson_r >= 0.7:
+                r_badge = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.pearson_r:+.3f}</span>'
+            elif cr.pearson_r <= -0.7:
+                r_badge = f'<span style="background-color:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.pearson_r:+.3f}</span>'
+            else:
+                r_badge = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.pearson_r:+.3f}</span>'
+
+            bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+            html_rows.append(
+                f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                  <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{cr.metric_x} <span style="color:#94a3b8; font-weight:normal;">×</span> {cr.metric_y}</td>
+                  <td style="padding:10px 14px; text-align:center; font-family:Consolas, monospace;">{r_badge}</td>
+                  <td style="padding:10px 14px; text-align:center; color:#64748b; font-family:Consolas, monospace;">{cr.p_value:.4f}</td>
+                  <td style="padding:10px 14px; color:#334155;"><span style="background-color:#f1f5f9; padding:2px 8px; border-radius:6px; font-size:12px;">{cr.interpretation}</span></td>
+                </tr>"""
+            )
+
+        md_table = "### 🔍 指標間の相関分析\n\n" + "\n".join(md_rows) + "\n\n"
+        html_table = f"""
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+          <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px;">
+            <div style="font-weight:bold; color:#1e293b; font-size:14px; display:inline-flex; align-items:center; gap:6px;">
+              🔍 指標間の相関分析（ピアソン積率相関係数）
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:left;">
+              <thead>
+                <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; letter-spacing:0.3px; border-bottom:2px solid #cbd5e1;">
+                  <th style="padding:10px 14px; text-align:left;">分析指標ペア (X × Y)</th>
+                  <th style="padding:10px 14px; text-align:center;">相関係数 (r)</th>
+                  <th style="padding:10px 14px; text-align:center;">有意確率 (p値)</th>
+                  <th style="padding:10px 14px; text-align:left;">判定・解釈</th>
+                </tr>
+              </thead>
+              <tbody>
+                {''.join(html_rows)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        """
+        return md_table, html_table
+
     def build_report(
         self,
         dataset: EducationDataset,
@@ -250,79 +509,12 @@ plt.show()
         )
         raw_py_url = f"https://raw.githubusercontent.com/{Config.GITHUB_REPOSITORY}/{Config.GITHUB_BRANCH}/reports/scripts/{py_filename}"
 
-        # 1. Build Markdown Table for Descriptive Stats
-        desc_table_rows_md = [
-            "| 指標名 | データ数 | 平均値 | 中央値 | 標準偏差 | 最小値 | 最大値 | 四分位範囲 (IQR) |",
-            "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
-        ]
-        desc_table_rows_html = []
-        for m, s in analysis.descriptive_stats.items():
-            desc_table_rows_md.append(
-                f"| **{m}** | {s.count} | {s.mean}{dataset.unit} | {s.median}{dataset.unit} | "
-                f"{s.std} | {s.min_val} | {s.max_val} | {s.iqr} |"
-            )
-            desc_table_rows_html.append(
-                f"<tr><td><b>{m}</b></td><td style='text-align:center;'>{s.count}</td>"
-                f"<td style='text-align:right;'>{s.mean}{dataset.unit}</td>"
-                f"<td style='text-align:right;'>{s.median}{dataset.unit}</td>"
-                f"<td style='text-align:right;'>{s.std}</td>"
-                f"<td style='text-align:right;'>{s.min_val}</td>"
-                f"<td style='text-align:right;'>{s.max_val}</td>"
-                f"<td style='text-align:right;'>{s.iqr}</td></tr>"
-            )
+        # 1. Build KPI highlight cards and clean tables
+        kpi_cards_html = self._build_kpi_cards_html(dataset, analysis)
+        desc_table_md, desc_table_html = self._build_descriptive_stats_tables(dataset, analysis)
+        trend_table_md, trend_table_html = self._build_trend_tables(dataset, analysis)
+        corr_table_md, corr_table_html = self._build_correlation_tables(analysis)
 
-        # 2. Build Markdown Table for Trends (if available)
-        trend_table_md = ""
-        trend_table_html = ""
-        if analysis.trends:
-            trend_rows_md = [
-                "| 指標 / グループ | 調査開始 | 初期値 | 調査最新 | 最新値 | 変化量 | 変化率 | 年平均成長率 (CAGR) | 決定係数 (R²) |",
-                "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
-            ]
-            trend_rows_html = []
-            for tr in analysis.trends:
-                grp_str = f"[{tr.group_name}] " if tr.group_name else ""
-                cagr_str = f"{tr.cagr:+.2f}%" if tr.cagr is not None else "-"
-                trend_rows_md.append(
-                    f"| {grp_str}{tr.metric} | {tr.start_time} | {tr.start_val}{dataset.unit} | "
-                    f"{tr.end_time} | {tr.end_val}{dataset.unit} | {tr.diff:+.1f} | {tr.pct_change:+.1f}% | "
-                    f"{cagr_str} | {tr.r_squared} |"
-                )
-                trend_rows_html.append(
-                    f"<tr><td>{grp_str}<b>{tr.metric}</b></td>"
-                    f"<td style='text-align:center;'>{tr.start_time}</td>"
-                    f"<td style='text-align:right;'>{tr.start_val}{dataset.unit}</td>"
-                    f"<td style='text-align:center;'>{tr.end_time}</td>"
-                    f"<td style='text-align:right;'>{tr.end_val}{dataset.unit}</td>"
-                    f"<td style='text-align:right; font-weight:bold; color:{'#2a9d8f' if tr.diff>=0 else '#e76f51'};'>{tr.diff:+.1f}</td>"
-                    f"<td style='text-align:right;'>{tr.pct_change:+.1f}%</td>"
-                    f"<td style='text-align:right;'>{cagr_str}</td>"
-                    f"<td style='text-align:right;'>{tr.r_squared}</td></tr>"
-                )
-            trend_table_md = "### 経年変化・トレンド推移\n\n" + "\n".join(trend_rows_md) + "\n"
-            trend_table_html = f"""
-            <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px; margin-top:25px;">📈 経年変化・トレンド分析表</h3>
-            <div style="overflow-x:auto;">
-              <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:14px;">
-                <thead>
-                  <tr style="background-color:#f1faee; color:#1d3557; border-bottom:2px solid #a8dadc;">
-                    <th style="padding:8px; text-align:left;">指標 / グループ</th>
-                    <th style="padding:8px; text-align:center;">開始年</th>
-                    <th style="padding:8px; text-align:right;">初期値</th>
-                    <th style="padding:8px; text-align:center;">最新年</th>
-                    <th style="padding:8px; text-align:right;">最新値</th>
-                    <th style="padding:8px; text-align:right;">変化量</th>
-                    <th style="padding:8px; text-align:right;">変化率</th>
-                    <th style="padding:8px; text-align:right;">CAGR</th>
-                    <th style="padding:8px; text-align:right;">R²</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {''.join(trend_rows_html)}
-                </tbody>
-              </table>
-            </div>
-            """
 
         # Academic Thesis PDF download links
         pdf_badge_md = ""
@@ -382,11 +574,9 @@ plt.show()
 
 ## 📈 統計分析データテーブル
 
-### 主要指標の記述統計量
-{chr(10).join(desc_table_rows_md)}
-
-{trend_table_md}
-### 統計から導出された主要ハイライト
+### 📊 主要指標の基本記述統計量
+{desc_table_md}
+{trend_table_md}{corr_table_md}### 統計から導出された主要ハイライト
 {insights_bullets_md}
 
 ---
@@ -469,28 +659,15 @@ plt.show()
           </div>
 
           <!-- Statistical Tables Section -->
-          <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px; margin-top:30px;">📊 統計分析結果（記述統計量）</h3>
-          <div style="overflow-x:auto;">
-            <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:14px;">
-              <thead>
-                <tr style="background-color:#f1faee; color:#1d3557; border-bottom:2px solid #a8dadc;">
-                  <th style="padding:8px; text-align:left;">指標名</th>
-                  <th style="padding:8px; text-align:center;">標本数</th>
-                  <th style="padding:8px; text-align:right;">平均値</th>
-                  <th style="padding:8px; text-align:right;">中央値</th>
-                  <th style="padding:8px; text-align:right;">標準偏差</th>
-                  <th style="padding:8px; text-align:right;">最小</th>
-                  <th style="padding:8px; text-align:right;">最大</th>
-                  <th style="padding:8px; text-align:right;">IQR</th>
-                </tr>
-              </thead>
-              <tbody>
-                {''.join(desc_table_rows_html)}
-              </tbody>
-            </table>
-          </div>
+          <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px; margin-top:30px;">📊 統計分析結果データテーブル</h3>
+          {kpi_cards_html}
+
+          {desc_table_html}
 
           {trend_table_html}
+
+          {corr_table_html}
+
 
           <!-- Key Highlights Bullet Points -->
           <div style="background-color:#f0f7f4; border-radius:6px; padding:15px 20px; margin-bottom:30px;">
