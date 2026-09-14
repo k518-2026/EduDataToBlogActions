@@ -26,11 +26,11 @@ class WordPressMailPublisher(BasePublisher):
         smtp_pass: Optional[str] = None,
         wp_post_email: Optional[str] = None,
     ):
-        self.smtp_host = smtp_host or Config.SMTP_HOST
+        self.smtp_host = (smtp_host or Config.SMTP_HOST).strip()
         self.smtp_port = smtp_port or Config.SMTP_PORT
-        self.smtp_user = smtp_user or Config.SMTP_USER
-        self.smtp_pass = smtp_pass or Config.SMTP_PASS
-        self.wp_post_email = wp_post_email or Config.WP_POST_EMAIL
+        self.smtp_user = (smtp_user or Config.SMTP_USER).strip()
+        self.smtp_pass = (smtp_pass or Config.SMTP_PASS).strip()
+        self.wp_post_email = (wp_post_email or Config.WP_POST_EMAIL).strip()
 
     def publish(self, report: GeneratedReport) -> bool:
         if not self.wp_post_email:
@@ -47,17 +47,8 @@ class WordPressMailPublisher(BasePublisher):
         alt_part = MIMEMultipart("alternative")
         msg.attach(alt_part)
 
-        # Plain text version with WordPress Post by Email shortcodes
-        cat_str = ",".join(report.categories)
-        tag_str = ",".join(report.tags)
-        wp_status = Config.WP_POST_STATUS or "publish"
-        plain_text = (
-            f"{report.title}\n\n"
-            f"[status {wp_status}]\n"
-            f"[category {cat_str}]\n"
-            f"[tags {tag_str}]\n\n"
-            "本記事はHTML形式でフォーマットされています。\n"
-        )
+        # Plain text fallback (exactly like PaperToBlogActions)
+        plain_text = "この投稿を表示するにはHTML対応のメールクライアントが必要です。"
         alt_part.attach(MIMEText(plain_text, "plain", "utf-8"))
 
         # HTML content
