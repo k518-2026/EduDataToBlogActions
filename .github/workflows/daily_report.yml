@@ -110,7 +110,9 @@ jobs:
           path: |
             temp/*.png
             temp/*.pdf
+            temp/*.py
             reports/pdf/*.pdf
+            reports/scripts/*.py
             temp/preview_post.html
             temp/preview_report.md
           if-no-files-found: ignore

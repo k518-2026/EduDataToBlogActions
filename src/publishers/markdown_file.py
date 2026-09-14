@@ -20,9 +20,11 @@ class MarkdownFilePublisher(BasePublisher):
         self.reports_dir = reports_dir or REPORTS_DIR
         self.assets_dir = self.reports_dir / "assets"
         self.pdf_dir = self.reports_dir / "pdf"
+        self.scripts_dir = self.reports_dir / "scripts"
         self.reports_dir.mkdir(exist_ok=True)
         self.assets_dir.mkdir(exist_ok=True)
         self.pdf_dir.mkdir(exist_ok=True)
+        self.scripts_dir.mkdir(exist_ok=True)
 
     def publish(self, report: GeneratedReport) -> bool:
         # 1. Copy chart asset to reports/assets/
@@ -39,7 +41,14 @@ class MarkdownFilePublisher(BasePublisher):
                 shutil.copy(report.pdf_path, dest_pdf_path)
             logger.info(f"Archived academic thesis PDF to {dest_pdf_path}")
 
-        # 3. Adjust chart path in markdown content to point to assets/
+        # 3. Copy Python analysis script to reports/scripts/
+        if report.py_script_path and report.py_script_path.exists():
+            dest_py_path = self.scripts_dir / report.py_script_path.name
+            if report.py_script_path.resolve() != dest_py_path.resolve():
+                shutil.copy(report.py_script_path, dest_py_path)
+            logger.info(f"Archived Python analysis script to {dest_py_path}")
+
+        # 4. Adjust chart path in markdown content to point to assets/
         md_content = report.markdown_content.replace(
             f"({report.chart_path.name})", f"(assets/{dest_chart_filename})"
         )

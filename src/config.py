@@ -10,6 +10,7 @@ DATA_DIR = BASE_DIR / "data"
 TEMP_DIR = BASE_DIR / "temp"
 REPORTS_DIR = BASE_DIR / "reports"
 PDF_REPORTS_DIR = REPORTS_DIR / "pdf"
+SCRIPTS_REPORTS_DIR = REPORTS_DIR / "scripts"
 CATALOG_DIR = DATA_DIR / "catalog"
 
 # Ensure runtime directories exist
@@ -17,6 +18,7 @@ DATA_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
 REPORTS_DIR.mkdir(exist_ok=True)
 PDF_REPORTS_DIR.mkdir(exist_ok=True)
+SCRIPTS_REPORTS_DIR.mkdir(exist_ok=True)
 CATALOG_DIR.mkdir(exist_ok=True)
 
 class Config:

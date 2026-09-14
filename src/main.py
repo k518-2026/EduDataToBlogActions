@@ -150,8 +150,22 @@ def main():
     )
     logger.info(f"PDF generated: {local_pdf_path} (Public GitHub URL: {pdf_github_url})")
 
-    # 7. Assemble report
-    logger.info("📝 Assembling comprehensive HTML and Markdown report with PDF links...")
+    # 7. Generate reproducible Python analysis script
+    logger.info("🐍 Generating reproducible Python analysis script...")
+    python_code = report_builder.generate_python_analysis_code(dataset, analysis)
+    py_filename = f"{today_iso}_{dataset.id}_analysis.py"
+    local_py_path = TEMP_DIR / py_filename
+    with open(local_py_path, "w", encoding="utf-8") as f:
+        f.write(python_code)
+
+    py_github_url = (
+        f"https://github.com/{Config.GITHUB_REPOSITORY}/blob/"
+        f"{Config.GITHUB_BRANCH}/reports/scripts/{py_filename}"
+    )
+    logger.info(f"Python script generated: {local_py_path} (Public GitHub URL: {py_github_url})")
+
+    # 8. Assemble report
+    logger.info("📝 Assembling comprehensive HTML and Markdown report with PDF and Python links...")
     report = report_builder.build_report(
         dataset=dataset,
         analysis=analysis,
@@ -159,6 +173,8 @@ def main():
         chart_path=chart_path,
         pdf_path=local_pdf_path,
         pdf_url=pdf_github_url,
+        py_script_path=local_py_path,
+        py_script_url=py_github_url,
     )
 
     # Save local previews

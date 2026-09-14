@@ -33,10 +33,19 @@ class GeneratedReport:
     created_at: str
     pdf_path: Optional[Path] = None
     pdf_url: Optional[str] = None
+    py_script_path: Optional[Path] = None
+    py_script_url: Optional[str] = None
+    python_code: Optional[str] = None
 
 
 class EduReportBuilder:
     """Constructs HTML and Markdown reports from analysis results."""
+
+    def generate_python_analysis_code(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> str:
+        """Public method to generate clean, fully self-contained reproducible Python code."""
+        return self._generate_python_analysis_code(dataset, analysis)
 
     def _generate_python_analysis_code(
         self, dataset: EducationDataset, analysis: AnalysisResult
@@ -192,6 +201,8 @@ plt.show()
         chart_path: Path,
         pdf_path: Optional[Path] = None,
         pdf_url: Optional[str] = None,
+        py_script_path: Optional[Path] = None,
+        py_script_url: Optional[str] = None,
     ) -> GeneratedReport:
         today_str = datetime.now().strftime("%Y年%m月%d日")
         date_iso = datetime.now().strftime("%Y-%m-%d")
@@ -230,7 +241,14 @@ plt.show()
 
         # Generate reproducible Python analysis code
         python_code = self._generate_python_analysis_code(dataset, analysis)
-        escaped_python_code = html.escape(python_code)
+
+        # Python script public links
+        py_filename = py_script_path.name if py_script_path else f"{date_iso}_{dataset.id}_analysis.py"
+        py_url = (
+            py_script_url
+            or f"https://github.com/{Config.GITHUB_REPOSITORY}/blob/{Config.GITHUB_BRANCH}/reports/scripts/{py_filename}"
+        )
+        raw_py_url = f"https://raw.githubusercontent.com/{Config.GITHUB_REPOSITORY}/{Config.GITHUB_BRANCH}/reports/scripts/{py_filename}"
 
         # 1. Build Markdown Table for Descriptive Stats
         desc_table_rows_md = [
@@ -391,13 +409,12 @@ plt.show()
 
 ---
 
-## 💻 統計処理に利用した Python コード
+## 💻 統計処理に利用した Python スクリプト
 
-以下のPythonコードで、本レポートの記述統計、回帰分析、相関分析、およびグラフ描画をローカル環境（Jupyter Notebook / Google Colab等）でそのまま再現できます。
+本レポートのデータ抽出、基本統計量計算、トレンド回帰、相関分析、およびグラフ描画をローカル環境（Jupyter Notebook / Google Colab等）でそのまま再現できるPythonコード（`.py`ファイル）をGitHubリポジトリにて公開しています。
 
-```python
-{python_code}
-```
+- [📂 GitHubでPythonスクリプトを閲覧する]({py_url})
+- [📥 スクリプトファイル（{py_filename}）を直接ダウンロード]({raw_py_url})
 
 ---
 *Generated automatically by EduDataToBlogActions pipeline.*
@@ -499,68 +516,27 @@ plt.show()
             </div>
           </div>
 
-          <!-- Python Analysis Code Section with Copy Button -->
-          <div style="margin-top:35px; margin-bottom:30px;">
-            <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px;">💻 統計処理に利用した Python コード</h3>
-            <p style="font-size:13px; color:#495057; margin-bottom:12px;">
-              本レポートのデータ読み込み、基本統計量の計算、トレンド線形回帰、相関分析、およびグラフ可視化を再現できる完全なPythonスクリプトです。右上のボタンからワンクリックでコピーできます。
-            </p>
-            <div style="position:relative; border-radius:8px; overflow:hidden; box-shadow:0 3px 10px rgba(0,0,0,0.12); border:1px solid #334155;">
-              <div style="display:flex; justify-content:space-between; align-items:center; background-color:#1e293b; color:#cbd5e1; padding:10px 16px; font-size:13px; font-family:Consolas, Monaco, monospace;">
-                <span style="font-weight:bold;">🐍 Python 3 (pandas / scipy / matplotlib)</span>
-                <button type="button" onclick="copyEduDataPythonCode()" id="copy-code-btn" style="background-color:#2563eb; color:#ffffff; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:background-color 0.2s;">
-                  📋 コードをコピー
-                </button>
+          <!-- Python Analysis Script Link Section -->
+          <div style="background-color:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #3b82f6; border-radius:6px; padding:16px 20px; margin-top:35px; margin-bottom:30px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="max-width:540px;">
+                <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:15px; font-weight:bold;">
+                  🐍 統計処理・グラフ作成 Python スクリプト
+                </h4>
+                <p style="margin:0; font-size:13px; color:#64748b; line-height:1.5;">
+                  本レポートのデータ抽出、基本統計量計算、トレンド回帰、相関分析、およびグラフ描画をそのまま手元で再現できるPythonスクリプト（<code>.py</code>ファイル）をGitHubにて公開しています。
+                </p>
               </div>
-              <pre id="edu-data-code-block" style="margin:0; padding:18px; background-color:#0f172a; color:#f8fafc; font-size:13px; line-height:1.55; overflow-x:auto; font-family:Consolas, Monaco, 'Courier New', monospace; max-height:450px;"><code>{escaped_python_code}</code></pre>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <a href="{py_url}" target="_blank" rel="noopener noreferrer" style="background-color:#0f172a; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:background-color 0.2s;">
+                  📂 Pythonコードを見る (GitHub)
+                </a>
+                <a href="{raw_py_url}" download="{py_filename}" style="background-color:#2563eb; color:#ffffff; text-decoration:none; padding:8px 14px; border-radius:5px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:background-color 0.2s;">
+                  📥 .pyファイルをダウンロード
+                </a>
+              </div>
             </div>
           </div>
-
-          <!-- Copy Button Interactive Script -->
-          <script>
-          function copyEduDataPythonCode() {{
-            var codeEl = document.getElementById('edu-data-code-block');
-            if (!codeEl) return;
-            var text = codeEl.innerText || codeEl.textContent;
-            var btn = document.getElementById('copy-code-btn');
-            
-            function onCopiedSuccess() {{
-              if (btn) {{
-                btn.innerText = '✅ コピー完了！';
-                btn.style.backgroundColor = '#16a34a';
-                setTimeout(function() {{
-                  btn.innerText = '📋 コードをコピー';
-                  btn.style.backgroundColor = '#2563eb';
-                }}, 2500);
-              }}
-            }}
-
-            if (navigator.clipboard && window.isSecureContext) {{
-              navigator.clipboard.writeText(text).then(onCopiedSuccess).catch(function() {{
-                fallbackClipboardCopy(text, onCopiedSuccess);
-              }});
-            }} else {{
-              fallbackClipboardCopy(text, onCopiedSuccess);
-            }}
-
-            function fallbackClipboardCopy(str, callback) {{
-              var ta = document.createElement('textarea');
-              ta.value = str;
-              ta.style.position = 'fixed';
-              ta.style.left = '-9999px';
-              document.body.appendChild(ta);
-              ta.focus();
-              ta.select();
-              try {{
-                var successful = document.execCommand('copy');
-                if (successful) callback();
-              }} catch (err) {{
-                console.error('Copy failed:', err);
-              }}
-              document.body.removeChild(ta);
-            }}
-          }}
-          </script>
 
           <!-- Footer -->
           <hr style="border:none; border-top:1px solid #e9ecef; margin:30px 0;" />
@@ -587,4 +563,7 @@ plt.show()
             created_at=date_iso,
             pdf_path=pdf_path,
             pdf_url=pdf_url,
+            py_script_path=py_script_path,
+            py_script_url=py_url,
+            python_code=python_code,
         )
