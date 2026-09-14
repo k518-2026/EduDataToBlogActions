@@ -107,6 +107,14 @@ def test_no_society_name_in_paper_and_pdf(tmp_path):
     assert res_path.stat().st_size > 10000
 
 
+def test_category_box_is_short_letter():
+    """Verifies that the paper category label is 'ショートレター' and not '教育実践研究論文'."""
+    pdf_gen_file = Path("src/pdf/pdf_generator.py").read_text(encoding="utf-8")
+    assert "ショートレター" in pdf_gen_file
+    assert "教育実践研究論文" not in pdf_gen_file
+
+
+
 def test_reporter_integrates_pdf_link(tmp_path):
     catalog = DatasetCatalog()
     dataset = catalog.get_by_id("japan_national_assessment_math")
@@ -142,3 +150,66 @@ def test_reporter_integrates_pdf_link(tmp_path):
     assert "学術論文形式の完全版レポート" in report.html_content
     assert dummy_pdf_url in report.markdown_content
     assert "学術論文形式PDF" in report.markdown_content
+
+
+def test_enhanced_academic_paper_requirements():
+    """Verifies foreign citations in background, clean RQ lines, multi-tables/figures in results, and comparative discussion."""
+    catalog = DatasetCatalog()
+    for dataset_id in ["japan_national_assessment_math", "japan_mext_ict_informatization"]:
+        dataset = catalog.get_by_id(dataset_id)
+        analyzer = EduDataAnalyzer()
+        analysis = analyzer.analyze(dataset)
+        paper_gen = AcademicPaperGenerator()
+        paper = paper_gen.generate_paper(dataset, analysis)
+
+        # 1. Background cites >= 2 foreign sources
+        foreign_keywords = ["OECD", "TIMSS", "Mullis", "UNESCO", "Wing", "PISA"]
+        found_foreign = [kw for kw in foreign_keywords if kw in paper.background]
+        assert len(found_foreign) >= 2, f"Expected >= 2 foreign citations in background for {dataset_id}, found: {found_foreign}"
+
+        # 2. RQ has separate lines and bullets
+        rq_lines = [line.strip() for line in paper.objectives.split("\n") if any(k in line for k in ["RQ1", "RQ2", "RQ3"])]
+        assert len(rq_lines) >= 3, f"Expected at least 3 separate RQ lines in objectives, found: {rq_lines}"
+        for line in rq_lines:
+            assert line.startswith("・"), f"RQ line should start with bullet: {line}"
+
+        # 3. Results text references multiple tables and figures
+        assert "表１" in paper.results_text
+        assert "表２" in paper.results_text
+        assert "図１" in paper.results_text
+        assert "図２" in paper.results_text
+
+        # 4. Discussion compares similarities, differences, and future challenges
+        assert "同じところ" in paper.discussion or "共通点" in paper.discussion
+        assert "違うところ" in paper.discussion or "相違点" in paper.discussion
+        assert "今後の課題" in paper.discussion
+
+
+def test_pdf_with_multiple_tables_and_figures_and_ai_disclosure(tmp_path):
+    """Verifies PDF generation with 2 tables, 2 figures, and generative AI disclosure note."""
+    catalog = DatasetCatalog()
+    dataset = catalog.get_by_id("japan_national_assessment_math")
+    analyzer = EduDataAnalyzer()
+    analysis = analyzer.analyze(dataset)
+
+    from src.visualizer import EduDataVisualizer
+    viz = EduDataVisualizer(output_dir=tmp_path)
+    primary_chart = viz.generate_chart(dataset, analysis)
+    secondary_chart = viz.generate_secondary_chart(dataset, analysis)
+
+    paper_gen = AcademicPaperGenerator()
+    paper = paper_gen.generate_paper(dataset, analysis)
+
+    pdf_gen = EduPaperPdfGenerator()
+    out_pdf = tmp_path / "comprehensive_test_paper.pdf"
+    res_path = pdf_gen.generate_pdf(
+        paper=paper,
+        dataset=dataset,
+        analysis=analysis,
+        chart_path=primary_chart,
+        output_pdf_path=out_pdf,
+        secondary_chart_path=secondary_chart,
+    )
+
+    assert res_path.exists()
+    assert res_path.stat().st_size > 20000

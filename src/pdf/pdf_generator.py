@@ -96,9 +96,9 @@ class JSETNumberedCanvas(canvas.Canvas):
             # 1. Top-Left Category Box (論文種別枠)
             self.setLineWidth(0.6)
             self.setStrokeColor(colors.black)
-            self.rect(MARGIN_X, PAGE_HEIGHT - MARGIN_TOP + 4, 96, 16)
+            self.rect(MARGIN_X, PAGE_HEIGHT - MARGIN_TOP + 4, 84, 16)
             self.setFont(self.gothic_font, 8.5)
-            self.drawCentredString(MARGIN_X + 48, PAGE_HEIGHT - MARGIN_TOP + 8.5, "教育実践研究論文")
+            self.drawCentredString(MARGIN_X + 42, PAGE_HEIGHT - MARGIN_TOP + 8.5, "ショートレター")
 
             # 2. Top-Right: 学会名・雑誌名は掲載しない（体裁・レイアウトのみ利用）
 
@@ -254,6 +254,34 @@ class EduPaperPdfGenerator:
             leading=12.5,
             firstLineIndent=8.5,
             spaceAfter=2,
+        )
+
+        # Research Question Bullets (14pt hanging indent for clean alignment)
+        styles["RQBullet"] = ParagraphStyle(
+            "RQBullet",
+            parent=sheet["Normal"],
+            fontName=self.mincho_font,
+            fontSize=8.5,
+            leading=12.5,
+            leftIndent=14.0,
+            firstLineIndent=-14.0,
+            spaceAfter=2.5,
+        )
+
+        # Generative AI Disclosure Note (Elegant callout box before references)
+        styles["AIDisclosure"] = ParagraphStyle(
+            "AIDisclosure",
+            parent=sheet["Normal"],
+            fontName=self.mincho_font,
+            fontSize=7.0,
+            leading=9.5,
+            textColor=colors.HexColor("#334155"),
+            backColor=colors.HexColor("#f8fafc"),
+            borderColor=colors.HexColor("#94a3b8"),
+            borderWidth=0.5,
+            borderPadding=4.5,
+            spaceBefore=5,
+            spaceAfter=6,
         )
 
         # Table & Figure Captions (MS Gothic 8.5pt)
@@ -420,6 +448,110 @@ class EduPaperPdfGenerator:
         )
         return table
 
+    def _build_secondary_table(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> Tuple[str, Table, str]:
+        """Constructs a secondary academic three-line table (Table 2) for trend regressions or correlations."""
+        if analysis.trends and len(analysis.trends) > 0:
+            headers = [
+                Paragraph("指標名", self.styles["TableHeader"]),
+                Paragraph("開始値", self.styles["TableHeader"]),
+                Paragraph("最終値", self.styles["TableHeader"]),
+                Paragraph("変化率", self.styles["TableHeader"]),
+                Paragraph("CAGR", self.styles["TableHeader"]),
+                Paragraph("傾き", self.styles["TableHeader"]),
+                Paragraph("<i>R</i><sup>2</sup>", self.styles["TableHeader"]),
+            ]
+            data = [headers]
+            for tr in analysis.trends[:6]:
+                metric_name = str(tr.group_name or tr.metric)
+                disp_name = metric_name[:8] + "…" if len(metric_name) > 9 else metric_name
+                cagr_text = f"{tr.cagr:.1f}%" if tr.cagr is not None else "-"
+                row = [
+                    Paragraph(disp_name, self.styles["TableCellLeft"]),
+                    Paragraph(f"{tr.start_val:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{tr.end_val:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{tr.pct_change:+.1f}%", self.styles["TableCell"]),
+                    Paragraph(cagr_text, self.styles["TableCell"]),
+                    Paragraph(f"{tr.slope:.2f}", self.styles["TableCell"]),
+                    Paragraph(f"{tr.r_squared:.2f}", self.styles["TableCell"]),
+                ]
+                data.append(row)
+
+            col_widths = [54, 25, 25, 25, 25, 25, 25]  # Sum = 204 pt
+            caption = "表２　時系列トレンド分析および回帰分析結果一覧"
+            note = "注）CAGRは年平均成長率，傾きは単回帰直線の勾配，R²は決定係数．"
+
+        elif analysis.correlations and len(analysis.correlations) > 0:
+            headers = [
+                Paragraph("指標X", self.styles["TableHeader"]),
+                Paragraph("指標Y", self.styles["TableHeader"]),
+                Paragraph("相関<i>r</i>", self.styles["TableHeader"]),
+                Paragraph("<i>p</i>値", self.styles["TableHeader"]),
+                Paragraph("判定", self.styles["TableHeader"]),
+            ]
+            data = [headers]
+            for cr in analysis.correlations[:5]:
+                x_name = str(cr.metric_x)[:7] + "…" if len(str(cr.metric_x)) > 8 else str(cr.metric_x)
+                y_name = str(cr.metric_y)[:7] + "…" if len(str(cr.metric_y)) > 8 else str(cr.metric_y)
+                p_text = "<.001" if cr.p_value < 0.001 else f"{cr.p_value:.3f}"
+                row = [
+                    Paragraph(x_name, self.styles["TableCellLeft"]),
+                    Paragraph(y_name, self.styles["TableCellLeft"]),
+                    Paragraph(f"{cr.pearson_r:.2f}", self.styles["TableCell"]),
+                    Paragraph(p_text, self.styles["TableCell"]),
+                    Paragraph(cr.interpretation[:6], self.styles["TableCell"]),
+                ]
+                data.append(row)
+
+            col_widths = [54, 54, 32, 32, 32]  # Sum = 204 pt
+            caption = "表２　主要指標間におけるピアソン相関係数と有意確率一覧"
+            note = "注）rはピアソン積率相関係数，p値は両側検定有意確率．"
+
+        else:
+            headers = [
+                Paragraph("指標名", self.styles["TableHeader"]),
+                Paragraph("Q1(25%)", self.styles["TableHeader"]),
+                Paragraph("中央値", self.styles["TableHeader"]),
+                Paragraph("Q3(75%)", self.styles["TableHeader"]),
+                Paragraph("IQR", self.styles["TableHeader"]),
+                Paragraph("歪度", self.styles["TableHeader"]),
+            ]
+            data = [headers]
+            for m, s in list(analysis.descriptive_stats.items())[:6]:
+                metric_name = str(m)[:8] + "…" if len(str(m)) > 9 else str(m)
+                row = [
+                    Paragraph(metric_name, self.styles["TableCellLeft"]),
+                    Paragraph(f"{s.q25:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{s.median:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{s.q75:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{s.iqr:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{s.skewness:.2f}", self.styles["TableCell"]),
+                ]
+                data.append(row)
+
+            col_widths = [54, 30, 30, 30, 30, 30]  # Sum = 204 pt
+            caption = "表２　主要指標における四分位範囲および分布形状一覧"
+            note = "注）Q1/Q3は第1/第3四分位数，IQRは四分位範囲，歪度は分布の非対称性．"
+
+        table = Table(data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("LINEABOVE", (0, 0), (-1, 0), 1.0, colors.black),
+                    ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.black),
+                    ("LINEBELOW", (0, -1), (-1, -1), 1.0, colors.black),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 2),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 1.5),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 1.5),
+                ]
+            )
+        )
+        return caption, table, note
+
     def generate_pdf(
         self,
         paper: AcademicPaper,
@@ -427,8 +559,9 @@ class EduPaperPdfGenerator:
         analysis: AnalysisResult,
         chart_path: Optional[Path],
         output_pdf_path: Path,
+        secondary_chart_path: Optional[Path] = None,
     ) -> Path:
-        """Generates the full academic thesis PDF document conforming to JSET official rules."""
+        """Generates the full academic thesis PDF document conforming to academic rules."""
         output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Pass metadata to canvas
@@ -561,9 +694,14 @@ class EduPaperPdfGenerator:
                 story.append(Paragraph(p.strip(), self.styles["Body"]))
 
         story.append(Paragraph("1.2. リサーチクエスチョンと作業仮説", self.styles["Heading2"]))
-        for p in paper.objectives.split("\n\n"):
-            if p.strip():
-                story.append(Paragraph(p.strip(), self.styles["Body"]))
+        for block in paper.objectives.split("\n"):
+            line = block.strip()
+            if not line:
+                continue
+            if line.startswith(("・", "-", "*", "（", "(")) or "RQ" in line[:6]:
+                story.append(Paragraph(line, self.styles["RQBullet"]))
+            else:
+                story.append(Paragraph(line, self.styles["Body"]))
 
         # ==========================================
         # 3. Section 2: 調査対象および分析方法
@@ -581,34 +719,64 @@ class EduPaperPdfGenerator:
             if p.strip():
                 story.append(Paragraph(p.strip(), self.styles["Body"]))
 
-        # Table 1: Caption ABOVE the table (JSET Rule)
-        table_elements = [
+        # Table 1: Caption ABOVE the table
+        table1_elements = [
             Paragraph("表１　主要指標における基本記述統計量一覧", self.styles["TableCaption"]),
             self._build_descriptive_stats_table(dataset, analysis),
             Paragraph(f"注）単位は {dataset.unit}．Nは有効標本数，SDは不偏標準偏差．", self.styles["TableNote"]),
         ]
-        story.append(KeepTogether(table_elements))
+        story.append(KeepTogether(table1_elements))
         story.append(Spacer(1, 4))
 
-        # Figure 1: Caption BELOW the figure (JSET Rule)
+        # Table 2: Caption ABOVE the table (Secondary Table)
+        sec_cap, sec_table, sec_note = self._build_secondary_table(dataset, analysis)
+        table2_elements = [
+            Paragraph(sec_cap, self.styles["TableCaption"]),
+            sec_table,
+            Paragraph(sec_note, self.styles["TableNote"]),
+        ]
+        story.append(KeepTogether(table2_elements))
+        story.append(Spacer(1, 4))
+
+        # Figure 1: Caption BELOW the figure (Primary Chart)
         if chart_path and chart_path.exists():
             try:
                 with PILImage.open(chart_path) as im:
                     orig_w, orig_h = im.size
                 target_w = 200.0
                 target_h = target_w * (orig_h / orig_w)
-                if target_h > 130.0:
-                    target_h = 130.0
+                if target_h > 115.0:
+                    target_h = 115.0
                     target_w = target_h * (orig_w / orig_h)
 
-                figure_elements = [
+                figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
                     Paragraph(f"図１　{dataset.title} の推移と傾向分析", self.styles["FigureCaption"]),
                 ]
-                story.append(KeepTogether(figure_elements))
+                story.append(KeepTogether(figure1_elements))
                 story.append(Spacer(1, 4))
             except Exception as e:
-                logger.warning(f"Failed to embed chart into JSET PDF: {e}")
+                logger.warning(f"Failed to embed primary chart into PDF: {e}")
+
+        # Figure 2: Caption BELOW the figure (Secondary Chart)
+        if secondary_chart_path and secondary_chart_path.exists():
+            try:
+                with PILImage.open(secondary_chart_path) as im:
+                    orig_w, orig_h = im.size
+                target_w = 200.0
+                target_h = target_w * (orig_h / orig_w)
+                if target_h > 115.0:
+                    target_h = 115.0
+                    target_w = target_h * (orig_w / orig_h)
+
+                figure2_elements = [
+                    Image(str(secondary_chart_path), width=target_w, height=target_h),
+                    Paragraph(f"図２　{dataset.title} における相関構造または属性間比較", self.styles["FigureCaption"]),
+                ]
+                story.append(KeepTogether(figure2_elements))
+                story.append(Spacer(1, 4))
+            except Exception as e:
+                logger.warning(f"Failed to embed secondary chart into PDF: {e}")
 
         # ==========================================
         # 5. Section 4: 考察
@@ -619,7 +787,21 @@ class EduPaperPdfGenerator:
                 story.append(Paragraph(p.strip(), self.styles["Body"]))
 
         # ==========================================
-        # 6. References (参 考 文 献)
+        # 6. Generative AI Disclosure Note (Before References)
+        # ==========================================
+        ai_notice_text = (
+            "<b>【付記：生成AIによる自動執筆に関する開示】</b><br/>"
+            "本論文は，公的教育オープンデータおよび統計解析エンジンの算出結果に基づき，"
+            "大規模言語モデル（Generative AI）を活用して自動起草・執筆された実証分析レポートである．"
+            "記載された統計数値および数理モデルは元データに準拠しているが，教育学的考察および提言の妥当性については，"
+            "指導現場の実情に応じた批判的吟味を推奨する．"
+        )
+        story.append(Spacer(1, 4))
+        story.append(Paragraph(ai_notice_text, self.styles["AIDisclosure"]))
+        story.append(Spacer(1, 4))
+
+        # ==========================================
+        # 7. References (参 考 文 献)
         # ==========================================
         story.append(Paragraph("参　考　文　献", self.styles["Heading1"]))
         for ref in paper.references:

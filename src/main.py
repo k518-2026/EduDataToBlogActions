@@ -116,10 +116,13 @@ def main():
     for ins in analysis.key_insights:
         logger.info(f"  Insight: {ins}")
 
-    # 4. Generate visualization chart
-    logger.info("🎨 Generating publication-quality chart...")
+    # 4. Generate visualization charts
+    logger.info("🎨 Generating publication-quality charts...")
     chart_path = visualizer.generate_chart(dataset, analysis)
-    logger.info(f"Chart generated successfully: {chart_path}")
+    secondary_chart_path = visualizer.generate_secondary_chart(dataset, analysis)
+    logger.info(f"Primary chart generated: {chart_path}")
+    if secondary_chart_path:
+        logger.info(f"Secondary chart generated: {secondary_chart_path}")
 
     # 5. Generate pedagogical insights
     logger.info("💡 Generating educational pedagogical insights...")
@@ -141,6 +144,7 @@ def main():
         analysis=analysis,
         chart_path=chart_path,
         output_pdf_path=local_pdf_path,
+        secondary_chart_path=secondary_chart_path,
     )
 
     # Construct public GitHub viewing/download URL

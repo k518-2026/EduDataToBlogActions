@@ -67,3 +67,35 @@ def test_visualizer_generate_ranking_chart(tmp_path):
 
     assert chart_path.exists()
     assert chart_path.stat().st_size > 1000
+
+
+def test_visualizer_generate_secondary_chart(tmp_path):
+    df = pd.DataFrame({
+        "年度": [2021, 2022, 2023, 2024],
+        "算数正答率": [65.0, 68.0, 71.0, 74.0],
+        "勉強肯定率": [60.0, 62.0, 64.0, 66.0],
+    })
+    dataset = EducationDataset(
+        id="test_vis_secondary",
+        title="テスト可視化二次チャート",
+        category="math",
+        region="japan",
+        source_name="テスト出典",
+        source_url="https://example.com",
+        description="テスト",
+        df=df,
+        metrics=["算数正答率", "勉強肯定率"],
+        time_col="年度",
+        recommended_chart="trend_line",
+        unit="%",
+    )
+
+    analyzer = EduDataAnalyzer()
+    analysis = analyzer.analyze(dataset)
+
+    vis = EduDataVisualizer(output_dir=tmp_path)
+    sec_chart_path = vis.generate_secondary_chart(dataset, analysis)
+
+    assert sec_chart_path is not None
+    assert sec_chart_path.exists()
+    assert sec_chart_path.stat().st_size > 1000

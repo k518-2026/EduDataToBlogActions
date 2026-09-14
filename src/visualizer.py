@@ -87,6 +87,61 @@ class EduDataVisualizer:
         finally:
             plt.close(fig)
 
+    def generate_secondary_chart(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> Optional[Path]:
+        """
+        Generates a complementary secondary chart (e.g. correlation scatter or group comparison)
+        for academic publications requiring multiple visual figures.
+        """
+        chart_type = dataset.recommended_chart
+        output_path = self.output_dir / f"chart_secondary_{dataset.id}.png"
+
+        fig, ax = plt.subplots(figsize=(10, 5.8))
+        try:
+            rendered = False
+            if chart_type == "trend_line":
+                if len(dataset.metrics) >= 2:
+                    self._plot_correlation_scatter(fig, ax, dataset, analysis)
+                    rendered = True
+                elif dataset.group_col:
+                    self._plot_ranking_bar(fig, ax, dataset, analysis)
+                    rendered = True
+            elif chart_type == "ranking_bar":
+                if len(dataset.metrics) >= 2:
+                    self._plot_correlation_scatter(fig, ax, dataset, analysis)
+                    rendered = True
+                elif dataset.time_col:
+                    self._plot_trend_lines(fig, ax, dataset, analysis)
+                    rendered = True
+            elif chart_type == "correlation_scatter":
+                if dataset.time_col:
+                    self._plot_trend_lines(fig, ax, dataset, analysis)
+                    rendered = True
+                elif dataset.group_col:
+                    self._plot_ranking_bar(fig, ax, dataset, analysis)
+                    rendered = True
+
+            if not rendered:
+                if len(dataset.metrics) >= 2:
+                    self._plot_correlation_scatter(fig, ax, dataset, analysis)
+                    rendered = True
+                elif dataset.group_col:
+                    self._plot_ranking_bar(fig, ax, dataset, analysis)
+                    rendered = True
+
+            if rendered:
+                plt.tight_layout()
+                fig.savefig(output_path, dpi=180, bbox_inches="tight")
+                logger.info(f"Saved secondary chart image to {output_path}")
+                return output_path
+            return None
+        except Exception as e:
+            logger.warning(f"Could not generate secondary chart: {e}")
+            return None
+        finally:
+            plt.close(fig)
+
     def _plot_trend_lines(
         self, fig: plt.Figure, ax: plt.Axes, dataset: EducationDataset, analysis: AnalysisResult
     ):
