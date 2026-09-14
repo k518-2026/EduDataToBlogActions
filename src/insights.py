@@ -25,16 +25,25 @@ class EducationalInsights:
 
 
 class GeminiInsightGenerator:
-    """Generates educational insights using Gemini API or rule-based templates."""
+    """Generates educational insights using Claude, Gemini API, or rule-based templates."""
 
-    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
-        self.api_key = api_key or Config.GEMINI_API_KEY
-        self.model_name = model_name or Config.GEMINI_TEXT_MODEL
-        self.client = None
-        if self.api_key:
+    def __init__(
+        self,
+        gemini_api_key: Optional[str] = None,
+        gemini_model: Optional[str] = None,
+        anthropic_api_key: Optional[str] = None,
+        anthropic_model: Optional[str] = None,
+    ):
+        self.gemini_api_key = (gemini_api_key or Config.GEMINI_API_KEY).strip()
+        self.gemini_model = gemini_model or Config.GEMINI_TEXT_MODEL
+        self.anthropic_api_key = (anthropic_api_key or Config.ANTHROPIC_API_KEY).strip()
+        self.anthropic_model = anthropic_model or Config.ANTHROPIC_MODEL
+
+        self.gemini_client = None
+        if self.gemini_api_key:
             try:
-                self.client = genai.Client(api_key=self.api_key)
-                logger.info(f"Initialized Gemini Client with model {self.model_name}")
+                self.gemini_client = genai.Client(api_key=self.gemini_api_key)
+                logger.info(f"Initialized Gemini Client with model {self.gemini_model}")
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini Client: {e}")
 
@@ -42,17 +51,29 @@ class GeminiInsightGenerator:
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> EducationalInsights:
         """Generates educational insights from statistical analysis results."""
-        if self.client:
+        # 1. Prefer Claude if configured
+        if self.anthropic_api_key:
             try:
+                logger.info(f"Generating insights with Anthropic Claude ({self.anthropic_model})...")
+                return self._generate_with_claude(dataset, analysis)
+            except Exception as e:
+                logger.warning(f"Claude insight generation failed: {e}. Trying Gemini...")
+
+        # 2. Use Gemini if available
+        if self.gemini_client:
+            try:
+                logger.info(f"Generating insights with Google Gemini ({self.gemini_model})...")
                 return self._generate_with_gemini(dataset, analysis)
             except Exception as e:
                 logger.warning(f"Gemini API call failed, falling back to template engine: {e}")
 
+        # 3. Fallback to template engine
+        logger.info("Using domain-specific educational insight template fallback.")
         return self._generate_template_fallback(dataset, analysis)
 
-    def _generate_with_gemini(
+    def _build_insight_prompt(
         self, dataset: EducationDataset, analysis: AnalysisResult
-    ) -> EducationalInsights:
+    ) -> str:
         stats_summary = []
         for m, s in analysis.descriptive_stats.items():
             stats_summary.append(
@@ -68,7 +89,7 @@ class GeminiInsightGenerator:
 
         insights_text = "\n".join(analysis.key_insights)
 
-        prompt = f"""あなたは算数・数学教育および情報教育（プログラミング教育・STEAM教育）の世界的専門家・教育統計アナリストです。
+        return f"""あなたは算数・数学教育および情報教育（プログラミング教育・STEAM教育）の世界的専門家・教育統計アナリストです。
 以下の公的オープンデータおよび統計分析結果を精読し、教育現場の教員・教育委員会・学習者・保護者に向けて、深く実践的な教育インサイトレポートを作成してください。
 
 ### 【データセット情報】
@@ -89,41 +110,106 @@ class GeminiInsightGenerator:
 
 ---
 ### 【出力フォーマット要件】
-以下の3つの項目について、客観的な数値の根拠と教育的な深い洞察を交えて日本語で執筆してください。各項目は見出しを付けず、内容のテキストのみを出力してください。セクション間は `===SECTION_BREAK===` で区切ってください。
-
-1. **エグゼクティブサマリー（分析の要約）** (約250〜350文字):
-   データの主要な発見、推移のトレンド、注目すべきポイントを要約。
-
-2. **教育現場・指導実践への具体的示唆** (約400〜600文字):
-   学校現場の授業実践、カリキュラム設計、児童生徒への指導法、ICTや計算ツールの活用法など、明日からの教育に活かせる実践的アドバイス。
-
-3. **今後の課題と政策・国際的展望** (約300〜450文字):
-   教育格差の是正、指導力向上、カリキュラム改訂への提言、国際比較から見えてくる日本の強みと課題。
+以下の3つの項目について、客観的な数値の根拠と教育的な深い洞察を交えて日本語で執筆してください。
+1. **executive_summary**: 分析の要約 (約250〜350文字)。データの主要な発見、推移のトレンド、注目すべきポイントを要約。
+2. **pedagogical_implications**: 教育現場・指導実践への具体的示唆 (約400〜600文字)。学校現場の授業実践、カリキュラム設計、児童生徒への指導法、ICTや計算ツールの活用法など、明日からの教育に活かせる実践的アドバイス。
+3. **future_challenges_and_policy**: 今後の課題と政策・国際的展望 (約300〜450文字)。教育格差の是正、指導力向上、カリキュラム改訂への提言、国際比較から見えてくる日本の強みと課題。
 """
-        response = self.client.models.generate_content(
-            model=self.model_name,
+
+    def _generate_with_gemini(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> EducationalInsights:
+        import json
+        prompt = self._build_insight_prompt(dataset, analysis)
+
+        response = self.gemini_client.models.generate_content(
+            model=self.gemini_model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.4,
-                max_output_tokens=2048,
+                max_output_tokens=2500,
+                response_mime_type="application/json",
+                response_schema=EducationalInsights,
             ),
         )
 
-        text = response.text.strip()
-        parts = text.split("===SECTION_BREAK===")
-        if len(parts) >= 3:
+        raw_text = response.text.strip()
+        if raw_text.startswith("```"):
+            lines = raw_text.splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            raw_text = "\n".join(lines).strip()
+
+        try:
+            data = json.loads(raw_text)
             return EducationalInsights(
-                executive_summary=parts[0].strip(),
-                pedagogical_implications=parts[1].strip(),
-                future_challenges_and_policy=parts[2].strip(),
+                executive_summary=data.get("executive_summary", ""),
+                pedagogical_implications=data.get("pedagogical_implications", ""),
+                future_challenges_and_policy=data.get("future_challenges_and_policy", ""),
             )
-        else:
-            # Fallback parsing
+        except Exception:
+            parts = raw_text.split("===SECTION_BREAK===")
+            if len(parts) >= 3:
+                return EducationalInsights(
+                    executive_summary=parts[0].strip(),
+                    pedagogical_implications=parts[1].strip(),
+                    future_challenges_and_policy=parts[2].strip(),
+                )
             return EducationalInsights(
-                executive_summary=text[:400],
-                pedagogical_implications=text[400:1000] if len(text) > 400 else "現場での活用を深める必要があります。",
-                future_challenges_and_policy=text[1000:] if len(text) > 1000 else "今後の継続的な調査と支援が求められます。",
+                executive_summary=raw_text[:400],
+                pedagogical_implications=raw_text[400:1000] if len(raw_text) > 400 else "現場での活用を深める必要があります。",
+                future_challenges_and_policy=raw_text[1000:] if len(raw_text) > 1000 else "今後の継続的な調査と支援が求められます。",
             )
+
+    def _generate_with_claude(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> EducationalInsights:
+        import json
+        import urllib.request
+
+        prompt = self._build_insight_prompt(dataset, analysis)
+        prompt += "\n\n必ず executive_summary, pedagogical_implications, future_challenges_and_policy の3キーを含む単一のJSONオブジェクト（マークダウンコードブロックなし）のみを出力してください。"
+
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": self.anthropic_api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        payload = {
+            "model": self.anthropic_model,
+            "max_tokens": 2048,
+            "temperature": 0.4,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            res_data = json.loads(resp.read().decode("utf-8"))
+
+        raw_text = res_data["content"][0]["text"].strip()
+        if raw_text.startswith("```"):
+            lines = raw_text.splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            raw_text = "\n".join(lines).strip()
+
+        data = json.loads(raw_text)
+        return EducationalInsights(
+            executive_summary=data.get("executive_summary", ""),
+            pedagogical_implications=data.get("pedagogical_implications", ""),
+            future_challenges_and_policy=data.get("future_challenges_and_policy", ""),
+        )
+
 
     def _generate_template_fallback(
         self, dataset: EducationDataset, analysis: AnalysisResult

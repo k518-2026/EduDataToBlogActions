@@ -68,6 +68,8 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_TEXT_MODEL: ${{ vars.GEMINI_TEXT_MODEL || 'gemini-2.5-flash' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022' }}
           BLOG_PUBLISHER_TYPE: ${{ inputs.publisher || vars.BLOG_PUBLISHER_TYPE || 'wordpress_mail' }}
           WP_POST_EMAIL: ${{ secrets.WP_POST_EMAIL }}
           WP_POST_STATUS: ${{ vars.WP_POST_STATUS || 'publish' }}

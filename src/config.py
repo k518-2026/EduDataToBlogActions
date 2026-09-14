@@ -28,6 +28,10 @@ class Config:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
     GEMINI_TEXT_MODEL: str = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash").strip()
 
+    # Anthropic Claude AI settings (Optional high-grade thesis writer)
+    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022").strip()
+
     # Blog publishing mode: 'wordpress_mail', 'wordpress_rest', or 'markdown_only'
     BLOG_PUBLISHER_TYPE: str = os.getenv("BLOG_PUBLISHER_TYPE", "wordpress_mail").strip().lower()
 

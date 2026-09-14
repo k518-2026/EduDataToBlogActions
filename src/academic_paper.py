@@ -39,15 +39,24 @@ class AcademicPaper:
 
 
 class AcademicPaperGenerator:
-    """Generates academic paper text using Gemini AI or domain-specific template engine."""
+    """Generates undergraduate thesis-level academic papers using Claude, Gemini, or domain templates."""
 
-    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
-        self.api_key = api_key or Config.GEMINI_API_KEY
-        self.model_name = model_name or Config.GEMINI_TEXT_MODEL
-        self.client = None
-        if self.api_key:
+    def __init__(
+        self,
+        gemini_api_key: Optional[str] = None,
+        gemini_model: Optional[str] = None,
+        anthropic_api_key: Optional[str] = None,
+        anthropic_model: Optional[str] = None,
+    ):
+        self.gemini_api_key = (gemini_api_key or Config.GEMINI_API_KEY).strip()
+        self.gemini_model = gemini_model or Config.GEMINI_TEXT_MODEL
+        self.anthropic_api_key = (anthropic_api_key or Config.ANTHROPIC_API_KEY).strip()
+        self.anthropic_model = anthropic_model or Config.ANTHROPIC_MODEL
+
+        self.gemini_client = None
+        if self.gemini_api_key:
             try:
-                self.client = genai.Client(api_key=self.api_key)
+                self.gemini_client = genai.Client(api_key=self.gemini_api_key)
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini Client for AcademicPaperGenerator: {e}")
 
@@ -55,17 +64,29 @@ class AcademicPaperGenerator:
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> AcademicPaper:
         """Generates academic thesis content grounded in dataset and statistical analysis."""
-        if self.client:
+        # 1. Prefer Claude if ANTHROPIC_API_KEY is configured
+        if self.anthropic_api_key:
             try:
+                logger.info(f"Generating academic paper with Anthropic Claude ({self.anthropic_model})...")
+                return self._generate_with_claude(dataset, analysis)
+            except Exception as e:
+                logger.warning(f"Claude academic paper generation failed: {e}. Trying Gemini...")
+
+        # 2. Use Gemini if available
+        if self.gemini_client:
+            try:
+                logger.info(f"Generating academic paper with Google Gemini ({self.gemini_model})...")
                 return self._generate_with_gemini(dataset, analysis)
             except Exception as e:
-                logger.warning(f"Gemini academic paper generation failed, falling back to template: {e}")
+                logger.warning(f"Gemini academic paper generation failed: {e}. Falling back to template.")
 
+        # 3. Fallback to domain-specific academic template
+        logger.info("Using domain-specific academic template fallback for paper generation.")
         return self._generate_template_fallback(dataset, analysis)
 
-    def _generate_with_gemini(
+    def _build_academic_prompt(
         self, dataset: EducationDataset, analysis: AnalysisResult
-    ) -> AcademicPaper:
+    ) -> str:
         stats_lines = []
         for m, s in analysis.descriptive_stats.items():
             stats_lines.append(
@@ -87,75 +108,160 @@ class AcademicPaperGenerator:
 
         insights_lines = "\n".join([f"- {ins}" for ins in analysis.key_insights])
 
-        prompt = f"""あなたは教育工学、教育統計学、およびSTEM/理数・情報教育を専門とする大学教員・学術研究者です。
-大学学部の卒業論文（または査読付き学術ワーキングペーパー）の水準で、以下のオープンデータ統計解析結果に基づく本格的な学術論文を執筆してください。
+        return f"""あなたは教育工学、教育統計学、およびSTEM/理数・情報教育を専門とする大学教授・主任研究員です。
+大学学部の卒業論文（または査読付き学術論文・ワーキングペーパー）の水準を満たす、極めて論理的で客観的、かつ深い教育学的洞察を備えた本格的な学術論文を執筆してください。
 
 ### 【データセット基本情報】
 - 題目: {dataset.title}
-- カテゴリ: {'算数・数学教育' if dataset.category == 'math' else '情報教育・プログラミング教育'} ({dataset.region})
+- カテゴリ: {'算数・数学教育' if dataset.category == 'math' else '情報教育・プログラミング教育'} (調査対象地域: {dataset.region})
 - 出典機関: {dataset.source_name} ({dataset.source_url})
 - 単位: {dataset.unit}
 - データ概要: {dataset.description}
 
-### 【実測統計データ】
+### 【実測統計解析データ（本文中の論拠として必ず数値を引用すること）】
 記述統計量:
 {chr(10).join(stats_lines)}
 
 経年変化・トレンド回帰:
-{chr(10).join(trends_lines) if trends_lines else '該当なし'}
+{chr(10).join(trends_lines) if trends_lines else '該当なし（単年調査）'}
 
 相関分析:
 {chr(10).join(corr_lines) if corr_lines else '該当なし'}
 
-主要な分析インサイト:
+統計エンジンが検出した主要インサイト:
 {insights_lines}
 
 ---
-### 【執筆ガイドライン】
-1. **文体**: 学術論文標準の「である・だ」調。厳密、客観的、論理的で学術的な表現を用いてください。
-2. **定量的根拠**: 記述統計値（平均、標準偏差、中央値、IQR）、回帰直線の傾き、決定係数R²、相関係数rなどを文章中で厳密に引用し、数値に基づいた議論を展開してください。
-3. **構成**: 以下の指定セクション順に執筆し、セクション間は `===SECTION===` のみを行に配置して区切ってください。各セクションの出力テキストにはセクション番号や見出し文字列（「1. 背景」など）は含めず、本文のみを出力してください。
-
-セクション順序:
-1. **論文タイトル**: 学術論文にふさわしい格調高い題目（例: 〜に関する実証的計量分析）
-2. **副題**: オープンデータを活用した〜の現状と課題
-3. **抄録 (Abstract)**: 300〜450文字程度。研究背景、目的、データ、主要統計結果、結論。
-4. **キーワード**: カンマ区切りの4〜6語。
-5. **第1章 はじめに（研究の背景）**: 600〜900文字。現代社会における重要性、新学習指導要領やGIGAスクール構想、国際的学力動向（OECD等）、先行研究の論点。
-6. **第2章 研究目的とリサーチクエスチョン**: 400〜600文字。本稿が解明を目指す検証課題（RQ1, RQ2等）と仮説。
-7. **第3章 調査対象および分析方法**: 500〜700文字。データセットの調査設計、指標の定義、統計解析プロトコル（記述統計、線形回帰、相関係数等の数理的手法）。
-8. **第4章 分析結果**: 600〜900文字。本文中にて表1（記述統計量）および図1（可視化グラフ）に言及しながら、主要な統計数値（平均・格差・回帰・相関）を厳密に報告。
-9. **第5章 考察および教育実践への示唆**: 700〜1000文字。結果の教育学的要因の考察、授業実践・カリキュラム編成への提言、教育行政・格差是正への示唆、および本研究の限界（交絡要因等）。
-10. **第6章 引用・参考文献**: 5〜7件の標準的学術スタイル（文科省報告書、OECD報告書、NIER研究等）。1行1文献。
+### 【執筆および学術水準の要求仕様】
+1. **文体と語調**:
+   - 完全な学術論文標準の「である・だ」調。
+   - 安易なスローガンや感想（「〜が素晴らしい」「〜が急務である」等の紋切り型の連続）を厳格に排除し、客観的・学術的・批判的思考に基づいたアカデミックライティングを徹底してください。
+2. **理論的枠組み・先行研究との連動**:
+   - 算数・数学分野の場合：Polyaの問題解決過程論、ピアジェやヴィゴツキーの発達・足場かけ理論、Freudenthalの現実的数学教育（RME）、Banduraの自己効力感、OECD PISAの数学的リテラシー定義などを適切に援用。
+   - 情報教育分野の場合：Wing(2006)のコンピュテーショナル・シンキング概念、Papertの構築主義、Swellerの認知負荷理論、GIGAスクール構想下での探究学習などを援用。
+3. **数値データとの完全な統合**:
+   - 平均、標準偏差、中央値、IQR、回帰直線の傾き、決定係数R²、相関係数rなどを文章中で厳密に引用し、「表1（記述統計量一覧）」および「図1（可視化グラフ）」を本文中で自然に指示・参照してください。
+4. **各フィールドの記述要件**:
+   - **title**: 学術論文として格調高い正式題目（例: 〜に関する計量実証分析：公的オープンデータに基づく〜）
+   - **subtitle**: 論文の副題（例: 〜の現状と指導実践への示唆）
+   - **abstract**: 350〜500文字程度。研究背景、目的（RQ）、データ、主要統計結果、教育学的結論。
+   - **keywords**: 学術検索に適した4〜6語の専門用語の配列。
+   - **background**: 700〜1000文字。問題の社会的・教育的背景、新学習指導要領や国際指標との関連、先行研究の動向。
+   - **objectives**: 400〜650文字。本稿が解明を目指す3つの具体的リサーチクエスチョン（RQ1: 中心傾向と散布度、RQ2: 時系列トレンド、RQ3: 相関構造と格差）および作業仮説。
+   - **methodology**: 600〜800文字。標本特性、指標の操作的定義、欠損値処理、適用した統計解析手法（記述統計・線形回帰・相関検定）の数理的手順。
+   - **results_text**: 700〜1100文字。「表1」「図1」を参照しながら、実測数値を厳密に引用した結果の定量的記述。
+   - **discussion**: 900〜1300文字。なぜその結果が生じたのかの教育学的要因の考察、授業改善・カリキュラム編成・個別最適な学びへの具体的提言、政策的含意、および本研究の限界（マクロデータの制約、未測定の交絡要因）と今後の展望。
+   - **references**: 5〜7件の実在する信頼できる学術文献・公的報告書（文部科学省、国立教育政策研究所NIER、OECD、学会誌等）を標準的な学術スタイルで記述したリスト。
 """
-        response = self.client.models.generate_content(
-            model=self.model_name,
+
+    def _generate_with_gemini(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> AcademicPaper:
+        import json
+        prompt = self._build_academic_prompt(dataset, analysis)
+
+        response = self.gemini_client.models.generate_content(
+            model=self.gemini_model,
             contents=prompt,
             config=types.GenerateContentConfig(
-                temperature=0.3,
-                max_output_tokens=4000,
+                temperature=0.35,
+                max_output_tokens=8192,
+                response_mime_type="application/json",
+                response_schema=AcademicPaper,
             ),
         )
 
-        parts = response.text.strip().split("===SECTION===")
-        if len(parts) >= 10:
-            raw_keywords = [k.strip() for k in parts[3].strip().split(",") if k.strip()]
-            raw_refs = [r.strip() for r in parts[9].strip().split("\n") if r.strip()]
-            return AcademicPaper(
-                title=parts[0].strip(),
-                subtitle=parts[1].strip(),
-                abstract=parts[2].strip(),
-                keywords=raw_keywords,
-                background=parts[4].strip(),
-                objectives=parts[5].strip(),
-                methodology=parts[6].strip(),
-                results_text=parts[7].strip(),
-                discussion=parts[8].strip(),
-                references=raw_refs,
-            )
+        raw_text = response.text.strip()
+        if raw_text.startswith("```"):
+            lines = raw_text.splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            raw_text = "\n".join(lines).strip()
 
-        # Fallback if split count was unexpected
-        return self._generate_template_fallback(dataset, analysis)
+        data = json.loads(raw_text)
+        keywords = data.get("keywords", [])
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(",") if k.strip()]
+        references = data.get("references", [])
+        if isinstance(references, str):
+            references = [r.strip() for r in references.split("\n") if r.strip()]
+
+        return AcademicPaper(
+            title=data.get("title", f"{dataset.title}に関する実証的計量分析"),
+            subtitle=data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明"),
+            abstract=data.get("abstract", ""),
+            keywords=keywords,
+            background=data.get("background", ""),
+            objectives=data.get("objectives", ""),
+            methodology=data.get("methodology", ""),
+            results_text=data.get("results_text", ""),
+            discussion=data.get("discussion", ""),
+            references=references,
+        )
+
+    def _generate_with_claude(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> AcademicPaper:
+        import json
+        import urllib.request
+
+        prompt = self._build_academic_prompt(dataset, analysis)
+        prompt += "\n\n必ず上記全フィールドを含む有効な単一のJSONオブジェクト（マークダウンのコードブロックなし）のみを出力してください。"
+
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": self.anthropic_api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        payload = {
+            "model": self.anthropic_model,
+            "max_tokens": 4096,
+            "temperature": 0.35,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            res_data = json.loads(resp.read().decode("utf-8"))
+
+        raw_text = res_data["content"][0]["text"].strip()
+        if raw_text.startswith("```"):
+            lines = raw_text.splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            raw_text = "\n".join(lines).strip()
+
+        data = json.loads(raw_text)
+        keywords = data.get("keywords", [])
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(",") if k.strip()]
+        references = data.get("references", [])
+        if isinstance(references, str):
+            references = [r.strip() for r in references.split("\n") if r.strip()]
+
+        return AcademicPaper(
+            title=data.get("title", f"{dataset.title}に関する実証的計量分析"),
+            subtitle=data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明"),
+            abstract=data.get("abstract", ""),
+            keywords=keywords,
+            background=data.get("background", ""),
+            objectives=data.get("objectives", ""),
+            methodology=data.get("methodology", ""),
+            results_text=data.get("results_text", ""),
+            discussion=data.get("discussion", ""),
+            references=references,
+        )
+
 
     def _generate_template_fallback(
         self, dataset: EducationDataset, analysis: AnalysisResult
