@@ -85,8 +85,8 @@ def main():
     report_builder = EduReportBuilder()
     storage = ReportStorage()
 
-    topic = args.topic or Config.DEFAULT_TOPIC or "all"
-    publisher_type = (args.publisher or Config.BLOG_PUBLISHER_TYPE or "wordpress_mail").lower()
+    topic = (args.topic or Config.DEFAULT_TOPIC or "all").strip().strip("'\"").lower()
+    publisher_type = (args.publisher or Config.BLOG_PUBLISHER_TYPE or "wordpress_mail").strip().strip("'\"").lower()
 
     # 2. Select dataset
     posted_ids = storage.get_posted_dataset_ids()

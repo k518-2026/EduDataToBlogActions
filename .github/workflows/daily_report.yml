@@ -92,10 +92,10 @@ jobs:
             ARGS="$ARGS --force"
           fi
           if [ -n "$INPUT_TOPIC" ] && [ "$INPUT_TOPIC" != "all" ]; then
-            ARGS="$ARGS --topic '$INPUT_TOPIC'"
+            ARGS="$ARGS --topic $INPUT_TOPIC"
           fi
           if [ -n "$INPUT_PUBLISHER" ]; then
-            ARGS="$ARGS --publisher '$INPUT_PUBLISHER'"
+            ARGS="$ARGS --publisher $INPUT_PUBLISHER"
           fi
           echo "Executing: python -m src.main $ARGS"
           python -m src.main $ARGS
