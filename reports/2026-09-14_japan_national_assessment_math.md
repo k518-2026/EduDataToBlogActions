@@ -57,7 +57,7 @@
 
 ## 🖼️ データ可視化グラフ
 
-![【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移のグラフ画像](assets/2026-09-14_chart_japan_national_assessment_math.png)
+![【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移のグラフ画像](https://raw.githubusercontent.com/k518-2026/EduDataToBlogActions/main/reports/assets/2026-09-14_chart_japan_national_assessment_math.png)
 
 ---
 
