@@ -41,6 +41,13 @@ class MarkdownFilePublisher(BasePublisher):
                 shutil.copy(report.pdf_path, dest_pdf_path)
             logger.info(f"Archived academic thesis PDF to {dest_pdf_path}")
 
+        # 2.5. Copy academic peer review PDF to reports/pdf/
+        if report.peer_review_pdf_path and report.peer_review_pdf_path.exists():
+            dest_rev_path = self.pdf_dir / report.peer_review_pdf_path.name
+            if report.peer_review_pdf_path.resolve() != dest_rev_path.resolve():
+                shutil.copy(report.peer_review_pdf_path, dest_rev_path)
+            logger.info(f"Archived academic peer review PDF to {dest_rev_path}")
+
         # 3. Copy Python analysis script to reports/scripts/
         if report.py_script_path and report.py_script_path.exists():
             dest_py_path = self.scripts_dir / report.py_script_path.name

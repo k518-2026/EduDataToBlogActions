@@ -33,6 +33,8 @@ class GeneratedReport:
     created_at: str
     pdf_path: Optional[Path] = None
     pdf_url: Optional[str] = None
+    peer_review_pdf_path: Optional[Path] = None
+    peer_review_pdf_url: Optional[str] = None
     py_script_path: Optional[Path] = None
     py_script_url: Optional[str] = None
     python_code: Optional[str] = None
@@ -462,6 +464,8 @@ plt.show()
         pdf_url: Optional[str] = None,
         py_script_path: Optional[Path] = None,
         py_script_url: Optional[str] = None,
+        peer_review_pdf_path: Optional[Path] = None,
+        peer_review_pdf_url: Optional[str] = None,
     ) -> GeneratedReport:
         today_str = datetime.now().strftime("%Y年%m月%d日")
         date_iso = datetime.now().strftime("%Y-%m-%d")
@@ -515,16 +519,30 @@ plt.show()
         trend_table_md, trend_table_html = self._build_trend_tables(dataset, analysis)
         corr_table_md, corr_table_html = self._build_correlation_tables(analysis)
 
-
-        # Academic Thesis PDF download links
+        # Academic Thesis PDF & Peer Review Report links
         pdf_badge_md = ""
         pdf_banner_html = ""
+        review_badge_md = ""
+        review_btn_html = ""
+
+        if peer_review_pdf_url:
+            review_badge_md = f"""
+> 📋 **査読報告書PDF（学術査読結果通知書）も同時公開中**:
+> 学会誌査読委員の視点から，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています。
+> [👉 査読報告書PDFを閲覧・ダウンロード（GitHub）]({peer_review_pdf_url})
+"""
+            review_btn_html = f"""
+                <a href="{peer_review_pdf_url}" target="_blank" rel="noopener noreferrer" style="background-color:#475569; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); margin-top:8px;">
+                  📋 査読報告書（PDF）を閲覧
+                </a>
+"""
+
         if pdf_url:
             pdf_badge_md = f"""
 > 📄 **学術論文形式PDF（査読論文様式）を公開中**:
 > 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（JIS B5判・2段組）をGitHub上で閲覧・ダウンロードできます。
 > [👉 学術論文PDFを閲覧・ダウンロード（GitHub）]({pdf_url})
-
+{review_badge_md}
 ---
 """
             pdf_banner_html = f"""
@@ -532,16 +550,17 @@ plt.show()
           <div style="background:linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border:1px solid #bae6fd; border-left:5px solid #0284c7; border-radius:8px; padding:16px 20px; margin-bottom:26px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
               <div style="max-width:540px;">
-                <div style="font-size:11px; font-weight:bold; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Academic Paper &amp; Full Report (PDF)</div>
-                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート（学術論文誌様式PDF）</h4>
+                <div style="font-size:11px; font-weight:bold; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Academic Paper &amp; Peer Review Report (PDF)</div>
+                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート ＆ 📋 学術査読報告書</h4>
                 <p style="margin:0; font-size:13px; line-height:1.5; color:#334155;">
-                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）をGitHub上で公開しています。
+                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）と、厳格な査読委員視点による査読結果通知書（A4判）をGitHub上で公開しています。
                 </p>
               </div>
               <div style="text-align:right;">
                 <a href="{pdf_url}" target="_blank" rel="noopener noreferrer" style="background-color:#0284c7; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); transition:background-color 0.2s;">
                   📥 論文PDFをダウンロード / 閲覧
-                </a>
+                </a><br/>
+                {review_btn_html}
                 <div style="font-size:11px; color:#64748b; margin-top:4px;">※GitHubビューアで直接閲覧可能</div>
               </div>
             </div>
@@ -741,6 +760,8 @@ plt.show()
             created_at=date_iso,
             pdf_path=pdf_path,
             pdf_url=pdf_url,
+            peer_review_pdf_path=peer_review_pdf_path,
+            peer_review_pdf_url=peer_review_pdf_url,
             py_script_path=py_script_path,
             py_script_url=py_url,
             python_code=python_code,

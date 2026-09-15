@@ -16,6 +16,8 @@ from src.config import Config, REPORTS_DIR, TEMP_DIR
 from src.fetchers.catalog import DatasetCatalog
 from src.insights import GeminiInsightGenerator
 from src.pdf.pdf_generator import EduPaperPdfGenerator
+from src.pdf.peer_review_pdf_generator import PeerReviewPdfGenerator
+from src.peer_review import PeerReviewGenerator
 from src.publishers.markdown_file import MarkdownFilePublisher
 from src.publishers.wordpress_mail import WordPressMailPublisher
 from src.publishers.wordpress_rest import WordPressRestPublisher
@@ -154,7 +156,24 @@ def main():
     )
     logger.info(f"PDF generated: {local_pdf_path} (Public GitHub URL: {pdf_github_url})")
 
-    # 7. Generate reproducible Python analysis script
+    # 7. Generate rigorous academic peer review report and PDF
+    logger.info("📋 Generating rigorous academic peer review report...")
+    review_gen = PeerReviewGenerator()
+    peer_review = review_gen.generate_review(academic_paper, dataset, analysis)
+
+    logger.info("📑 Compiling academic peer review PDF report...")
+    review_pdf_gen = PeerReviewPdfGenerator()
+    review_pdf_filename = f"{today_iso}_{dataset.id}_review.pdf"
+    local_review_pdf_path = TEMP_DIR / review_pdf_filename
+    review_pdf_gen.generate_pdf(peer_review, local_review_pdf_path)
+
+    review_pdf_github_url = (
+        f"https://github.com/{Config.GITHUB_REPOSITORY}/blob/"
+        f"{Config.GITHUB_BRANCH}/reports/pdf/{review_pdf_filename}"
+    )
+    logger.info(f"Peer review PDF generated: {local_review_pdf_path} (Public GitHub URL: {review_pdf_github_url})")
+
+    # 8. Generate reproducible Python analysis script
     logger.info("🐍 Generating reproducible Python analysis script...")
     python_code = report_builder.generate_python_analysis_code(dataset, analysis)
     py_filename = f"{today_iso}_{dataset.id}_analysis.py"
@@ -168,7 +187,7 @@ def main():
     )
     logger.info(f"Python script generated: {local_py_path} (Public GitHub URL: {py_github_url})")
 
-    # 8. Assemble report
+    # 9. Assemble report
     logger.info("📝 Assembling comprehensive HTML and Markdown report with PDF and Python links...")
     report = report_builder.build_report(
         dataset=dataset,
@@ -177,6 +196,8 @@ def main():
         chart_path=chart_path,
         pdf_path=local_pdf_path,
         pdf_url=pdf_github_url,
+        peer_review_pdf_path=local_review_pdf_path,
+        peer_review_pdf_url=review_pdf_github_url,
         py_script_path=local_py_path,
         py_script_url=py_github_url,
     )
