@@ -57,3 +57,52 @@ def test_catalog_selection():
     first_ds = catalog.select_dataset(topic="all", posted_history_ids=[])
     second_ds = catalog.select_dataset(topic="all", posted_history_ids=[first_ds.id])
     assert first_ds.id != second_ds.id
+
+
+def test_catalog_rotation_cycles_through_all():
+    catalog = DatasetCatalog()
+    all_ds = catalog.get_all_datasets()
+    assert len(all_ds) >= 8
+
+    # Simulate history where all datasets have been posted
+    sim_history = [ds.id for ds in all_ds]
+    # Now select the next one; it should NOT be the last one in sim_history
+    next_ds = catalog.select_dataset(topic="all", posted_history_ids=sim_history)
+    assert next_ds.id != sim_history[-1]
+
+    # Verify that in a full cycle of len(all_ds) selections, every dataset is chosen
+    selected_ids = []
+    for _ in range(len(all_ds)):
+        picked = catalog.select_dataset(topic="all", posted_history_ids=sim_history)
+        selected_ids.append(picked.id)
+        sim_history.append(picked.id)
+
+    # Every dataset must appear in the cycle
+    all_ids = {ds.id for ds in all_ds}
+    assert set(selected_ids) == all_ids
+
+
+def test_topic_alternation():
+    catalog = DatasetCatalog()
+    all_ds = catalog.get_all_datasets()
+    sim_history = [ds.id for ds in all_ds]
+
+    # Select 6 consecutive datasets and check that categories alternate
+    last_cat = None
+    for _ in range(6):
+        ds = catalog.select_dataset(topic="all", posted_history_ids=sim_history)
+        if last_cat is not None:
+            assert ds.category != last_cat, f"Category did not alternate: {ds.category} == {last_cat}"
+        last_cat = ds.category
+        sim_history.append(ds.id)
+
+
+def test_jst_date_utility():
+    from src.utils_date import get_jst_now
+    jst_now = get_jst_now()
+    assert jst_now is not None
+    assert jst_now.year >= 2026
+    # String format checks
+    iso_date = jst_now.strftime("%Y-%m-%d")
+    assert len(iso_date) == 10
+

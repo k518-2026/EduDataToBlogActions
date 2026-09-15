@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from src.config import Config
 from src.reporter import GeneratedReport
+from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class ReportStorage:
             "categories": report.categories,
             "tags": report.tags,
             "platform": platform,
-            "posted_at": datetime.now().isoformat(),
+            "posted_at": get_jst_now().isoformat(),
             "date": report.created_at,
         }
 

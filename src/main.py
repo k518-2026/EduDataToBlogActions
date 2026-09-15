@@ -23,6 +23,7 @@ from src.publishers.wordpress_mail import WordPressMailPublisher
 from src.publishers.wordpress_rest import WordPressRestPublisher
 from src.reporter import EduReportBuilder
 from src.storage import ReportStorage
+from src.utils_date import get_jst_now
 
 import io
 
@@ -137,7 +138,7 @@ def main():
 
     logger.info("📑 Compiling academic thesis PDF document...")
     pdf_gen = EduPaperPdfGenerator()
-    today_iso = datetime.now().strftime("%Y-%m-%d")
+    today_iso = get_jst_now().strftime("%Y-%m-%d")
     pdf_filename = f"{today_iso}_{dataset.id}_paper.pdf"
     local_pdf_path = TEMP_DIR / pdf_filename
     pdf_gen.generate_pdf(

@@ -415,5 +415,24 @@
     "platform": "wordpress_mail",
     "posted_at": "2026-09-15T20:10:25.836155",
     "date": "2026-09-15"
+  },
+  {
+    "dataset_id": "japan_high_school_informatics",
+    "title": "【高等学校情報教育実態調査】「情報I」におけるプログラミング指導とICT環境の年次推移 (2026年09月16日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "markdown_only",
+    "posted_at": "2026-09-16T06:40:43.682077+09:00",
+    "date": "2026-09-16"
   }
 ]

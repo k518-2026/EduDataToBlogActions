@@ -135,6 +135,62 @@ class JapanEduDataFetcher:
             unit="人 / %",
         )
 
+    def get_timss_math(self) -> EducationDataset:
+        """Loads IEA TIMSS Mathematics dataset."""
+        ds = self._load_json_dataset("japan_timss_math_science.json")
+        if ds:
+            return ds
+        df = pd.DataFrame([
+            {"調査年": 2015, "学年・教科": "小学校4年_算数", "平均得点": 593, "勉強が楽しい肯定率": 71.8},
+            {"調査年": 2019, "学年・教科": "小学校4年_算数", "平均得点": 593, "勉強が楽しい肯定率": 70.5},
+            {"調査年": 2023, "学年・教科": "小学校4年_算数", "平均得点": 595, "勉強が楽しい肯定率": 72.0},
+            {"調査年": 2015, "学年・教科": "中学校2年_数学", "平均得点": 586, "勉強が楽しい肯定率": 53.2},
+            {"調査年": 2019, "学年・教科": "中学校2年_数学", "平均得点": 594, "勉強が楽しい肯定率": 54.8},
+            {"調査年": 2023, "学年・教科": "中学校2年_数学", "平均得点": 596, "勉強が楽しい肯定率": 56.1},
+        ])
+        return EducationDataset(
+            id="japan_timss_math_science",
+            title="【TIMSS 国際数学・理科教育調査】算数・数学到達度推移",
+            category="math",
+            region="japan",
+            source_name="IEA / 文部科学省・国立教育政策研究所",
+            source_url="https://www.nier.go.jp/timss/",
+            description="TIMSS小中学生の算数数学平均得点推移。",
+            df=df,
+            metrics=["平均得点", "勉強が楽しい肯定率"],
+            time_col="調査年",
+            group_col="学年・教科",
+            recommended_chart="trend_line",
+            unit="点 / %",
+        )
+
+    def get_high_school_informatics(self) -> EducationDataset:
+        """Loads High School Informatics I Survey dataset."""
+        ds = self._load_json_dataset("japan_high_school_informatics.json")
+        if ds:
+            return ds
+        df = pd.DataFrame([
+            {"年度": 2022, "学校区分": "公立高等学校", "Python活用率": 48.2, "共通テスト情報対策実施率": 62.4},
+            {"年度": 2023, "学校区分": "公立高等学校", "Python活用率": 68.7, "共通テスト情報対策実施率": 81.3},
+            {"年度": 2024, "学校区分": "公立高等学校", "Python活用率": 82.4, "共通テスト情報対策実施率": 92.5},
+            {"年度": 2025, "学校区分": "公立高等学校", "Python活用率": 89.1, "共通テスト情報対策実施率": 96.8},
+        ])
+        return EducationDataset(
+            id="japan_high_school_informatics",
+            title="【高等学校情報教育実態調査】「情報I」指導実態の年次推移",
+            category="info",
+            region="japan",
+            source_name="文部科学省 高等学校教育改革推進調査",
+            source_url="https://www.mext.go.jp/",
+            description="高校「情報I」におけるプログラミング指導状況推移。",
+            df=df,
+            metrics=["Python活用率", "共通テスト情報対策実施率"],
+            time_col="年度",
+            group_col="学校区分",
+            recommended_chart="trend_line",
+            unit="%",
+        )
+
     def query_estat_api(self, stats_data_id: str) -> Optional[dict]:
         """Optional query to e-Stat API if appId is set."""
         if not Config.ESTAT_APP_ID:

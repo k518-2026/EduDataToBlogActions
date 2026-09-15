@@ -16,6 +16,8 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from src.utils_date import get_jst_now
+
 from PIL import Image as PILImage
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -105,7 +107,7 @@ class JSETNumberedCanvas(canvas.Canvas):
             # 3. Bottom-Left English Metadata Box
             self.rect(MARGIN_X, MARGIN_BOTTOM, COL_W, BOX_H)
             self.setFont(self.mincho_font, 7.0)
-            today_date = datetime.now().strftime("%Y年%m月%d日執筆")
+            today_date = get_jst_now().strftime("%Y年%m月%d日執筆")
             self.drawString(MARGIN_X + 5, MARGIN_BOTTOM + BOX_H - 11, today_date)
 
             self.setFont(self.mincho_font, 6.5)
@@ -844,7 +846,7 @@ class EduPaperPdfGenerator:
                 )
             summary_elements.append(
                 Paragraph(
-                    f"({datetime.now().strftime('%B %d， %Y')})",
+                    f"({get_jst_now().strftime('%B %d， %Y')})",
                     self.styles["SummaryDate"],
                 )
             )

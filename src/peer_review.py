@@ -17,6 +17,7 @@ from src.academic_paper import AcademicPaper
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
+from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class PeerReviewReport:
     minor_revisions: List[str]                   # 軽微な修正事項（表現・注記・表記）
     questions_to_authors: List[str]              # 著者への試問・確認事項
     ai_disclosure_evaluation: str                # 生成AI利用開示に関する評価
-    review_date: str = field(default_factory=lambda: datetime.now().strftime("%Y年%m月%d日"))
+    review_date: str = field(default_factory=lambda: get_jst_now().strftime("%Y年%m月%d日"))
     ai_review_disclosure: str = DEFAULT_AI_REVIEW_DISCLOSURE
 
 

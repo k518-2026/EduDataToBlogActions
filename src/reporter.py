@@ -17,6 +17,7 @@ from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
 from src.insights import EducationalInsights
+from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
 
@@ -480,8 +481,8 @@ plt.show()
         peer_review_pdf_path: Optional[Path] = None,
         peer_review_pdf_url: Optional[str] = None,
     ) -> GeneratedReport:
-        today_str = datetime.now().strftime("%Y年%m月%d日")
-        date_iso = datetime.now().strftime("%Y-%m-%d")
+        today_str = get_jst_now().strftime("%Y年%m月%d日")
+        date_iso = get_jst_now().strftime("%Y-%m-%d")
 
         category_label = "算数・数学教育" if dataset.category == "math" else "情報教育・プログラミング"
         title = f"{dataset.title} ({today_str})"
