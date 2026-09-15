@@ -1,9 +1,12 @@
 name: Daily Educational Open Data Analysis & Blog Auto-Poster
 
 on:
-  # Daily scheduled run (20:00 UTC = 05:00 JST / 毎朝5時)
+  # Scheduled runs (JST = UTC + 9)
+  # 1. 毎朝 05:00 JST (20:00 UTC) - 恒常運用
+  # 2. 午前 11:00 JST (02:00 UTC) - 2026年9月19日まで1日2回運用
   schedule:
     - cron: '0 20 * * *'
+    - cron: '0 2 * * *'
 
   # Manual execution from GitHub Actions UI
   workflow_dispatch:
@@ -39,7 +42,36 @@ permissions:
   contents: write
 
 jobs:
+  check-schedule:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.filter.outputs.should_run }}
+    steps:
+      - name: Check Schedule and Date Filter
+        id: filter
+        run: |
+          JST_DATE=$(TZ='Asia/Tokyo' date +'%Y-%m-%d')
+          JST_YMD=$(TZ='Asia/Tokyo' date +'%Y%m%d')
+          JST_HOUR=$(TZ='Asia/Tokyo' date +'%H')
+          echo "Current JST: $JST_DATE $JST_HOUR:00 (YMD: $JST_YMD)"
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            SCHEDULE_CRON="${{ github.event.schedule }}"
+            echo "Triggered by schedule cron: $SCHEDULE_CRON"
+            # 11:00 JST slot (02:00 UTC)
+            if [ "$SCHEDULE_CRON" = "0 2 * * *" ] || ([ "$JST_HOUR" -ge 10 ] && [ "$JST_HOUR" -le 13 ]); then
+              if [ "$JST_YMD" -gt 20260919 ]; then
+                echo "should_run=false" >> "$GITHUB_OUTPUT"
+                echo "::notice title=11:00 JST Run Skipped::2026年9月19日を経過したため、11:00 JSTの追加投稿はスキップされ、毎朝05:00 JSTの定期投稿のみが継続されます。"
+                exit 0
+              fi
+            fi
+          fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+
   run-pipeline:
+    needs: check-schedule
+    if: needs.check-schedule.outputs.should_run == 'true'
     runs-on: ubuntu-latest
 
     steps:
