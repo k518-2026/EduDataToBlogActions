@@ -7,6 +7,7 @@
 | 2026-09-15 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月15日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-15 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月15日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-15 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月15日) | `japan_national_assessment_math` | wordpress_mail |
+| 2026-09-15 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月15日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-14 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月14日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-14 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月14日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-14 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移 (2026年09月14日) | `japan_national_assessment_math` | wordpress_mail |
