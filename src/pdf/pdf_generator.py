@@ -220,7 +220,7 @@ class EduPaperPdfGenerator:
             leading=12.5,
             spaceBefore=7,
             spaceAfter=2,
-            keepWithNext=True,
+            keepWithNext=False,
         )
 
         styles["Heading2"] = ParagraphStyle(
@@ -231,7 +231,7 @@ class EduPaperPdfGenerator:
             leading=12.5,
             spaceBefore=5,
             spaceAfter=2,
-            keepWithNext=True,
+            keepWithNext=False,
         )
 
         styles["Heading3"] = ParagraphStyle(
@@ -242,7 +242,7 @@ class EduPaperPdfGenerator:
             leading=12.5,
             spaceBefore=4,
             spaceAfter=2,
-            keepWithNext=True,
+            keepWithNext=False,
         )
 
         # Body Text (MS Mincho 8.5pt, 1-char indent, leading 12.5pt)
@@ -803,6 +803,7 @@ class EduPaperPdfGenerator:
         # ==========================================
         # 7. References (参 考 文 献)
         # ==========================================
+        story.append(PageBreak())
         story.append(Paragraph("参　考　文　献", self.styles["Heading1"]))
         for ref in paper.references:
             if ref.strip():
@@ -813,9 +814,10 @@ class EduPaperPdfGenerator:
                 story.append(Paragraph(clean_ref, self.styles["Reference"]))
 
         # ==========================================
-        # 7. English Summary & KEYWORDS (End of paper)
+        # 8. English Summary & KEYWORDS (End of paper)
         # ==========================================
         if paper.summary_en:
+            story.append(FrameBreak())
             summary_elements = [
                 Paragraph("Summary", self.styles["SummaryHeading"]),
                 Paragraph(paper.summary_en, self.styles["SummaryBody"]),

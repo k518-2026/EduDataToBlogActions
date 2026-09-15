@@ -235,3 +235,17 @@ def test_pdf_with_multiple_tables_and_figures_and_ai_disclosure(tmp_path):
 
     assert res_path.exists()
     assert res_path.stat().st_size > 20000
+
+    # Verify heading styles do not block frame splitting
+    assert pdf_gen.styles["Heading1"].keepWithNext is False
+    assert pdf_gen.styles["Heading2"].keepWithNext is False
+    assert pdf_gen.styles["Heading3"].keepWithNext is False
+
+    # Verify document is strictly 4 pages
+    pdf_bytes = res_path.read_bytes()
+    page_count = (
+        pdf_bytes.count(b"/Type /Page\n")
+        + pdf_bytes.count(b"/Type/Page\n")
+        + pdf_bytes.count(b"/Type /Page ")
+    )
+    assert page_count == 4, f"Expected exactly 4 pages for short letter, found {page_count}"
