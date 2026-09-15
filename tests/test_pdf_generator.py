@@ -162,11 +162,12 @@ def test_enhanced_academic_paper_requirements():
         paper_gen = AcademicPaperGenerator()
         paper = paper_gen.generate_paper(dataset, analysis)
 
-        # 1. Background cites >= 2 foreign sources and has detailed explanation (> 400 chars)
+        # 1. Background cites >= 2 foreign sources, >= 4 total citations, and has detailed explanation (> 400 chars)
         foreign_keywords = ["OECD", "TIMSS", "Mullis", "UNESCO", "Wing", "PISA"]
         found_foreign = [kw for kw in foreign_keywords if kw in paper.background]
         assert len(found_foreign) >= 2, f"Expected >= 2 foreign citations in background for {dataset_id}, found: {found_foreign}"
         assert len(paper.background) >= 400, f"Expected detailed background (>=400 chars), found: {len(paper.background)}"
+        assert "文部科学省" in paper.background, f"Expected domestic policy citation in background for {dataset_id}"
 
         # 2. Exactly 2 RQs (RQ1, RQ2 on separate lines, RQ3 must not exist)
         rq_lines = [line.strip() for line in paper.objectives.split("\n") if any(line.startswith(f"・{k}") or line.startswith(k) for k in ["RQ1", "RQ2", "RQ3"])]
@@ -176,8 +177,8 @@ def test_enhanced_academic_paper_requirements():
         for line in rq_lines:
             assert line.startswith("・"), f"RQ line should start with bullet: {line}"
 
-        # 3. Strictly 4 references
-        assert len(paper.references) == 4, f"Expected strictly 4 references for {dataset_id}, found: {len(paper.references)}"
+        # 3. References >= 8
+        assert len(paper.references) >= 8, f"Expected >= 8 references for {dataset_id}, found: {len(paper.references)}"
 
         # 4. Results text references RQ1 then RQ2 in order, plus multi-tables/figures
         assert "RQ1" in paper.results_text and "RQ2" in paper.results_text
@@ -194,15 +195,15 @@ def test_enhanced_academic_paper_requirements():
         assert "違うところ" in paper.discussion or "相違点" in paper.discussion
         assert "今後の課題" in paper.discussion
 
-        # 6. Discussion cites 2 prior studies for RQ1 and 2 prior studies for RQ2
+        # 6. Discussion cites >= 2 prior studies for RQ1 and >= 2 prior studies for RQ2
         rq1_disc = paper.discussion[:paper.discussion.index("RQ2")]
         rq2_disc = paper.discussion[paper.discussion.index("RQ2"):]
         if dataset_id == "japan_national_assessment_math":
-            assert "清水" in rq1_disc and "OECD" in rq1_disc, "RQ1 discussion in Math must cite 清水 and OECD"
-            assert "堀田" in rq2_disc and "Mullis" in rq2_disc, "RQ2 discussion in Math must cite 堀田 and Mullis"
+            assert "清水" in rq1_disc and "小柳" in rq1_disc, "RQ1 discussion in Math must cite 清水 and 小柳"
+            assert "堀田" in rq2_disc and "黒上" in rq2_disc, "RQ2 discussion in Math must cite 堀田 and 黒上"
         else:
-            assert "国立教育政策研究所" in rq1_disc and "UNESCO" in rq1_disc, "RQ1 discussion in ICT must cite 国立教育政策研究所 and UNESCO"
-            assert "堀田" in rq2_disc and "Wing" in rq2_disc, "RQ2 discussion in ICT must cite 堀田 and Wing"
+            assert "国立教育政策研究所" in rq1_disc and "中川" in rq1_disc, "RQ1 discussion in ICT must cite 国立教育政策研究所 and 中川"
+            assert "堀田" in rq2_disc and "佐藤" in rq2_disc, "RQ2 discussion in ICT must cite 堀田 and 佐藤"
 
 
 
