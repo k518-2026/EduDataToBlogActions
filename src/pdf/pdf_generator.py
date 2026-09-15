@@ -14,7 +14,7 @@ Features:
 from datetime import datetime
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from PIL import Image as PILImage
 from reportlab.lib import colors
