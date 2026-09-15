@@ -4,8 +4,11 @@ Provides expert pedagogical analysis and actionable classroom/policy takeaways.
 Includes intelligent template fallback when Gemini API key is not configured.
 """
 from dataclasses import dataclass
+import json
 import logging
+import re
 from typing import Dict, Optional
+import urllib.request
 
 from google import genai
 from google.genai import types
@@ -13,7 +16,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import resolve_anthropic_model, resolve_metric_unit
+from src.utils import clean_insight_text, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +26,68 @@ class EducationalInsights:
     executive_summary: str
     pedagogical_implications: str
     future_challenges_and_policy: str
+
+
+def parse_insights_json(raw_text: str) -> dict[str, str]:
+    """
+    Safely parses JSON containing executive_summary, pedagogical_implications,
+    and future_challenges_and_policy from raw LLM output.
+    Handles markdown codeblocks, control characters, and truncated JSON.
+    Never returns raw JSON strings or slices of JSON structures.
+    """
+    if not raw_text:
+        return {}
+
+    text = raw_text.strip()
+    # Strip markdown code fences if present
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+
+    # Attempt 1: Direct json.loads with strict=False
+    try:
+        data = json.loads(text, strict=False)
+        if isinstance(data, dict):
+            return {
+                "executive_summary": clean_insight_text(data.get("executive_summary", "")),
+                "pedagogical_implications": clean_insight_text(data.get("pedagogical_implications", "")),
+                "future_challenges_and_policy": clean_insight_text(data.get("future_challenges_and_policy", "")),
+            }
+    except Exception:
+        pass
+
+    # Attempt 2: Extract outermost JSON object { ... }
+    json_match = re.search(r"\{[\s\S]*\}", text)
+    if json_match:
+        try:
+            data = json.loads(json_match.group(0), strict=False)
+            if isinstance(data, dict):
+                return {
+                    "executive_summary": clean_insight_text(data.get("executive_summary", "")),
+                    "pedagogical_implications": clean_insight_text(data.get("pedagogical_implications", "")),
+                    "future_challenges_and_policy": clean_insight_text(data.get("future_challenges_and_policy", "")),
+                }
+        except Exception:
+            pass
+
+    # Attempt 3: Regex extraction for individual fields (handles truncated or broken JSON)
+    def extract_field(field_name: str, s: str) -> str:
+        pattern = rf'"{field_name}"\s*:\s*"(.*?)(?=(?:"\s*,\s*"[a-zA-Z0-9_]+"\s*:)|(?:"\s*\}})|$)'
+        m = re.search(pattern, s, re.DOTALL)
+        if m:
+            return clean_insight_text(m.group(1))
+        return ""
+
+    return {
+        "executive_summary": extract_field("executive_summary", text),
+        "pedagogical_implications": extract_field("pedagogical_implications", text),
+        "future_challenges_and_policy": extract_field("future_challenges_and_policy", text),
+    }
+
 
 
 class GeminiInsightGenerator:
@@ -122,7 +187,6 @@ class GeminiInsightGenerator:
     def _generate_with_gemini(
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> EducationalInsights:
-        import json
         prompt = self._build_insight_prompt(dataset, analysis)
 
         candidate_models = [self.gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
@@ -138,7 +202,7 @@ class GeminiInsightGenerator:
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         temperature=0.4,
-                        max_output_tokens=2500,
+                        max_output_tokens=4096,
                         response_mime_type="application/json",
                         response_schema=EducationalInsights,
                     ),
@@ -156,44 +220,32 @@ class GeminiInsightGenerator:
             raise last_error or RuntimeError("All candidate Gemini models failed for insights")
 
         raw_text = response.text.strip()
-        if raw_text.startswith("```"):
-            lines = raw_text.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            raw_text = "\n".join(lines).strip()
+        parsed = parse_insights_json(raw_text)
+        fallback = self._generate_template_fallback(dataset, analysis)
 
-        try:
-            data = json.loads(raw_text)
-            return EducationalInsights(
-                executive_summary=data.get("executive_summary", ""),
-                pedagogical_implications=data.get("pedagogical_implications", ""),
-                future_challenges_and_policy=data.get("future_challenges_and_policy", ""),
-            )
-        except Exception:
-            parts = raw_text.split("===SECTION_BREAK===")
-            if len(parts) >= 3:
-                return EducationalInsights(
-                    executive_summary=parts[0].strip(),
-                    pedagogical_implications=parts[1].strip(),
-                    future_challenges_and_policy=parts[2].strip(),
-                )
-            return EducationalInsights(
-                executive_summary=raw_text[:400],
-                pedagogical_implications=raw_text[400:1000] if len(raw_text) > 400 else "現場での活用を深める必要があります。",
-                future_challenges_and_policy=raw_text[1000:] if len(raw_text) > 1000 else "今後の継続的な調査と支援が求められます。",
-            )
+        exec_summary = parsed.get("executive_summary") or fallback.executive_summary
+        pedagogy = parsed.get("pedagogical_implications") or fallback.pedagogical_implications
+        policy = parsed.get("future_challenges_and_policy") or fallback.future_challenges_and_policy
+
+        if not exec_summary or len(exec_summary) < 20:
+            logger.warning("Parsed Gemini insights had insufficient executive_summary. Using template fallback.")
+            return fallback
+
+        return EducationalInsights(
+            executive_summary=clean_insight_text(exec_summary),
+            pedagogical_implications=clean_insight_text(pedagogy),
+            future_challenges_and_policy=clean_insight_text(policy),
+        )
 
     def _generate_with_claude(
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> EducationalInsights:
-        import json
-        import re
-        import urllib.request
-
         prompt = self._build_insight_prompt(dataset, analysis)
-        prompt += "\n\n必ず executive_summary, pedagogical_implications, future_challenges_and_policy の3キーを含む単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
+        prompt += (
+            "\n\n【重要】出力は必ず有効なJSON形式のみとしてください。"
+            "キーは 'executive_summary', 'pedagogical_implications', 'future_challenges_and_policy' の3つです。"
+            "```json 等のマークダウンコードブロックや前後の解説文は一切含めず、純粋なJSONオブジェクト（{...}）のみを出力してください。"
+        )
 
         resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
         logger.info(f"Targeting Anthropic Claude model for insights: '{resolved_model}' (requested: '{self.anthropic_model}')")
@@ -207,8 +259,9 @@ class GeminiInsightGenerator:
         }
         payload = {
             "model": resolved_model,
-            "max_tokens": 2048,
-            "temperature": 0.4,
+            "max_tokens": 4096,
+            "temperature": 0.3,
+            "system": "You are an expert Japanese educational policy and statistical analyst. Always respond strictly in valid JSON without markdown fences or preambles.",
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -222,17 +275,24 @@ class GeminiInsightGenerator:
             res_data = json.loads(resp.read().decode("utf-8"))
 
         raw_text = res_data["content"][0]["text"].strip()
-        json_match = re.search(r"\{[\s\S]*\}", raw_text)
-        if json_match:
-            raw_text = json_match.group(0)
+        parsed = parse_insights_json(raw_text)
+        fallback = self._generate_template_fallback(dataset, analysis)
 
-        data = json.loads(raw_text)
-        logger.info("Successfully generated educational insights via Claude 3.5 Sonnet!")
+        exec_summary = parsed.get("executive_summary") or fallback.executive_summary
+        pedagogy = parsed.get("pedagogical_implications") or fallback.pedagogical_implications
+        policy = parsed.get("future_challenges_and_policy") or fallback.future_challenges_and_policy
+
+        if not exec_summary or len(exec_summary) < 20:
+            logger.warning("Parsed Claude insights had insufficient executive_summary. Using template fallback.")
+            return fallback
+
+        logger.info(f"Successfully generated educational insights via Claude ({resolved_model})!")
         return EducationalInsights(
-            executive_summary=data.get("executive_summary", ""),
-            pedagogical_implications=data.get("pedagogical_implications", ""),
-            future_challenges_and_policy=data.get("future_challenges_and_policy", ""),
+            executive_summary=clean_insight_text(exec_summary),
+            pedagogical_implications=clean_insight_text(pedagogy),
+            future_challenges_and_policy=clean_insight_text(policy),
         )
+
 
 
 

@@ -17,6 +17,7 @@ from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
 from src.insights import EducationalInsights
+from src.utils import clean_insight_text
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -543,19 +544,19 @@ plt.show()
             review_badge_md = f"""
 > 📋 **査読報告書PDF（生成AIによる模擬査読結果通知書）も同時公開中**:
 > 学会誌査読委員の視点を模した生成AI（Generative AI）により，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています（学生教育・推敲支援目的）。
-> [👉 査読報告書PDFを閲覧・ダウンロード（GitHub）]({peer_review_pdf_url})
+> [📥 査読報告書PDFを直接ダウンロード（PDF）]({peer_review_pdf_url})
 """
             review_btn_html = f"""
-                <a href="{peer_review_pdf_url}" target="_blank" rel="noopener noreferrer" style="background-color:#475569; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); margin-top:8px;">
-                  📋 査読報告書（生成AI模擬査読・PDF）を閲覧
+                <a href="{peer_review_pdf_url}" target="_blank" rel="noopener noreferrer" download style="background-color:#475569; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); margin-top:8px;">
+                  📥 査読報告書PDFを直接ダウンロード
                 </a>
 """
 
         if pdf_url:
             pdf_badge_md = f"""
-> 📄 **学術論文形式PDF（査読論文様式）を公開中**:
-> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（JIS B5判・2段組）をGitHub上で閲覧・ダウンロードできます。
-> [👉 学術論文PDFを閲覧・ダウンロード（GitHub）]({pdf_url})
+> 📄 **学術論文形式PDF（生成AI論文）を公開中**:
+> 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（JIS B5判・2段組）を直接ダウンロードできます。
+> [📥 学術論文PDFを直接ダウンロード（PDF）]({pdf_url})
 {review_badge_md}
 ---
 """
@@ -567,21 +568,26 @@ plt.show()
                 <div style="font-size:11px; font-weight:bold; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Academic Paper &amp; Peer Review Report (PDF)</div>
                 <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート ＆ 📋 学術査読報告書（生成AIシミュレーション）</h4>
                 <p style="margin:0; font-size:13px; line-height:1.5; color:#334155;">
-                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）と、厳格な査読委員視点を模した生成AIによる模擬査読結果通知書（A4判）をGitHub上で公開しています。
+                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）と、厳格な査読委員視点を模した生成AIによる模擬査読結果通知書（A4判）を公開しています。
                 </p>
               </div>
               <div style="text-align:right;">
-                <a href="{pdf_url}" target="_blank" rel="noopener noreferrer" style="background-color:#0284c7; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); transition:background-color 0.2s;">
-                  📥 論文PDFをダウンロード / 閲覧
+                <a href="{pdf_url}" target="_blank" rel="noopener noreferrer" download style="background-color:#0284c7; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); transition:background-color 0.2s;">
+                  📥 学術論文PDFを直接ダウンロード
                 </a><br/>
                 {review_btn_html}
-                <div style="font-size:11px; color:#64748b; margin-top:4px;">※GitHubビューアで直接閲覧可能</div>
+                <div style="font-size:11px; color:#64748b; margin-top:4px;">※直接PDFファイルをダウンロードして閲覧いただけます</div>
               </div>
             </div>
           </div>
 """
 
+
         # 3. Assemble Markdown Content (Includes raw URL chart and full Python script)
+        clean_summary = clean_insight_text(insights.executive_summary)
+        clean_pedagogy = clean_insight_text(insights.pedagogical_implications)
+        clean_policy = clean_insight_text(insights.future_challenges_and_policy)
+
         insights_bullets_md = "\n".join([f"- {ins}" for ins in analysis.key_insights])
 
         markdown_content = f"""# {title}
@@ -592,7 +598,7 @@ plt.show()
 {pdf_badge_md}
 ## 📌 本日の分析要約（エグゼクティブサマリー）
 
-{insights.executive_summary}
+{clean_summary}
 
 ---
 
@@ -622,21 +628,20 @@ plt.show()
 
 ## 💡 教育現場・授業実践への具体的示唆
 
-{insights.pedagogical_implications}
+{clean_pedagogy}
 
 ---
 
 ## 🚀 今後の課題と政策・国際的展望
 
-{insights.future_challenges_and_policy}
+{clean_policy}
 
 ---
 
 ## 💻 統計処理に利用した Python スクリプト
 
-本レポートのデータ抽出、基本統計量計算、トレンド回帰、相関分析、およびグラフ描画をローカル環境（Jupyter Notebook / Google Colab等）でそのまま再現できるPythonコード（`.py`ファイル）をGitHubリポジトリにて公開しています。
+本レポートのデータ抽出、基本統計量計算、トレンド回帰、相関分析、およびグラフ描画をローカル環境（Jupyter Notebook / Google Colab等）でそのまま再現できるPythonコード（`.py`ファイル）を公開しています。
 
-- [📂 GitHubでPythonスクリプトを閲覧する]({py_url})
 - [📥 スクリプトファイル（{py_filename}）を直接ダウンロード]({raw_py_url})
 
 ---
@@ -648,9 +653,9 @@ plt.show()
         cat_str = ",".join(categories)
         tag_str = ",".join(tags)
 
-        pedagogy_html = insights.pedagogical_implications.replace("\n", "<br/>")
-        policy_html = insights.future_challenges_and_policy.replace("\n", "<br/>")
-        summary_html = insights.executive_summary.replace("\n", "<br/>")
+        pedagogy_html = clean_pedagogy.replace("\n", "<br/>")
+        policy_html = clean_policy.replace("\n", "<br/>")
+        summary_html = clean_summary.replace("\n", "<br/>")
         insights_bullets_html = "".join(
             [f"<li style='margin-bottom:6px;'>{ins}</li>" for ins in analysis.key_insights]
         )
@@ -738,15 +743,13 @@ plt.show()
                 </p>
               </div>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <a href="{py_url}" target="_blank" rel="noopener noreferrer" style="background-color:#0f172a; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:5px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:background-color 0.2s;">
-                  📂 Pythonコードを見る (GitHub)
-                </a>
-                <a href="{raw_py_url}" download="{py_filename}" style="background-color:#2563eb; color:#ffffff; text-decoration:none; padding:8px 14px; border-radius:5px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:background-color 0.2s;">
+                <a href="{raw_py_url}" download="{py_filename}" style="background-color:#2563eb; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1); transition:background-color 0.2s;">
                   📥 .pyファイルをダウンロード
                 </a>
               </div>
             </div>
           </div>
+
 
           <!-- Footer -->
           <hr style="border:none; border-top:1px solid #e9ecef; margin:30px 0;" />

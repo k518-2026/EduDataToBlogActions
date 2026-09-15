@@ -112,6 +112,40 @@ def format_title_two_lines(title: str) -> str:
     return clean
 
 
+def clean_insight_text(text: str) -> str:
+    """
+    Sanitizes educational insight text to guarantee no raw JSON keys, braces,
+    escaped quotes, or trailing fragments appear in blog posts or markdown documents.
+    """
+    if not text:
+        return ""
+    t = str(text).strip()
+
+    # Strip markdown code blocks if the whole field or fragment is wrapped
+    if t.startswith("```"):
+        lines = t.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        t = "\n".join(lines).strip()
+
+    # Strip leading JSON residue e.g. {"executive_summary":" or "executive_summary":" or partial ns":"
+    t = re.sub(r'^\s*\{?\s*"?[a-zA-Z0-9_]*"?\s*:\s*"?', '', t)
+    # Strip leading isolated quotes or braces
+    t = re.sub(r'^[{\["\']+\s*', '', t)
+
+    # Strip trailing JSON residue e.g. ","pedagogical_implicatio... or "," or "
+    t = re.sub(r'",\s*"?[a-zA-Z0-9_]*.*$', '', t)
+    # Strip trailing quotes, braces, brackets, commas
+    t = re.sub(r'[,}\]"\'\s]+$', '', t)
+
+    # Clean unescaped sequences
+    t = t.replace(r'\r\n', '\n').replace(r'\n', '\n').replace(r'\"', '"').replace(r'\/', '/')
+    return t.strip()
+
+
+
 def get_available_anthropic_models(api_key: str) -> list[str]:
     """
     Fetches the list of active model IDs available to this API key from https://api.anthropic.com/v1/models.

@@ -60,5 +60,5 @@ def test_reporter_builds_valid_documents(tmp_path):
     assert "[status publish]" in report.html_content
     assert "data:image/png;base64," in report.html_content
     assert "テスト授業示唆です。" in report.html_content
-    assert "Pythonコードを見る (GitHub)" in report.html_content
     assert ".pyファイルをダウンロード" in report.html_content
+

@@ -150,12 +150,12 @@ def main():
         secondary_chart_path=secondary_chart_path,
     )
 
-    # Construct public GitHub viewing/download URL
-    pdf_github_url = (
-        f"https://github.com/{Config.GITHUB_REPOSITORY}/blob/"
+    # Construct direct download URL (no GitHub preview page)
+    pdf_download_url = (
+        f"https://raw.githubusercontent.com/{Config.GITHUB_REPOSITORY}/"
         f"{Config.GITHUB_BRANCH}/reports/pdf/{pdf_filename}"
     )
-    logger.info(f"PDF generated: {local_pdf_path} (Public GitHub URL: {pdf_github_url})")
+    logger.info(f"PDF generated: {local_pdf_path} (Direct Download URL: {pdf_download_url})")
 
     # 7. Generate rigorous academic peer review report and PDF
     logger.info("📋 Generating rigorous academic peer review report...")
@@ -168,11 +168,11 @@ def main():
     local_review_pdf_path = TEMP_DIR / review_pdf_filename
     review_pdf_gen.generate_pdf(peer_review, local_review_pdf_path)
 
-    review_pdf_github_url = (
-        f"https://github.com/{Config.GITHUB_REPOSITORY}/blob/"
+    review_pdf_download_url = (
+        f"https://raw.githubusercontent.com/{Config.GITHUB_REPOSITORY}/"
         f"{Config.GITHUB_BRANCH}/reports/pdf/{review_pdf_filename}"
     )
-    logger.info(f"Peer review PDF generated: {local_review_pdf_path} (Public GitHub URL: {review_pdf_github_url})")
+    logger.info(f"Peer review PDF generated: {local_review_pdf_path} (Direct Download URL: {review_pdf_download_url})")
 
     # 8. Generate reproducible Python analysis script
     logger.info("🐍 Generating reproducible Python analysis script...")
@@ -196,12 +196,13 @@ def main():
         insights=insights,
         chart_path=chart_path,
         pdf_path=local_pdf_path,
-        pdf_url=pdf_github_url,
+        pdf_url=pdf_download_url,
         peer_review_pdf_path=local_review_pdf_path,
-        peer_review_pdf_url=review_pdf_github_url,
+        peer_review_pdf_url=review_pdf_download_url,
         py_script_path=local_py_path,
         py_script_url=py_github_url,
     )
+
 
     # Save local previews
     preview_html_path = TEMP_DIR / "preview_post.html"

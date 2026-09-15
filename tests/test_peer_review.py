@@ -131,7 +131,7 @@ def test_report_builder_and_markdown_publisher_with_peer_review(tmp_path):
 
     assert "査読報告書PDF" in report.markdown_content
     assert "https://github.com/example/review.pdf" in report.markdown_content
-    assert "査読報告書（生成AI模擬査読・PDF）を閲覧" in report.html_content
+    assert "査読報告書PDFを直接ダウンロード" in report.html_content
 
     # Test publisher copies the review PDF into reports_dir/pdf/
     reports_dir = tmp_path / "reports"

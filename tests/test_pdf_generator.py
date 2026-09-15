@@ -114,11 +114,12 @@ def test_no_society_name_in_paper_and_pdf(tmp_path):
     assert res_path.stat().st_size > 10000
 
 
-def test_category_box_is_short_letter():
-    """Verifies that the paper category label is 'ショートレター' and not '教育実践研究論文'."""
+def test_category_box_is_generative_ai_paper():
+    """Verifies that the paper category label is '生成AI論文'."""
     pdf_gen_file = Path("src/pdf/pdf_generator.py").read_text(encoding="utf-8")
-    assert "ショートレター" in pdf_gen_file
+    assert "生成AI論文" in pdf_gen_file
     assert "教育実践研究論文" not in pdf_gen_file
+
 
 
 

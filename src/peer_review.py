@@ -134,7 +134,7 @@ class PeerReviewGenerator:
 以下のキーを持つ厳密なJSONオブジェクトを出力してください：
 {{
   "paper_title": "{paper.title}",
-  "category": "ショートレター",
+  "category": "生成AI論文",
   "decision": "条件付採録（Major Revision）",
   "scores": {{
     "独創性・新規性": ["B", "公的オープンデータを時系列・相関の複合観点から可視化した点は評価できるが、既存公表集計値の再整理にとどまり、独自の理論モデルや新規指標の創出には至っていない。"],
@@ -220,7 +220,7 @@ class PeerReviewGenerator:
 
         return PeerReviewReport(
             paper_title=data.get("paper_title", paper.title),
-            category=data.get("category", "ショートレター"),
+            category=data.get("category", "生成AI論文"),
             decision=data.get("decision", "条件付採録（Major Revision）"),
             scores=formatted_scores,
             overall_critique=data.get("overall_critique", ""),
@@ -238,8 +238,6 @@ class PeerReviewGenerator:
         analysis: AnalysisResult,
     ) -> PeerReviewReport:
         prompt = self._build_review_prompt(paper, dataset, analysis)
-        prompt += "\n\n必ず指定された全フィールド（paper_title, category, decision, scores, overall_critique, major_revisions, minor_revisions, questions_to_authors, ai_disclosure_evaluation）を含む有効な単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
-
         resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
         logger.info(f"Targeting Anthropic Claude model for peer review: '{resolved_model}' (requested: '{self.anthropic_model}')")
 
@@ -254,6 +252,7 @@ class PeerReviewGenerator:
             "model": resolved_model,
             "max_tokens": 4096,
             "temperature": 0.3,
+            "system": "You are a senior academic reviewer for an educational research journal. Review thoroughly and provide critical scholarly evaluations.",
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -263,7 +262,7 @@ class PeerReviewGenerator:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
 
         raw_text = res_data["content"][0]["text"].strip()
@@ -272,9 +271,10 @@ class PeerReviewGenerator:
             raw_text = json_match.group(0)
 
         data = json.loads(raw_text)
-        scores_raw = data.get("scores", {})
-        formatted_scores = {}
-        for k, v in scores_raw.items():
+
+        raw_scores = data.get("scores", {})
+        formatted_scores: Dict[str, Tuple[str, str]] = {}
+        for k, v in raw_scores.items():
             if isinstance(v, list) and len(v) >= 2:
                 formatted_scores[k] = (str(v[0]), str(v[1]))
             elif isinstance(v, tuple) and len(v) >= 2:
@@ -282,10 +282,10 @@ class PeerReviewGenerator:
             else:
                 formatted_scores[k] = ("B", str(v))
 
-        logger.info("Successfully generated academic peer review via Anthropic Claude 3.5 Sonnet!")
+        logger.info("Successfully generated academic peer review via Anthropic Claude!")
         return PeerReviewReport(
             paper_title=data.get("paper_title", paper.title),
-            category=data.get("category", "ショートレター"),
+            category=data.get("category", "生成AI論文"),
             decision=data.get("decision", "条件付採録（Major Revision）"),
             scores=formatted_scores,
             overall_critique=data.get("overall_critique", ""),
@@ -324,7 +324,7 @@ class PeerReviewGenerator:
             ),
             "論理的一貫性・構成": (
                 "A-",
-                "ショートレターとしての構成要件を遵守し、RQ1・RQ2の設定から分析結果、考察に至る対応関係は明瞭である．"
+                "生成AI論文としての構成要件を遵守し、RQ1・RQ2の設定から分析結果、考察に至る対応関係は明瞭である．"
                 "先行研究の知見との共通点・相違点を対比させた考察の構成も学術的に評価できる．",
             ),
             "表現・体裁・引用規範": (
@@ -344,7 +344,7 @@ class PeerReviewGenerator:
 
         return PeerReviewReport(
             paper_title=paper.title,
-            category="ショートレター",
+            category="生成AI論文",
             decision="条件付採録（Major Revision）",
             scores=scores,
             overall_critique=ctx.fallback_review_critique,

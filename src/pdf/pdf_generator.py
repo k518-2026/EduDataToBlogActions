@@ -100,7 +100,7 @@ class JSETNumberedCanvas(canvas.Canvas):
             self.setStrokeColor(colors.black)
             self.rect(MARGIN_X, PAGE_HEIGHT - MARGIN_TOP + 4, 84, 16)
             self.setFont(self.gothic_font, 8.5)
-            self.drawCentredString(MARGIN_X + 42, PAGE_HEIGHT - MARGIN_TOP + 8.5, "ショートレター")
+            self.drawCentredString(MARGIN_X + 42, PAGE_HEIGHT - MARGIN_TOP + 8.5, "生成AI論文")
 
             # 2. Top-Right: 学会名・雑誌名は掲載しない（体裁・レイアウトのみ利用）
 
@@ -830,26 +830,7 @@ class EduPaperPdfGenerator:
                 story.append(Paragraph(p.strip(), self.styles["Body"]))
 
         # ==========================================
-        # 6. Generative AI Disclosure Note (Before References)
-        # ==========================================
-        ai_notice_text = (
-            "<b>【付記：生成AIによる自動執筆に関する開示】</b><br/>"
-            "本論文は学生への教育目的で作成しています．<br/>"
-            "（論文執筆に悩んでいる学生への応援も兼ねています）<br/><br/>"
-            "内容について，使用しているデータは公的オープンデータです．<br/>"
-            "Pythonによる統計解析エンジンの算出結果に基づき，"
-            "大規模言語モデル（Generative AI）を活用して生成されています．<br/><br/>"
-            "（Gemini3.8Flashによる速度重視の文章生成のため）<br/>"
-            "記載された統計数値および数理モデルは元データに準拠していますが，"
-            "教育学的考察および提言の妥当性については，"
-            "指導現場の実情に応じた批判的吟味を必ずしてください．"
-        )
-        story.append(Spacer(1, 4))
-        story.append(Paragraph(ai_notice_text, self.styles["AIDisclosure"]))
-        story.append(Spacer(1, 4))
-
-        # ==========================================
-        # 7. References (参 考 文 献)
+        # 6. References (参 考 文 献)
         # ==========================================
         story.append(PageBreak())
         story.append(Paragraph("参　考　文　献", self.styles["Heading1"]))
@@ -859,10 +840,10 @@ class EduPaperPdfGenerator:
                 story.append(Paragraph(ref.strip(), self.styles["Reference"]))
 
         # ==========================================
-        # 8. English Summary & KEYWORDS (End of paper)
+        # 7. English Summary & KEYWORDS (End of paper)
         # ==========================================
+        story.append(FrameBreak())
         if paper.summary_en:
-            story.append(FrameBreak())
             summary_elements = [
                 Paragraph("Summary", self.styles["SummaryHeading"]),
                 Paragraph(paper.summary_en, self.styles["SummaryBody"]),
@@ -880,7 +861,25 @@ class EduPaperPdfGenerator:
             )
             story.append(KeepTogether(summary_elements))
 
+        # ==========================================
+        # 8. Generative AI Disclosure Note (After English SUMMARY)
+        # ==========================================
+        ai_notice_text = (
+            "<b>【付記：生成AIによる自動執筆に関する開示】</b><br/>"
+            "本論文は学生への教育目的で作成しています．<br/>"
+            "（論文執筆に悩んでいる学生への応援も兼ねています）<br/><br/>"
+            "内容について，使用しているデータは公的オープンデータです．<br/>"
+            "Pythonによる統計解析エンジンの算出結果に基づき，"
+            "生成AI（Generative AI: Anthropic Claude / Google Gemini）を活用して自動生成されています．<br/><br/>"
+            "記載された統計数値および数理モデルは元データに準拠していますが，"
+            "教育学的考察および提言の妥当性については，"
+            "指導現場の実情に応じた批判的吟味を必ずしてください．"
+        )
+        story.append(Spacer(1, 6))
+        story.append(Paragraph(ai_notice_text, self.styles["AIDisclosure"]))
+
         # Build document with JSETNumberedCanvas
         doc.build(story, canvasmaker=JSETNumberedCanvas)
+
         logger.info(f"Successfully generated JSET academic paper PDF: {output_pdf_path}")
         return output_pdf_path
