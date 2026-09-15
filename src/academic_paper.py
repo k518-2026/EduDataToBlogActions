@@ -21,7 +21,7 @@ from src.academic_contexts import get_academic_context
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import clean_text_spaces, resolve_metric_unit
+from src.utils import clean_text_spaces, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -613,16 +613,35 @@ class AcademicPaperGenerator:
         import json
         prompt = self._build_academic_prompt(dataset, analysis)
 
-        response = self.gemini_client.models.generate_content(
-            model=self.gemini_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.35,
-                max_output_tokens=8192,
-                response_mime_type="application/json",
-                response_schema=AcademicPaper,
-            ),
-        )
+        candidate_models = [self.gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
+        seen = set()
+        models_to_try = [m for m in candidate_models if m and not (m in seen or seen.add(m))]
+
+        response = None
+        last_error = None
+        for m in models_to_try:
+            try:
+                response = self.gemini_client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.35,
+                        max_output_tokens=8192,
+                        response_mime_type="application/json",
+                        response_schema=AcademicPaper,
+                    ),
+                )
+                logger.info(f"Successfully generated academic paper via Gemini ({m})")
+                break
+            except Exception as e:
+                last_error = e
+                if "404" in str(e) or "NOT_FOUND" in str(e):
+                    logger.warning(f"Gemini model '{m}' returned 404/NOT_FOUND. Trying fallback model...")
+                    continue
+                raise e
+
+        if response is None:
+            raise last_error or RuntimeError("All candidate Gemini models failed")
 
         raw_text = response.text.strip()
         if raw_text.startswith("```"):
@@ -681,6 +700,9 @@ class AcademicPaperGenerator:
         prompt = self._build_academic_prompt(dataset, analysis)
         prompt += "\n\n必ず上記全フィールド（title, subtitle, abstract, keywords, background, objectives, methodology, results_text, discussion, references, title_en, authors_en, summary_en, keywords_en）を含む有効な単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
 
+        resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
+        logger.info(f"Targeting Anthropic Claude model: '{resolved_model}' (requested: '{self.anthropic_model}')")
+
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": self.anthropic_api_key,
@@ -689,7 +711,7 @@ class AcademicPaperGenerator:
             "user-agent": "EduDataToBlogActions/1.0",
         }
         payload = {
-            "model": self.anthropic_model,
+            "model": resolved_model,
             "max_tokens": 4096,
             "temperature": 0.35,
             "messages": [{"role": "user", "content": prompt}],

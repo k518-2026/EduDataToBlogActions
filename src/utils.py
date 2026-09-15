@@ -112,3 +112,60 @@ def format_title_two_lines(title: str) -> str:
     return clean
 
 
+def get_available_anthropic_models(api_key: str) -> list[str]:
+    """
+    Fetches the list of active model IDs available to this API key from https://api.anthropic.com/v1/models.
+    Returns empty list if request fails or key is missing.
+    """
+    if not api_key:
+        return []
+    import json
+    import urllib.request
+    try:
+        req = urllib.request.Request(
+            "https://api.anthropic.com/v1/models",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "user-agent": "EduDataToBlogActions/1.0",
+            },
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        return [m["id"] for m in data.get("data", []) if "id" in m]
+    except Exception:
+        return []
+
+
+def resolve_anthropic_model(api_key: str, preferred_model: str = "") -> str:
+    """
+    Resolves a valid, available Anthropic model ID.
+    If preferred_model is specified and confirmed available in the user's account, uses it.
+    Otherwise dynamically queries /v1/models to select the most capable Sonnet/Opus model,
+    preventing 404 NOT FOUND errors caused by deprecated model snapshots.
+    """
+    models = get_available_anthropic_models(api_key)
+    if not models:
+        return preferred_model or "claude-sonnet-5"
+
+    if preferred_model and preferred_model in models:
+        return preferred_model
+
+    # Priority 1: Sonnet 5 or any Sonnet model
+    for m in models:
+        if "sonnet-5" in m.lower() or ("sonnet" in m.lower() and "5" in m):
+            return m
+    for m in models:
+        if "sonnet" in m.lower():
+            return m
+
+    # Priority 2: Opus model
+    for m in models:
+        if "opus" in m.lower():
+            return m
+
+    # Priority 3: First available model
+    return models[0]
+
+

@@ -11,6 +11,8 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from dotenv import load_dotenv
 
+from src.utils import get_available_anthropic_models, resolve_anthropic_model
+
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -154,49 +156,81 @@ def check_ai_apis():
 
     # 1. Anthropic Claude
     anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022").strip()
+    preferred_claude_model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5").strip()
     if anthropic_key:
         import json
         import urllib.request
         import urllib.error
 
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": anthropic_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-            "user-agent": "EduDataToBlogActions/1.0",
-        }
-        payload = {
-            "model": anthropic_model,
-            "max_tokens": 10,
-            "messages": [{"role": "user", "content": "ping"}],
-        }
-        try:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                json.loads(resp.read().decode("utf-8"))
-            add_summary(f"- **Anthropic Claude API**: ✅ 接続成功！ (モデル: `{anthropic_model}`)")
-        except urllib.error.HTTPError as e:
-            err_body = e.read().decode("utf-8", errors="replace")
-            add_summary(f"- **Anthropic Claude API**: ❌ HTTP {e.code} エラー: `{err_body[:200]}`")
-        except Exception as e:
-            add_summary(f"- **Anthropic Claude API**: ❌ 接続エラー: `{e}`")
+        available_models = get_available_anthropic_models(anthropic_key)
+        if available_models:
+            add_summary(f"- **Anthropic Claude API**: ✅ 認証成功！ (有効なAPIキーが認識されました)")
+            models_display = ", ".join([f"`{m}`" for m in available_models[:8]])
+            add_summary(f"  - アカウントで利用可能なモデル一覧: {models_display}")
+            resolved_model = resolve_anthropic_model(anthropic_key, preferred_claude_model)
+            add_summary(f"  - 論文・査読生成での選択モデル: `{resolved_model}`")
+
+            # Test generation
+            url = "https://api.anthropic.com/v1/messages"
+            headers = {
+                "x-api-key": anthropic_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+                "user-agent": "EduDataToBlogActions/1.0",
+            }
+            payload = {
+                "model": resolved_model,
+                "max_tokens": 10,
+                "messages": [{"role": "user", "content": "ping"}],
+            }
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    json.loads(resp.read().decode("utf-8"))
+                add_summary(f"  - テスト文章生成: ✅ 成功！ (モデル `{resolved_model}` で正常に応答が得られました)")
+            except urllib.error.HTTPError as e:
+                err_body = e.read().decode("utf-8", errors="replace")
+                add_summary(f"  - テスト文章生成: ❌ HTTP {e.code} エラー: `{err_body[:200]}`")
+            except Exception as e:
+                add_summary(f"  - テスト文章生成: ❌ 接続エラー: `{e}`")
+        else:
+            add_summary(f"- **Anthropic Claude API**: ⚠️ モデル一覧の取得に失敗しました。キーの権限または形式（`sk-ant-...`）をご確認ください。")
     else:
         add_summary("- **Anthropic Claude API**: ℹ️ `ANTHROPIC_API_KEY` 未設定（Geminiまたはテンプレートで動作します）")
 
     # 2. Google Gemini
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    gemini_model = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash").strip()
+    preferred_gemini_model = os.getenv("GEMINI_TEXT_MODEL", "gemini-3.6-flash").strip()
     if gemini_key:
         try:
             from google import genai
             client = genai.Client(api_key=gemini_key)
-            client.models.generate_content(
-                model=gemini_model,
-                contents="ping",
-            )
-            add_summary(f"- **Google Gemini API**: ✅ 接続成功！ (モデル: `{gemini_model}`)")
+            candidates = [preferred_gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
+            seen_cand = set()
+            models_to_test = [m for m in candidates if m and not (m in seen_cand or seen_cand.add(m))]
+
+            success_model = None
+            last_err = None
+            for cm in models_to_test:
+                try:
+                    client.models.generate_content(
+                        model=cm,
+                        contents="ping",
+                    )
+                    success_model = cm
+                    break
+                except Exception as ex:
+                    last_err = ex
+                    if "404" in str(ex) or "NOT_FOUND" in str(ex):
+                        continue
+                    raise ex
+
+            if success_model:
+                add_summary(f"- **Google Gemini API**: ✅ 接続成功！ (稼働確認モデル: `{success_model}`)")
+                if success_model != preferred_gemini_model:
+                    add_summary(f"  - ℹ️ 指定モデル `{preferred_gemini_model}` は提供終了(404)のため、`{success_model}` に自動フォールバックしました。")
+            else:
+                add_summary(f"- **Google Gemini API**: ❌ 候補モデル ({', '.join(models_to_test)}) がいずれも404です: `{last_err}`")
         except Exception as e:
             add_summary(f"- **Google Gemini API**: ❌ 接続エラー: `{e}`")
     else:

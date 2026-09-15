@@ -99,3 +99,20 @@ def test_peer_review_claude_graceful_fallback():
         assert review is not None
         assert "条件付採録" in review.decision
         assert len(review.major_revisions) >= 3
+
+
+def test_resolve_anthropic_model_logic():
+    """Tests intelligent model selection from available models list."""
+    from src.utils import resolve_anthropic_model
+
+    # When API call returns mock model list
+    with patch("src.utils.get_available_anthropic_models", return_value=["claude-3-5-haiku-20241022", "claude-sonnet-5", "claude-opus-5"]):
+        # Preferred model exists
+        assert resolve_anthropic_model("key", "claude-sonnet-5") == "claude-sonnet-5"
+        # Preferred model is deprecated / doesn't exist -> resolves to available Sonnet 5
+        assert resolve_anthropic_model("key", "claude-3-5-sonnet-20241022") == "claude-sonnet-5"
+
+    # When API call fails / empty
+    with patch("src.utils.get_available_anthropic_models", return_value=[]):
+        assert resolve_anthropic_model("key", "claude-sonnet-5") == "claude-sonnet-5"
+

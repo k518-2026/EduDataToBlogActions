@@ -19,6 +19,7 @@ from src.academic_paper import AcademicPaper
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
+from src.utils import resolve_anthropic_model
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -167,15 +168,36 @@ class PeerReviewGenerator:
         analysis: AnalysisResult,
     ) -> PeerReviewReport:
         prompt = self._build_review_prompt(paper, dataset, analysis)
-        response = self.gemini_client.models.generate_content(
-            model=self.gemini_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.3,
-                max_output_tokens=4096,
-                response_mime_type="application/json",
-            ),
-        )
+
+        candidate_models = [self.gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
+        seen = set()
+        models_to_try = [m for m in candidate_models if m and not (m in seen or seen.add(m))]
+
+        response = None
+        last_error = None
+        for m in models_to_try:
+            try:
+                response = self.gemini_client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.3,
+                        max_output_tokens=4096,
+                        response_mime_type="application/json",
+                    ),
+                )
+                logger.info(f"Successfully generated peer review via Gemini ({m})")
+                break
+            except Exception as e:
+                last_error = e
+                if "404" in str(e) or "NOT_FOUND" in str(e):
+                    logger.warning(f"Gemini model '{m}' returned 404/NOT_FOUND for peer review. Trying fallback model...")
+                    continue
+                raise e
+
+        if response is None:
+            raise last_error or RuntimeError("All candidate Gemini models failed for peer review")
+
         raw_text = response.text.strip()
         if raw_text.startswith("```"):
             lines = raw_text.splitlines()
@@ -218,6 +240,9 @@ class PeerReviewGenerator:
         prompt = self._build_review_prompt(paper, dataset, analysis)
         prompt += "\n\n必ず指定された全フィールド（paper_title, category, decision, scores, overall_critique, major_revisions, minor_revisions, questions_to_authors, ai_disclosure_evaluation）を含む有効な単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
 
+        resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
+        logger.info(f"Targeting Anthropic Claude model for peer review: '{resolved_model}' (requested: '{self.anthropic_model}')")
+
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": self.anthropic_api_key,
@@ -226,7 +251,7 @@ class PeerReviewGenerator:
             "user-agent": "EduDataToBlogActions/1.0",
         }
         payload = {
-            "model": self.anthropic_model,
+            "model": resolved_model,
             "max_tokens": 4096,
             "temperature": 0.3,
             "messages": [{"role": "user", "content": prompt}],
