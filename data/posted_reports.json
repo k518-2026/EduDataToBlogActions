@@ -452,5 +452,24 @@
     "platform": "wordpress_mail",
     "posted_at": "2026-09-16T06:43:09.939038+09:00",
     "date": "2026-09-16"
+  },
+  {
+    "dataset_id": "japan_mext_ict_informatization",
+    "title": "【学校教育情報化実態調査】1人1台端末利活用率とICT指導力の推移 (2026年09月16日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_mail",
+    "posted_at": "2026-09-16T07:22:35.773368+09:00",
+    "date": "2026-09-16"
   }
 ]
