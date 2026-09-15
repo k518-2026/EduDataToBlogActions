@@ -13,6 +13,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
+from src.utils import resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -76,15 +77,17 @@ class GeminiInsightGenerator:
     ) -> str:
         stats_summary = []
         for m, s in analysis.descriptive_stats.items():
+            m_unit = resolve_metric_unit(m, dataset.unit)
             stats_summary.append(
-                f"- {m}: 平均={s.mean}{dataset.unit}, 中央値={s.median}{dataset.unit}, 最小={s.min_val}, 最大={s.max_val}, 標準偏差={s.std}"
+                f"- {m}: 平均={s.mean}{m_unit}, 中央値={s.median}{m_unit}, 最小={s.min_val}, 最大={s.max_val}, 標準偏差={s.std}"
             )
 
         trends_summary = []
         for tr in analysis.trends[:4]:
             grp = f"({tr.group_name}) " if tr.group_name else ""
+            tr_unit = resolve_metric_unit(tr.metric, dataset.unit)
             trends_summary.append(
-                f"- {grp}{tr.metric}: {tr.start_time}年 {tr.start_val}{dataset.unit} → {tr.end_time}年 {tr.end_val}{dataset.unit} (変化量: {tr.diff:+.1f}, 変化率: {tr.pct_change:+.1f}%, CAGR: {tr.cagr}%, R²={tr.r_squared})"
+                f"- {grp}{tr.metric}: {tr.start_time}年 {tr.start_val}{tr_unit} → {tr.end_time}年 {tr.end_val}{tr_unit} (変化量: {tr.diff:+.1f}, 変化率: {tr.pct_change:+.1f}%, CAGR: {tr.cagr}%, R²={tr.r_squared})"
             )
 
         insights_text = "\n".join(analysis.key_insights)

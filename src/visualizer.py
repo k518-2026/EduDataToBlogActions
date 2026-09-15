@@ -16,6 +16,7 @@ import seaborn as sns
 from src.analyzer import AnalysisResult
 from src.config import TEMP_DIR
 from src.fetchers.base import EducationDataset
+from src.utils import resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -236,10 +237,11 @@ class EduDataVisualizer:
                     zorder=2,
                 )
 
+                primary_unit = resolve_metric_unit(primary_metric, dataset.unit)
                 last_x = x_vals[-1]
                 last_y = y_vals[-1]
                 ax.annotate(
-                    f"{last_y:.1f}{dataset.unit}",
+                    f"{last_y:.1f}{primary_unit}",
                     (last_x, last_y),
                     textcoords="offset points",
                     xytext=(8, -3),
@@ -249,6 +251,7 @@ class EduDataVisualizer:
                     zorder=4,
                 )
         else:
+            primary_unit = resolve_metric_unit(primary_metric, dataset.unit)
             for idx, m in enumerate(dataset.metrics):
                 if m in df.columns:
                     sub = df.sort_values(by=time_col)
@@ -288,10 +291,11 @@ class EduDataVisualizer:
                         zorder=2,
                     )
 
+                    m_unit = resolve_metric_unit(m, dataset.unit)
                     last_x = x_vals[-1]
                     last_y = y_vals[-1]
                     ax.annotate(
-                        f"{last_y:.1f}{dataset.unit}",
+                        f"{last_y:.1f}{m_unit}",
                         (last_x, last_y),
                         textcoords="offset points",
                         xytext=(8, -3),
@@ -303,7 +307,7 @@ class EduDataVisualizer:
 
         ax.set_title(f"{dataset.title}\n【経年推移と95%信頼区間】", fontsize=13, fontweight="bold", pad=12)
         ax.set_xlabel(f"{time_col} (年/年度)", fontsize=11, labelpad=8)
-        ax.set_ylabel(f"値 ({dataset.unit})", fontsize=11, labelpad=8)
+        ax.set_ylabel(f"値 ({primary_unit})", fontsize=11, labelpad=8)
         ax.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white", edgecolor="#cbd5e1", fontsize=9)
         ax.grid(True, linestyle="--", alpha=0.5)
 
@@ -389,11 +393,12 @@ class EduDataVisualizer:
             zorder=3,
         )
 
+        metric_unit = resolve_metric_unit(metric, dataset.unit)
         for i, bar in enumerate(bars):
             width = bar.get_width()
             ci = sorted_df["ci_95"].iloc[i]
             ax.annotate(
-                f"{width:.1f}{dataset.unit} (±{ci:.1f})",
+                f"{width:.1f}{metric_unit} (±{ci:.1f})",
                 xy=(width + ci, bar.get_y() + bar.get_height() / 2),
                 xytext=(6, 0),
                 textcoords="offset points",
@@ -406,7 +411,7 @@ class EduDataVisualizer:
             )
 
         ax.set_title(f"{dataset.title}\n【グループ比較と95%信頼区間】", fontsize=13, fontweight="bold", pad=12)
-        ax.set_xlabel(f"{metric} ({dataset.unit})  [誤差棒: 95% 信頼区間 (95% CI)]", fontsize=11, labelpad=8)
+        ax.set_xlabel(f"{metric} ({metric_unit})  [誤差棒: 95% 信頼区間 (95% CI)]", fontsize=11, labelpad=8)
         ax.set_ylabel("", fontsize=11)
         ax.grid(True, axis="x", linestyle="--", alpha=0.5)
 
@@ -466,6 +471,7 @@ class EduDataVisualizer:
                 r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value})"
                 break
 
+        y_unit = resolve_metric_unit(col_y, dataset.unit)
         ax.set_title(
             f"{dataset.title}\n【相関分析】{col_x} vs {col_y}{r_info}（95%CI併記）",
             fontsize=12,
@@ -473,7 +479,7 @@ class EduDataVisualizer:
             pad=12,
         )
         ax.set_xlabel(f"{col_x}", fontsize=11, labelpad=8)
-        ax.set_ylabel(f"{col_y} ({dataset.unit})", fontsize=11, labelpad=8)
+        ax.set_ylabel(f"{col_y} ({y_unit})", fontsize=11, labelpad=8)
         ax.grid(True, linestyle="--", alpha=0.5)
 
         ax.text(

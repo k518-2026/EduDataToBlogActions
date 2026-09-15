@@ -20,6 +20,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
+from src.utils import clean_text_spaces, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -511,15 +512,17 @@ class AcademicPaperGenerator:
     ) -> str:
         stats_lines = []
         for m, s in analysis.descriptive_stats.items():
+            m_unit = resolve_metric_unit(m, dataset.unit)
             stats_lines.append(
-                f"- {m}: サンプル数N={s.count}， 平均={s.mean:.2f}{dataset.unit}， 中央値={s.median:.2f}{dataset.unit}， 標準偏差={s.std:.2f}， 最小={s.min_val:.2f}， 最大={s.max_val:.2f}， IQR={s.iqr:.2f}"
+                f"- {m}: サンプル数N={s.count}， 平均={s.mean:.2f}{m_unit}， 中央値={s.median:.2f}{m_unit}， 標準偏差={s.std:.2f}， 最小={s.min_val:.2f}， 最大={s.max_val:.2f}， IQR={s.iqr:.2f}"
             )
 
         trends_lines = []
         for tr in analysis.trends:
+            tr_unit = resolve_metric_unit(tr.metric, dataset.unit)
             grp = f"[{tr.group_name}] " if tr.group_name else ""
             trends_lines.append(
-                f"- {grp}{tr.metric}: {tr.start_time}年 ({tr.start_val:.2f}) -> {tr.end_time}年 ({tr.end_val:.2f})， 変化量={tr.diff:+.2f}{dataset.unit}， 変化率={tr.pct_change:+.1f}%， CAGR={tr.cagr}%， 決定係数<i>R</i><sup>2</sup>={tr.r_squared:.3f}， 回帰傾き={tr.slope:.3f}"
+                f"- {grp}{tr.metric}: {tr.start_time}年 ({tr.start_val:.2f}) -> {tr.end_time}年 ({tr.end_val:.2f})， 変化量={tr.diff:+.2f}{tr_unit}， 変化率={tr.pct_change:+.1f}%， CAGR={tr.cagr}%， 決定係数<i>R</i><sup>2</sup>={tr.r_squared:.3f}， 回帰傾き={tr.slope:.3f}"
             )
 
         corr_lines = []
@@ -537,7 +540,7 @@ class AcademicPaperGenerator:
 ### 【データセット基本情報】
 - 題目: {dataset.title}
 - カテゴリ: {'算数・数学教育' if dataset.category == 'math' else '情報教育・プログラミング教育'} (調査対象地域: {dataset.region})
-- 出典機関: {dataset.source_name} ({dataset.source_url})
+- 出典機関: {clean_text_spaces(dataset.source_name)} ({dataset.source_url})
 - 単位: {dataset.unit}
 - データ概要: {dataset.description}
 
@@ -561,11 +564,12 @@ class AcademicPaperGenerator:
    - 数字は1桁数字は全角（１，２，３）、2桁以上は半角（24，44等）とすること。
    - 統計記号（<i>p</i>，<i>t</i>，<i>F</i>，<i>SD</i>，<i>r</i>，<i>R</i><sup>2</sup> 等）はイタリック体（HTMLタグ <i> </i>）にすること。
    - 文体は完全な「である・だ」調。
+   - ※重要【単位の正確な記述】: 数値に付す単位において「点 / %」や「人 / %」のような合成スラッシュ記号は絶対に記述しないこと。必ず各指標固有の単一の単位（得点なら「点」、割合・比率なら「%」、人数なら「人」など）のみを使用すること。
    - ※特定の学会名（「日本教育工学会」等）は本文・抄録・見出し等に一切記述しないこと。
 2. **各フィールドの記述要件**:
-   - **title**: 40字以内の学術論文題目。末尾に「†」を付す（例: 〜に関する計量実証分析†）。
+   - **title**: ★【厳守】35〜45文字程度の簡潔な学術論文題目（2行以内におさまる文字数を厳守）。末尾に「†」を付す（例: 〜に関する計量的実証分析†）。「【TIMSS】」等の角括弧プレフィックスは論文タイトルに含めないこと。
    - **subtitle**: 副題（できる限り簡潔に）。
-   - **abstract**: 和文抄録。320〜380文字（400字以内かつ8割以上を満たすこと）。
+   - **abstract**: 和文抄録。320〜380文字（400字以内かつ8割以上を満たすこと）。冒頭は「本研究は，〇〇（出典機関）が公開する公的オープンデータ（〇〇）を用い，〜」のように無駄な改行や英数字と日本語の間の不自然な半角空白を含めず、スムーズな文章にすること。
    - **keywords**: 5〜6語の専門用語の配列（全角カンマ「，」で区切る）。
    - **background**: 800〜1200文字。問題の社会的・教育的背景を論理的かつ丁寧に詳述すること。★【必須】研究背景の中で【4本以上】の学術文献・公的報告書（海外論文・国際報告書を2本以上＋国内の学習指導要領解説や公的調査報告等を2本以上）を直接引用（著者名・年号）し、国際的動向から国内のカリキュラム改革（学習指導要領・GIGAスクール構想）の現状と課題、実証的データ分析（EBPM）の不可欠性へと論理的・丁寧に接続すること。
    - **objectives**: 400〜600文字。具体的リサーチクエスチョン（RQ）および作業仮説。★【必須】リサーチクエスチョンは【厳密に2つまで（RQ1, RQ2）】とし、各RQごとに必ず改行して「・RQ1：〜」「・RQ2：〜」と箇条書きで明瞭に記述すること（1行にまとめず、各RQを独立行とすること）。
@@ -633,19 +637,20 @@ class AcademicPaperGenerator:
             keywords_en = [str(k).strip().upper() for k in keywords_en if str(k).strip()]
 
         raw_title = data.get("title", f"{dataset.title}に関する実証的計量分析†")
-        title = normalize_jset_text(raw_title)
+        raw_title = re.sub(r"^【.*?】\s*", "", raw_title)
+        title = clean_text_spaces(normalize_jset_text(raw_title))
         if not title.endswith("†"):
             title += "†"
 
         return AcademicPaper(
             title=title,
-            subtitle=normalize_jset_text(data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明")),
-            abstract=normalize_jset_text(data.get("abstract", "")),
+            subtitle=clean_text_spaces(normalize_jset_text(data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明"))),
+            abstract=clean_text_spaces(normalize_jset_text(data.get("abstract", ""))),
             keywords=keywords,
             background=normalize_jset_text(data.get("background", "")),
             objectives=normalize_jset_text(data.get("objectives", "")),
             methodology=normalize_jset_text(data.get("methodology", "")),
-            results_text=normalize_jset_text(data.get("results_text", "")),
+            results_text=clean_text_spaces(normalize_jset_text(data.get("results_text", ""))),
             discussion=normalize_jset_text(data.get("discussion", "")),
             references=references,
             title_en=data.get("title_en", f"Quantitative Empirical Analysis of {dataset.title}"),
@@ -708,20 +713,21 @@ class AcademicPaperGenerator:
             keywords_en = [str(k).strip().upper() for k in keywords_en if str(k).strip()]
 
         raw_title = data.get("title", f"{dataset.title}に関する実証的計量分析†")
-        title = normalize_jset_text(raw_title)
+        raw_title = re.sub(r"^【.*?】\s*", "", raw_title)
+        title = clean_text_spaces(normalize_jset_text(raw_title))
         if not title.endswith("†"):
             title += "†"
 
         logger.info("Successfully generated academic paper via Claude 3.5 Sonnet!")
         return AcademicPaper(
             title=title,
-            subtitle=normalize_jset_text(data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明")),
-            abstract=normalize_jset_text(data.get("abstract", "")),
+            subtitle=clean_text_spaces(normalize_jset_text(data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明"))),
+            abstract=clean_text_spaces(normalize_jset_text(data.get("abstract", ""))),
             keywords=keywords,
             background=normalize_jset_text(data.get("background", "")),
             objectives=normalize_jset_text(data.get("objectives", "")),
             methodology=normalize_jset_text(data.get("methodology", "")),
-            results_text=normalize_jset_text(data.get("results_text", "")),
+            results_text=clean_text_spaces(normalize_jset_text(data.get("results_text", ""))),
             discussion=normalize_jset_text(data.get("discussion", "")),
             references=references,
             title_en=data.get("title_en", f"Quantitative Empirical Analysis of {dataset.title}"),
@@ -730,31 +736,29 @@ class AcademicPaperGenerator:
             keywords_en=keywords_en,
         )
 
-
-
     def _generate_template_fallback(
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> AcademicPaper:
         """High-grade academic template fallback with rigorous educational statistics conforming to JSET standards."""
         is_math = dataset.category == "math"
-        unit = dataset.unit
-
         first_metric = dataset.metrics[0] if dataset.metrics else "主要指標"
+        first_unit = resolve_metric_unit(first_metric, dataset.unit)
         first_stat = analysis.descriptive_stats.get(first_metric)
-        avg_str = f"{first_stat.mean:.2f}{unit}" if first_stat else "N/A"
-        med_str = f"{first_stat.median:.2f}{unit}" if first_stat else "N/A"
+        avg_str = f"{first_stat.mean:.2f}{first_unit}" if first_stat else "N/A"
+        med_str = f"{first_stat.median:.2f}{first_unit}" if first_stat else "N/A"
         std_str = f"{first_stat.std:.2f}" if first_stat else "N/A"
-        min_str = f"{first_stat.min_val:.2f}{unit}" if first_stat else "N/A"
-        max_str = f"{first_stat.max_val:.2f}{unit}" if first_stat else "N/A"
+        min_str = f"{first_stat.min_val:.2f}{first_unit}" if first_stat else "N/A"
+        max_str = f"{first_stat.max_val:.2f}{first_unit}" if first_stat else "N/A"
         iqr_str = f"{first_stat.iqr:.2f}" if first_stat else "N/A"
         count_str = str(first_stat.count) if first_stat else str(len(dataset.df))
 
         trend_desc = ""
         if analysis.trends:
             tr = analysis.trends[0]
+            tr_unit = resolve_metric_unit(tr.metric, dataset.unit)
             trend_desc = (
-                f"時系列推移の検証では，{tr.metric}において{tr.start_time}年の{tr.start_val:.2f}{unit}から"
-                f"{tr.end_time}年の{tr.end_val:.2f}{unit}へと変化し（変化量: {tr.diff:+.2f}{unit}，変化率: {tr.pct_change:+.1f}%，"
+                f"時系列推移の検証では，{tr.metric}において{tr.start_time}年の{tr.start_val:.2f}{tr_unit}から"
+                f"{tr.end_time}年の{tr.end_val:.2f}{tr_unit}へと変化し（変化量: {tr.diff:+.2f}{tr_unit}，変化率: {tr.pct_change:+.1f}%，"
                 f"年平均成長率 CAGR: {tr.cagr}%），最小二乗法による単回帰分析の結果，決定係数 <i>R</i><sup>2</sup> = {tr.r_squared:.3f}（回帰傾き: {tr.slope:.3f}）が算出された．"
             )
 
@@ -766,12 +770,16 @@ class AcademicPaperGenerator:
                 f"（<i>p</i>値 = {cr.p_value:.4f}）の統計的有意な関連（{cr.interpretation}）が確認された．"
             )
 
+        clean_source = clean_text_spaces(dataset.source_name)
+        clean_title_core = re.sub(r"^【.*?】\s*", "", dataset.title).strip()
+        clean_title_core = clean_text_spaces(clean_title_core)
+
         if is_math:
-            title = f"{dataset.title}に関する計量的実証分析†"
+            title = f"{clean_title_core}に関する計量的実証分析†"
             subtitle = "オープンデータに基づく算数・数学教育における学力構造と学習環境の定量的解明"
             keywords = ["算数・数学教育", "学力到達度", "教育計量分析", "記述統計", "線形回帰分析"]
             abstract = (
-                f"本研究は，{dataset.source_name}が公開する公的オープンデータ（{dataset.title}）を用い，"
+                f"本研究は，{clean_source}の公的オープンデータ（{clean_title_core}）に基づき，"
                 f"初等中等教育における算数・数学的リテラシーの達成水準，経年変化トレンド，および指標間関連性を実証的に分析したものである．"
                 f"対象標本（N={count_str}）における主要指標「{first_metric}」の記述統計量を求めたところ，"
                 f"平均値は{avg_str}，中央値は{med_str}，標準偏差は{std_str}，四分位範囲(IQR)は{iqr_str}を示した．"
@@ -798,7 +806,7 @@ class AcademicPaperGenerator:
                 "・RQ2: 時系列推移における線形回帰トレンド（傾き・決定係数<i>R</i><sup>2</sup>・CAGR）および指標間の共分散・相関構造にはどのような連動性が認められるか．"
             )
             methodology = (
-                f"本研究のデータソースには，{dataset.source_name}により調査・公開された「{dataset.title}」の公式データセットを採用した．"
+                f"本研究のデータソースには，{clean_source}により調査・公開された「{clean_title_core}」の公式データセットを採用した．"
                 f"本データは{dataset.region}を対象とし，信頼性の高い公的サンプリング手法に基づき集計されたものである．\n\n"
                 f"分析対象とした指標群は，{', '.join(dataset.metrics)}であり，欠損値処理および型変換を施した上で以下の統計解析手法を適用した．\n"
                 "1. 記述統計分析: 平均値，中央値，不偏標準偏差（ddof=1），最小値・最大値，ならびに第1四分位数・第3四分位数から四分位範囲（IQR）を算出し，データの対称性とばらつきを評価した．\n"
@@ -848,22 +856,22 @@ class AcademicPaperGenerator:
                 "小柳和喜雄 (2019) 算数・数学科における深い学びを実現する問題解決型授業の構成原理. 教育方法学研究, <b>45</b> ：45-56.",
                 "清水静栄 (2020) 算数・数学教育における「数学的な見方・考え方」の育成と授業改善. 日本数学教育学会誌, <b>102</b> (4) ：12-23.",
             ]
-            title_en = f"Quantitative Empirical Analysis of {dataset.title} in Primary and Secondary Mathematics Education"
+            title_en = f"Quantitative Empirical Analysis of {clean_title_core} in Primary and Secondary Mathematics Education"
             authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
             summary_en = (
                 f"This study conducts an empirical quantitative analysis of mathematical literacy in primary and secondary education "
-                f"using official public open data ({dataset.title}) published by {dataset.source_name}. "
+                f"using official public open data ({clean_title_core}) published by {clean_source}. "
                 f"The descriptive statistics for '{first_metric}' revealed a mean of {avg_str}, median of {med_str}, "
                 f"and standard deviation of {std_str}. Regression analysis indicated statistically significant trends over time. "
                 f"Based on these empirical findings, pedagogical implications for exploratory lesson design and personalized adaptive learning are discussed."
             )
             keywords_en = ["MATHEMATICS EDUCATION", "EDUCATIONAL ASSESSMENT", "QUANTITATIVE ANALYSIS", "DESCRIPTIVE STATISTICS", "LINEAR REGRESSION"]
         else:
-            title = f"{dataset.title}に関する計量的実証分析†"
+            title = f"{clean_title_core}に関する計量的実証分析†"
             subtitle = "公的オープンデータに基づく学校情報教育・プログラミング教育環境と情報活用能力の構造的検証"
             keywords = ["情報教育", "プログラミング教育", "ICT環境整備", "GIGAスクール構想", "情報活用能力"]
             abstract = (
-                f"本稿は，{dataset.source_name}が公表した公式オープンデータ（{dataset.title}）に基づき，"
+                f"本稿は，{clean_source}の公式オープンデータ（{clean_title_core}）に基づき，"
                 f"学校現場における情報教育・プログラミング教育の推進実態およびICT環境整備の定量的構造を計量的に解明することを目的とした．"
                 f"標本数 N={count_str} における代表指標「{first_metric}」を検証した結果，"
                 f"平均値は{avg_str}，中央値は{med_str}，標準偏差は{std_str}，四分位範囲(IQR)は{iqr_str}を示した．"
@@ -891,7 +899,7 @@ class AcademicPaperGenerator:
                 "・RQ2: 時系列推移における線形回帰トレンド（傾き・決定係数<i>R</i><sup>2</sup>・CAGR）および環境整備と実践的活用能力との指標間相関にはどのような構造的連動性が認められるか．"
             )
             methodology = (
-                f"本研究では，{dataset.source_name}により調査・公開された公的統計「{dataset.title}」をデータソースとして使用した．"
+                f"本研究では，{clean_source}により調査・公開された公的統計「{clean_title_core}」をデータソースとして使用した．"
                 f"本データは{dataset.region}を対象とし，厳格な調査設計に基づき作成された信頼性の高い母集団推定値である．\n\n"
                 f"対象指標として{', '.join(dataset.metrics)}を抽出し，以下の統計分析フレームワークを適用した．\n"
                 "1. 基礎記述統計: 各指標の標本数，平均値，中央値，不偏標準偏差，最小・最大値，四分位範囲（IQR）を算定し，外れ値の影響度と分布形状を精査した．\n"
@@ -939,11 +947,11 @@ class AcademicPaperGenerator:
                 "UNESCO (2024) Global Education Monitoring Report 2023: Technology in Education - A Tool on Whose Terms? UNESCO Publishing, Paris.",
                 "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35. https://doi.org/10.1145/1118178.1118215",
             ]
-            title_en = f"Quantitative Empirical Analysis of {dataset.title} in School Informatics and Programming Education"
+            title_en = f"Quantitative Empirical Analysis of {clean_title_core} in School Informatics and Programming Education"
             authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
             summary_en = (
                 f"This paper investigates the implementation status of programming education and ICT environment in primary and secondary schools "
-                f"based on public open data ({dataset.title}) provided by {dataset.source_name}. "
+                f"based on public open data ({clean_title_core}) provided by {clean_source}. "
                 f"Statistical analysis for '{first_metric}' demonstrated a mean of {avg_str}, median of {med_str}, and standard deviation of {std_str}. "
                 f"Trend analysis confirmed systematic progress across surveyed indicators. "
                 f"Based on these results, we discuss pedagogical strategies for lesson improvement and teacher professional development."
@@ -953,18 +961,19 @@ class AcademicPaperGenerator:
         references = sort_jset_references(references)
 
         return AcademicPaper(
-            title=title,
-            subtitle=subtitle,
-            abstract=abstract,
+            title=clean_text_spaces(normalize_jset_text(title)),
+            subtitle=clean_text_spaces(normalize_jset_text(subtitle)),
+            abstract=clean_text_spaces(normalize_jset_text(abstract)),
             keywords=keywords,
-            background=background,
-            objectives=objectives,
-            methodology=methodology,
-            results_text=results_text,
-            discussion=discussion,
+            background=normalize_jset_text(background),
+            objectives=normalize_jset_text(objectives),
+            methodology=normalize_jset_text(methodology),
+            results_text=clean_text_spaces(normalize_jset_text(results_text)),
+            discussion=normalize_jset_text(discussion),
             references=references,
             title_en=title_en,
             authors_en=authors_en,
             summary_en=summary_en,
             keywords_en=keywords_en,
         )
+

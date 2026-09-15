@@ -11,6 +11,7 @@ import pandas as pd
 from scipy import stats
 
 from src.fetchers.base import EducationDataset
+from src.utils import resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -256,10 +257,11 @@ class EduDataAnalyzer:
             prefix = f"【{tr.group_name}】" if tr.group_name else ""
             growth_desc = "増加" if tr.diff > 0 else "減少"
             cagr_str = f"（年平均成長率 CAGR: {tr.cagr:+.1f}%）" if tr.cagr is not None else ""
+            m_unit = resolve_metric_unit(tr.metric, dataset.unit)
             insights.append(
-                f"{prefix}{tr.metric}は{tr.start_time}年の {tr.start_val}{dataset.unit} から "
-                f"{tr.end_time}年には {tr.end_val}{dataset.unit} へと "
-                f"{tr.diff:+.1f}{dataset.unit}（{tr.pct_change:+.1f}%）{growth_desc}しました{cagr_str}。"
+                f"{prefix}{tr.metric}は{tr.start_time}年の {tr.start_val}{m_unit} から "
+                f"{tr.end_time}年には {tr.end_val}{m_unit} へと "
+                f"{tr.diff:+.1f}{m_unit}（{tr.pct_change:+.1f}%）{growth_desc}しました{cagr_str}。"
                 f"（線形トレンド決定係数 R² = {tr.r_squared}）"
             )
 
@@ -269,9 +271,10 @@ class EduDataAnalyzer:
                 top_name, top_val = r_list[0]
                 bottom_name, bottom_val = r_list[-1]
                 gap = round(top_val - bottom_val, 1)
+                m_unit = resolve_metric_unit(metric, dataset.unit)
                 insights.append(
-                    f"最新データにおける「{metric}」のトップは{top_name}（{top_val}{dataset.unit}）、"
-                    f"最下位は{bottom_name}（{bottom_val}{dataset.unit}）で、格差は {gap}{dataset.unit} に達しています。"
+                    f"最新データにおける「{metric}」のトップは{top_name}（{top_val}{m_unit}）、"
+                    f"最下位は{bottom_name}（{bottom_val}{m_unit}）で、格差は {gap}{m_unit} に達しています。"
                 )
 
         # Correlation insights

@@ -317,3 +317,61 @@ def test_reference_hanging_indent_style():
     assert ref_style.leftIndent == 17.0, f"Expected 17.0pt leftIndent (2 full-width chars), got {ref_style.leftIndent}"
     assert ref_style.firstLineIndent == -17.0, f"Expected -17.0pt firstLineIndent (hanging indent), got {ref_style.firstLineIndent}"
 
+
+def test_resolve_metric_unit():
+    """Verifies that resolve_metric_unit returns clean singular units without composite slashes."""
+    from src.utils import resolve_metric_unit
+
+    assert resolve_metric_unit("算数_平均得点", "点 / %") == "点"
+    assert resolve_metric_unit("数学が好き_肯定率", "点 / %") == "%"
+    assert resolve_metric_unit("端末利活用率", "%") == "%"
+    assert resolve_metric_unit("情報工学入学者数", "人") == "人"
+    assert resolve_metric_unit("学校数", "校") == "校"
+    assert "/" not in resolve_metric_unit("テスト", "点 / %")
+
+
+def test_clean_text_spaces():
+    """Verifies that clean_text_spaces eliminates stray slashes and spaces while preserving HTML and URLs."""
+    from src.utils import clean_text_spaces
+
+    raw_text = "IEA（国際教育到達度評価学会） / 文部科学省・国立教育政策研究所 TIMSS調査"
+    cleaned = clean_text_spaces(raw_text)
+    assert " / " not in cleaned
+    assert "・" in cleaned
+    assert "TIMSS" in cleaned
+
+    # Check composite units
+    assert clean_text_spaces("平均582.08点 / %") == "平均582.08点"
+    assert clean_text_spaces("変化量: +30.00点 / %") == "変化量: +30.00点"
+
+    # Check HTML tags and URLs are preserved
+    html_text = "決定係数 <i>R</i><sup>2</sup> = 0.856 https://example.com/test"
+    cleaned_html = clean_text_spaces(html_text)
+    assert "<i>R</i><sup>2</sup>" in cleaned_html
+    assert "https://example.com/test" in cleaned_html
+
+
+def test_paper_title_and_abstract_across_catalogs(tmp_path):
+    """Verifies that titles across all catalog datasets fit within 2 lines and have no '/ %'."""
+    from src.pdf.pdf_generator import PRINTABLE_W, ParagraphStyle, Paragraph
+
+    catalog = DatasetCatalog()
+    analyzer = EduDataAnalyzer()
+    paper_gen = AcademicPaperGenerator()
+    pdf_gen = EduPaperPdfGenerator()
+
+    for dataset in catalog.get_all_datasets():
+        analysis = analyzer.analyze(dataset)
+        paper = paper_gen.generate_paper(dataset, analysis)
+
+        # 1. No '/ %' in title or abstract
+        assert "/ %" not in paper.title, f"Found '/ %' in title of {dataset.id}: {paper.title}"
+        assert "/ %" not in paper.abstract, f"Found '/ %' in abstract of {dataset.id}: {paper.abstract}"
+
+        # 2. Check title wraps in <= 2 lines
+        p_title = Paragraph(paper.title, pdf_gen.styles["PaperTitle"])
+        _, h_title = p_title.wrap(PRINTABLE_W, 1000)
+        lines = round(h_title / pdf_gen.styles["PaperTitle"].leading)
+        assert lines <= 2, f"Title for {dataset.id} exceeded 2 lines ({lines} lines): '{paper.title}'"
+
+

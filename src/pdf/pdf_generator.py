@@ -16,7 +16,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from src.utils_date import get_jst_now
+from src.utils import clean_text_spaces, format_title_two_lines, get_jst_now, resolve_metric_unit
 
 from PIL import Image as PILImage
 from reportlab.lib import colors
@@ -582,21 +582,47 @@ class EduPaperPdfGenerator:
         # ==========================================
         # 1. Page 1 Top Block Elements (Title & Abstract)
         # ==========================================
-        title_text = paper.title if paper.title.endswith("†") else f"{paper.title}†"
+        clean_title = clean_text_spaces(paper.title)
+        title_text = clean_title if clean_title.endswith("†") else f"{clean_title}†"
+        title_formatted = format_title_two_lines(title_text)
         author_jp = "EduData 調査研究グループ＊1・教育データサイエンス解析班＊2"
         affil_jp = "オープン教育統計推進プロジェクト＊1・初等中等STEM教育データ基盤ユニット＊2"
         kw_jp = "， ".join(paper.keywords)
 
+        # Enforce that the title is strictly at most 2 lines by auto-scaling font size
+        title_font_size = 15.0
+        title_leading = 19.0
+        title_style = ParagraphStyle(
+            "DynamicPaperTitle",
+            parent=self.styles["PaperTitle"],
+            fontSize=title_font_size,
+            leading=title_leading,
+        )
+        p_title = Paragraph(title_formatted, title_style)
+        _, h_title = p_title.wrap(PRINTABLE_W, 1000)
+
+        while round(h_title / title_leading) > 2 and title_font_size > 11.0:
+            title_font_size -= 0.5
+            title_leading = title_font_size * 1.25
+            title_style = ParagraphStyle(
+                "DynamicPaperTitle",
+                parent=self.styles["PaperTitle"],
+                fontSize=title_font_size,
+                leading=title_leading,
+            )
+            p_title = Paragraph(title_formatted, title_style)
+            _, h_title = p_title.wrap(PRINTABLE_W, 1000)
+
         top_elements = [
             Spacer(1, 4),
-            Paragraph(title_text, self.styles["PaperTitle"]),
+            p_title,
         ]
         if paper.subtitle:
-            top_elements.append(Paragraph(paper.subtitle, self.styles["PaperSubtitle"]))
+            top_elements.append(Paragraph(clean_text_spaces(paper.subtitle), self.styles["PaperSubtitle"]))
         top_elements.extend([
             Paragraph(author_jp, self.styles["AuthorMeta"]),
             Paragraph(affil_jp, self.styles["AffiliationMeta"]),
-            Paragraph(paper.abstract, self.styles["Abstract"]),
+            Paragraph(clean_text_spaces(paper.abstract), self.styles["Abstract"]),
             Paragraph(f"キーワード：{kw_jp}", self.styles["Keywords"]),
         ])
 
@@ -722,10 +748,12 @@ class EduPaperPdfGenerator:
                 story.append(Paragraph(p.strip(), self.styles["Body"]))
 
         # Table 1: Caption ABOVE the table
+        first_m = dataset.metrics[0] if dataset.metrics else ""
+        unit_note = resolve_metric_unit(first_m, dataset.unit)
         table1_elements = [
             Paragraph("表１　主要指標における基本記述統計量一覧", self.styles["TableCaption"]),
             self._build_descriptive_stats_table(dataset, analysis),
-            Paragraph(f"注）単位は {dataset.unit}．Nは有効標本数，SDは不偏標準偏差．", self.styles["TableNote"]),
+            Paragraph(f"注）単位は {unit_note}．Nは有効標本数，SDは不偏標準偏差．", self.styles["TableNote"]),
         ]
         story.append(KeepTogether(table1_elements))
         story.append(Spacer(1, 4))

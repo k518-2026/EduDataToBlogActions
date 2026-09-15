@@ -1,7 +1,7 @@
 """
-【TIMSS 国際数学・理科教育調査】日本の小・中学生における算数・数学到達度と学習意欲の経年推移
+【TIMSS】小・中学生の算数・数学到達度と学習意欲の推移
 オープンデータ統計分析・可視化再現スクリプト
-データ提供元: IEA (国際教育到達度評価学会) / 文部科学省・国立教育政策研究所 TIMSS調査 (https://www.nier.go.jp/timss/)
+データ提供元: IEA（国際教育到達度評価学会）・文部科学省・国立教育政策研究所 (https://www.nier.go.jp/timss/)
 """
 import pandas as pd
 import numpy as np
@@ -130,8 +130,8 @@ for m in metrics:
         iqr = q75 - q25
         print(f"[{m}]")
         print(f"  サンプル数 (N): {len(s)}")
-        print(f"  平均値: {s.mean():.2f} 点 / %")
-        print(f"  中央値: {s.median():.2f} 点 / %")
+        print(f"  平均値: {s.mean():.2f} 点")
+        print(f"  中央値: {s.median():.2f} 点")
         print(f"  標準偏差: {s.std(ddof=1):.2f}")
         print(f"  最小値: {s.min():.2f} / 最大値: {s.max():.2f}")
         print(f"  四分位範囲 (IQR): {iqr:.2f}")
@@ -158,7 +158,7 @@ if time_col and time_col in df.columns:
                 pct = (diff / start_v * 100) if start_v != 0 else 0
                 print(f"[{m}]")
                 print(f"  開始年 ({x_vals.iloc[0]}) -> 最新年 ({x_vals.iloc[-1]}): {start_v:.2f} -> {end_v:.2f}")
-                print(f"  変化量: {diff:+.2f} 点 / % (変化率: {pct:+.1f}%)")
+                print(f"  変化量: {diff:+.2f} 点 (変化率: {pct:+.1f}%)")
                 print(f"  回帰の傾き: {res.slope:.3f} / 決定係数 (R²): {r_sq:.3f} / p値: {res.pvalue:.4f}")
 
 # ==============================================================================
@@ -197,10 +197,10 @@ for grp in df["学年・教科"].unique():
     plt.errorbar(x_vals, y_vals, yerr=ci_err, fmt="o-", linewidth=2.5, markersize=6, capsize=4, label=str(grp))
     plt.fill_between(x_vals, y_vals - ci_err, y_vals + ci_err, alpha=0.18)
 plt.xlabel(f"{time_col} (年/年度)", fontsize=11)
-plt.ylabel(f"{metric} (点 / %)", fontsize=11)
+plt.ylabel(f"{metric} (点)", fontsize=11)
 plt.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white")
 
-plt.title("【TIMSS 国際数学・理科教育調査】日本の小・中学生における算数・数学到達度と学習意欲の経年推移", fontsize=13, fontweight="bold", pad=12)
+plt.title("【TIMSS】小・中学生の算数・数学到達度と学習意欲の推移", fontsize=13, fontweight="bold", pad=12)
 plt.grid(True, linestyle="--", alpha=0.5)
 plt.tight_layout()
 plt.show()

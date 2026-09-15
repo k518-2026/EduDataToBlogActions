@@ -1,9 +1,9 @@
 {
   "id": "unesco_world_ict_skills",
-  "title": "【UNESCO / ITU】若年層・成人のプログラミング・デジタルスキル保有率の国際比較 (SDG 4.4.1)",
+  "title": "【UNESCO/ITU】各国のプログラミング・デジタルスキル比較",
   "category": "info",
   "region": "global",
-  "source_name": "UNESCO Institute for Statistics (UIS) / ITU Database",
+  "source_name": "UNESCO・ITU",
   "source_url": "http://data.uis.unesco.org/",
   "description": "持続可能な開発目標（SDG 4.4.1）における、若年層・成人層がコンピュータ言語を用いてプログラムを作成できる割合（プログラミングスキル保有率）および表計算・データ活用スキルの国別比較データ。",
   "unit": "%",

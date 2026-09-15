@@ -1,9 +1,9 @@
 {
   "id": "japan_mext_ict_informatization",
-  "title": "【学校教育情報化実態調査】1人1台端末の利活用頻度と教員のプログラミング・ICT指導力の推移",
+  "title": "【学校教育情報化実態調査】1人1台端末利活用率とICT指導力の推移",
   "category": "info",
   "region": "japan",
-  "source_name": "文部科学省「学校における教育情報化の実態等に関する調査」/ e-Stat",
+  "source_name": "文部科学省",
   "source_url": "https://www.mext.go.jp/a_menu/shotou/zyouhou/detail/1400262.htm",
   "description": "全国の公立小・中・高等学校におけるGIGAスクール端末の整備と利活用状況、ICTを活用して指導できる教員の割合（ICT指導力）、および小学校におけるプログラミング教育の実施状況・校内研修実施率の年次推移。",
   "unit": "%",

@@ -1,19 +1,6 @@
 """
-Date and Time utilities for EduDataToBlogActions.
-Ensures consistent Japan Standard Time (JST, UTC+9) handling across platforms.
+Backwards-compatibility re-export of JST date utilities from src.utils.
 """
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from src.utils import JST, clean_text_spaces, format_title_two_lines, get_jst_now, resolve_metric_unit
 
-JST = ZoneInfo("Asia/Tokyo")
-
-
-def get_jst_now() -> datetime:
-    """
-    Returns the current datetime in Japan Standard Time (JST, UTC+9).
-    Falls back gracefully to system local datetime if zoneinfo database is missing.
-    """
-    try:
-        return datetime.now(JST)
-    except Exception:
-        return datetime.now()
+__all__ = ["JST", "get_jst_now", "resolve_metric_unit", "clean_text_spaces", "format_title_two_lines"]

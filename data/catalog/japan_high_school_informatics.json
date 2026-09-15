@@ -1,9 +1,9 @@
 {
   "id": "japan_high_school_informatics",
-  "title": "【高等学校情報教育実態調査】「情報I」におけるプログラミング指導とICT環境の年次推移",
+  "title": "【高校情報教育実態調査】「情報I」プログラミング指導とICT環境の推移",
   "category": "info",
   "region": "japan",
-  "source_name": "文部科学省 高等学校教育改革推進調査 / 全国高等学校情報教育研究会",
+  "source_name": "文部科学省・全国高等学校情報教育研究会",
   "source_url": "https://www.mext.go.jp/a_menu/shotou/zyouhou/detail/1416756.htm",
   "description": "新学習指導要領における高等学校「情報I」必修化に伴う、各高校でのプログラミング言語（Python/JavaScript）の活用率、大学入学共通テスト「情報」に向けた対策実施率、および1人1台端末を活用した探究的演習の導入率の年次推移データ。",
   "unit": "%",
