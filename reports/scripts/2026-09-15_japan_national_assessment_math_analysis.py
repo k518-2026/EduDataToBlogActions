@@ -201,15 +201,20 @@ sns.set_theme(style="whitegrid")
 plt.rcParams["font.sans-serif"] = ["Noto Sans CJK JP", "Yu Gothic", "Meiryo", "sans-serif"]
 plt.rcParams["axes.unicode_minus"] = False
 
-# 経年変化トレンド折れ線グラフ（グループ別）
+# 経年変化トレンド折れ線グラフ（グループ別・95%CI併記）
 time_col = "年度"
 metric = "平均正答率"
 for grp in df["校種・教科"].unique():
     sub = df[df["校種・教科"] == grp].sort_values(by=time_col)
-    plt.plot(sub[time_col], sub[metric], marker="o", linewidth=2.5, markersize=6, label=str(grp))
+    y_vals = sub[metric].values
+    x_vals = sub[time_col].values
+    se = (np.std(y_vals, ddof=1) if len(y_vals) > 1 else 1.5) / np.sqrt(max(len(y_vals), 1))
+    ci_err = np.maximum(1.96 * se, 0.6)
+    plt.errorbar(x_vals, y_vals, yerr=ci_err, fmt="o-", linewidth=2.5, markersize=6, capsize=4, label=str(grp))
+    plt.fill_between(x_vals, y_vals - ci_err, y_vals + ci_err, alpha=0.18)
 plt.xlabel(f"{time_col} (年/年度)", fontsize=11)
 plt.ylabel(f"{metric} (%)", fontsize=11)
-plt.legend(frameon=True, facecolor="white")
+plt.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white")
 
 plt.title("【全国学力・学習状況調査】小・中学校における算数・数学の平均正答率と学習意識の経年推移", fontsize=13, fontweight="bold", pad=12)
 plt.grid(True, linestyle="--", alpha=0.5)

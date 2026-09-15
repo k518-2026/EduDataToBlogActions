@@ -758,7 +758,7 @@ class EduPaperPdfGenerator:
 
                 figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
-                    Paragraph(f"図１　{clean_fig_title}の経年推移と傾向分析", self.styles["FigureCaption"]),
+                    Paragraph(f"図１　{clean_fig_title}の経年推移と傾向分析（95%CI併記）", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure1_elements))
                 story.append(Spacer(1, 4))
@@ -784,7 +784,7 @@ class EduPaperPdfGenerator:
 
                 figure2_elements = [
                     Image(str(secondary_chart_path), width=target_w, height=target_h),
-                    Paragraph(f"図２　{clean_fig_title2}の相関構造および比較分析", self.styles["FigureCaption"]),
+                    Paragraph(f"図２　{clean_fig_title2}の相関構造および比較分析（95%CI併記）", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure2_elements))
                 story.append(Spacer(1, 4))

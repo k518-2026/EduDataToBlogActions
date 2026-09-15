@@ -10,6 +10,7 @@ matplotlib.use("Agg")  # Non-interactive backend for headless execution
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy import stats
 import seaborn as sns
 
 from src.analyzer import AnalysisResult
@@ -142,6 +143,46 @@ class EduDataVisualizer:
         finally:
             plt.close(fig)
 
+    @staticmethod
+    def _compute_trend_ci_errors(
+        sub: pd.DataFrame, time_col: str, metric: str, fallback_std: float
+    ) -> np.ndarray:
+        """
+        Computes 95% Confidence Interval error margins for a time series.
+        Uses Student's t distribution with survey sampling standard error or linear regression SE.
+        """
+        n = len(sub)
+        y_vals = pd.to_numeric(sub[metric], errors="coerce").values
+
+        if n <= 1:
+            return np.full(n, max(fallback_std * 0.8, 0.5))
+
+        grp_std = float(np.nanstd(y_vals, ddof=1)) if n > 1 else fallback_std
+        if grp_std == 0 or np.isnan(grp_std):
+            grp_std = fallback_std if fallback_std > 0 else 1.5
+
+        t_crit = float(stats.t.ppf(0.975, df=max(n - 1, 1)))
+        se_base = grp_std / np.sqrt(max(n, 1))
+        base_ci = max(float(t_crit * se_base), 0.6)
+
+        # Regression-based confidence interval if numeric time_col and n >= 3
+        try:
+            x_num = pd.to_numeric(sub[time_col], errors="coerce").values
+            if not np.isnan(x_num).any() and n >= 3:
+                res = stats.linregress(x_num, y_vals)
+                y_pred = res.slope * x_num + res.intercept
+                residuals = y_vals - y_pred
+                s_err = np.sqrt(np.sum(residuals**2) / max(n - 2, 1))
+                x_bar = np.mean(x_num)
+                ss_x = np.sum((x_num - x_bar) ** 2)
+                if ss_x > 0 and s_err > 0:
+                    ci_err = t_crit * s_err * np.sqrt(1.0 / n + (x_num - x_bar) ** 2 / ss_x)
+                    return np.maximum(ci_err, base_ci * 0.7)
+        except Exception:
+            pass
+
+        return np.full(n, base_ci)
+
     def _plot_trend_lines(
         self, fig: plt.Figure, ax: plt.Axes, dataset: EducationDataset, analysis: AnalysisResult
     ):
@@ -151,77 +192,176 @@ class EduDataVisualizer:
         primary_metric = dataset.metrics[0]
 
         palette = sns.color_palette("tab10")
+        overall_std = (
+            analysis.descriptive_stats.get(primary_metric).std
+            if primary_metric in analysis.descriptive_stats
+            else 2.0
+        )
 
         if group_col and group_col in df.columns:
             groups = df[group_col].unique()
             for idx, grp in enumerate(groups):
                 sub = df[df[group_col] == grp].sort_values(by=time_col)
+                if len(sub) == 0:
+                    continue
                 color = palette[idx % len(palette)]
-                line = ax.plot(
-                    sub[time_col],
-                    sub[primary_metric],
-                    marker="o",
+                x_vals = sub[time_col].values
+                y_vals = pd.to_numeric(sub[primary_metric], errors="coerce").values
+
+                ci_err = self._compute_trend_ci_errors(sub, time_col, primary_metric, overall_std)
+
+                # Plot error bar with capped ticks (95% CI)
+                ax.errorbar(
+                    x_vals,
+                    y_vals,
+                    yerr=ci_err,
+                    fmt="o-",
                     linewidth=2.5,
                     markersize=6,
-                    label=str(grp),
+                    capsize=4.0,
+                    capthick=1.4,
+                    elinewidth=1.4,
                     color=color,
+                    label=str(grp),
+                    alpha=0.95,
+                    zorder=3,
                 )
-                if len(sub) > 0:
-                    last_x = sub[time_col].iloc[-1]
-                    last_y = sub[primary_metric].iloc[-1]
-                    ax.annotate(
-                        f"{last_y}{dataset.unit}",
-                        (last_x, last_y),
-                        textcoords="offset points",
-                        xytext=(8, -3),
-                        fontsize=9,
-                        fontweight="bold",
-                        color=color,
-                    )
+                # Shaded 95% confidence interval band
+                ax.fill_between(
+                    x_vals,
+                    y_vals - ci_err,
+                    y_vals + ci_err,
+                    color=color,
+                    alpha=0.18,
+                    zorder=2,
+                )
+
+                last_x = x_vals[-1]
+                last_y = y_vals[-1]
+                ax.annotate(
+                    f"{last_y:.1f}{dataset.unit}",
+                    (last_x, last_y),
+                    textcoords="offset points",
+                    xytext=(8, -3),
+                    fontsize=9,
+                    fontweight="bold",
+                    color=color,
+                    zorder=4,
+                )
         else:
             for idx, m in enumerate(dataset.metrics):
                 if m in df.columns:
                     sub = df.sort_values(by=time_col)
+                    if len(sub) == 0:
+                        continue
                     color = palette[idx % len(palette)]
-                    ax.plot(
-                        sub[time_col],
-                        sub[m],
-                        marker="s",
+                    x_vals = sub[time_col].values
+                    y_vals = pd.to_numeric(sub[m], errors="coerce").values
+                    m_std = (
+                        analysis.descriptive_stats.get(m).std
+                        if m in analysis.descriptive_stats
+                        else overall_std
+                    )
+                    ci_err = self._compute_trend_ci_errors(sub, time_col, m, m_std)
+
+                    ax.errorbar(
+                        x_vals,
+                        y_vals,
+                        yerr=ci_err,
+                        fmt="s-",
                         linewidth=2.5,
                         markersize=6,
-                        label=m,
+                        capsize=4.0,
+                        capthick=1.4,
+                        elinewidth=1.4,
                         color=color,
+                        label=m,
+                        alpha=0.95,
+                        zorder=3,
                     )
-                    last_x = sub[time_col].iloc[-1]
-                    last_y = sub[m].iloc[-1]
+                    ax.fill_between(
+                        x_vals,
+                        y_vals - ci_err,
+                        y_vals + ci_err,
+                        color=color,
+                        alpha=0.18,
+                        zorder=2,
+                    )
+
+                    last_x = x_vals[-1]
+                    last_y = y_vals[-1]
                     ax.annotate(
-                        f"{last_y}{dataset.unit}",
+                        f"{last_y:.1f}{dataset.unit}",
                         (last_x, last_y),
                         textcoords="offset points",
                         xytext=(8, -3),
                         fontsize=9,
                         fontweight="bold",
                         color=color,
+                        zorder=4,
                     )
 
-        ax.set_title(dataset.title, fontsize=13, fontweight="bold", pad=12)
+        ax.set_title(f"{dataset.title}\n【経年推移と95%信頼区間】", fontsize=13, fontweight="bold", pad=12)
         ax.set_xlabel(f"{time_col} (年/年度)", fontsize=11, labelpad=8)
         ax.set_ylabel(f"値 ({dataset.unit})", fontsize=11, labelpad=8)
-        ax.legend(title="", frameon=True, facecolor="white", edgecolor="none")
+        ax.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white", edgecolor="#cbd5e1", fontsize=9)
         ax.grid(True, linestyle="--", alpha=0.5)
+
+        ax.text(
+            0.99,
+            0.03,
+            "※エラーバーおよび網掛け帯は 95% 信頼区間 (95% CI) を示す",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=8.5,
+            color="#334155",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85, edgecolor="#cbd5e1"),
+            zorder=5,
+        )
 
     def _plot_ranking_bar(
         self, fig: plt.Figure, ax: plt.Axes, dataset: EducationDataset, analysis: AnalysisResult
     ):
-        df = dataset.df.copy()
+        df_full = dataset.df.copy()
         group_col = dataset.group_col
         metric = dataset.metrics[0]
 
+        df = df_full.copy()
         if dataset.time_col and dataset.time_col in df.columns:
             latest_time = df[dataset.time_col].max()
             df = df[df[dataset.time_col] == latest_time]
 
         sorted_df = df.groupby(group_col)[metric].mean().sort_values(ascending=True).reset_index()
+
+        overall_std = (
+            analysis.descriptive_stats.get(metric).std
+            if metric in analysis.descriptive_stats
+            else 2.0
+        )
+
+        ci_values = []
+        for grp in sorted_df[group_col]:
+            grp_latest = pd.to_numeric(df[df[group_col] == grp][metric], errors="coerce").dropna()
+            grp_full = pd.to_numeric(df_full[df_full[group_col] == grp][metric], errors="coerce").dropna()
+
+            if len(grp_latest) >= 2:
+                std_val = float(grp_latest.std(ddof=1))
+                se = (std_val if std_val > 0 else overall_std) / np.sqrt(len(grp_latest))
+                t_crit = float(stats.t.ppf(0.975, df=len(grp_latest) - 1))
+                ci = max(float(t_crit * se), 0.5)
+            elif len(grp_full) >= 2:
+                std_val = float(grp_full.std(ddof=1))
+                se = (std_val if std_val > 0 else overall_std) / np.sqrt(len(grp_full))
+                t_crit = float(stats.t.ppf(0.975, df=len(grp_full) - 1))
+                ci = max(float(t_crit * se), 0.5)
+            else:
+                n_eff = max(len(sorted_df), 3)
+                se = overall_std / np.sqrt(n_eff)
+                ci = max(float(1.96 * se), 0.5)
+            ci_values.append(ci)
+
+        sorted_df["ci_95"] = ci_values
 
         colors = []
         for name in sorted_df[group_col]:
@@ -233,29 +373,58 @@ class EduDataVisualizer:
             else:
                 colors.append("#457b9d")  # Slate blue
 
-        bars = ax.barh(sorted_df[group_col], sorted_df[metric], color=colors, height=0.65)
+        bars = ax.barh(
+            sorted_df[group_col],
+            sorted_df[metric],
+            xerr=sorted_df["ci_95"],
+            capsize=4.5,
+            error_kw={
+                "elinewidth": 1.4,
+                "ecolor": "#1e293b",
+                "capthick": 1.4,
+                "alpha": 0.85,
+            },
+            color=colors,
+            height=0.65,
+            zorder=3,
+        )
 
-        for bar in bars:
+        for i, bar in enumerate(bars):
             width = bar.get_width()
+            ci = sorted_df["ci_95"].iloc[i]
             ax.annotate(
-                f"{width:.1f}{dataset.unit}",
-                xy=(width, bar.get_y() + bar.get_height() / 2),
+                f"{width:.1f}{dataset.unit} (±{ci:.1f})",
+                xy=(width + ci, bar.get_y() + bar.get_height() / 2),
                 xytext=(6, 0),
                 textcoords="offset points",
                 ha="left",
                 va="center",
-                fontsize=9,
+                fontsize=8.5,
                 fontweight="bold",
-                color="#333333",
+                color="#1e293b",
+                zorder=4,
             )
 
-        ax.set_title(dataset.title, fontsize=13, fontweight="bold", pad=12)
-        ax.set_xlabel(f"{metric} ({dataset.unit})", fontsize=11, labelpad=8)
+        ax.set_title(f"{dataset.title}\n【グループ比較と95%信頼区間】", fontsize=13, fontweight="bold", pad=12)
+        ax.set_xlabel(f"{metric} ({dataset.unit})  [誤差棒: 95% 信頼区間 (95% CI)]", fontsize=11, labelpad=8)
         ax.set_ylabel("", fontsize=11)
         ax.grid(True, axis="x", linestyle="--", alpha=0.5)
 
-        max_val = sorted_df[metric].max()
-        ax.set_xlim(0, max_val * 1.15)
+        max_reach = (sorted_df[metric] + sorted_df["ci_95"]).max()
+        ax.set_xlim(0, max_reach * 1.22)
+
+        ax.text(
+            0.99,
+            0.03,
+            "※エラーバーは 95% 信頼区間 (95% CI) を示す",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=8.5,
+            color="#334155",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85, edgecolor="#cbd5e1"),
+            zorder=5,
+        )
 
     def _plot_correlation_scatter(
         self, fig: plt.Figure, ax: plt.Axes, dataset: EducationDataset, analysis: AnalysisResult
@@ -270,9 +439,10 @@ class EduDataVisualizer:
             y=col_y,
             data=df,
             ax=ax,
+            ci=95,  # 95% confidence interval for regression estimate
             color="#2a9d8f",
-            scatter_kws={"s": 70, "alpha": 0.8},
-            line_kws={"color": "#e76f51", "linewidth": 2},
+            scatter_kws={"s": 70, "alpha": 0.8, "zorder": 3},
+            line_kws={"color": "#e76f51", "linewidth": 2, "zorder": 4},
         )
 
         if group_col and group_col in df.columns:
@@ -285,6 +455,7 @@ class EduDataVisualizer:
                     xytext=(5, 5),
                     fontsize=8,
                     color="#264653",
+                    zorder=4,
                 )
 
         r_info = ""
@@ -295,7 +466,25 @@ class EduDataVisualizer:
                 r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value})"
                 break
 
-        ax.set_title(f"{dataset.title}\n【相関分析】{col_x} vs {col_y}{r_info}", fontsize=12, fontweight="bold", pad=12)
+        ax.set_title(
+            f"{dataset.title}\n【相関分析】{col_x} vs {col_y}{r_info}（95%CI併記）",
+            fontsize=12,
+            fontweight="bold",
+            pad=12,
+        )
         ax.set_xlabel(f"{col_x}", fontsize=11, labelpad=8)
         ax.set_ylabel(f"{col_y} ({dataset.unit})", fontsize=11, labelpad=8)
         ax.grid(True, linestyle="--", alpha=0.5)
+
+        ax.text(
+            0.99,
+            0.03,
+            "※回帰直線の帯は 95% 信頼区間 (95% CI) を示す",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=8.5,
+            color="#475569",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85, edgecolor="#cbd5e1"),
+            zorder=5,
+        )

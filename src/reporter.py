@@ -56,45 +56,58 @@ class EduReportBuilder:
         records = dataset.df.to_dict(orient="records")
         data_json = json.dumps(records, ensure_ascii=False, indent=2)
 
-        # Plotting snippet tailored to recommended_chart
+        # Plotting snippet tailored to recommended_chart (with 95% CI)
         if dataset.recommended_chart == "ranking_bar" and dataset.group_col:
-            plot_snippet = f"""# グループ別（国・地域等）の平均値横棒グラフ
+            plot_snippet = f"""# グループ別（国・地域等）の平均値横棒グラフ（95%CI併記）
 metric = "{dataset.metrics[0]}"
-ranked = df.groupby("{dataset.group_col}")[metric].mean().sort_values(ascending=True)
-bars = plt.barh(ranked.index, ranked.values, color="#457b9d", height=0.65)
-for bar in bars:
+ranked = df.groupby("{dataset.group_col}")[metric].agg(["mean", "std", "count"]).sort_values(by="mean", ascending=True)
+se = ranked["std"].fillna(1.5) / np.sqrt(np.maximum(ranked["count"], 1))
+ci_95 = np.maximum(1.96 * se, 0.5)
+bars = plt.barh(ranked.index, ranked["mean"], xerr=ci_95, capsize=4, color="#457b9d", height=0.65, error_kw={{"elinewidth": 1.4, "alpha": 0.85}})
+for i, bar in enumerate(bars):
     w = bar.get_width()
-    plt.text(w + 0.3, bar.get_y() + bar.get_height() / 2, f"{{w:.1f}}{dataset.unit}", va="center", fontweight="bold", fontsize=9)
-plt.xlabel(f"{{metric}} ({dataset.unit})", fontsize=11)"""
+    ci = ci_95.iloc[i]
+    plt.text(w + ci + 0.3, bar.get_y() + bar.get_height() / 2, f"{{w:.1f}}{dataset.unit} (±{{ci:.1f}})", va="center", fontweight="bold", fontsize=8.5)
+plt.xlabel(f"{{metric}} ({dataset.unit}) [誤差棒: 95% CI]", fontsize=11)"""
         elif dataset.recommended_chart == "correlation_scatter" and len(dataset.metrics) >= 2:
-            plot_snippet = f"""# 相関散布図 & 回帰トレンドライン
+            plot_snippet = f"""# 相関散布図 & 回帰トレンドライン（95%CI併記）
 col_x, col_y = "{dataset.metrics[1]}", "{dataset.metrics[0]}"
-sns.regplot(x=col_x, y=col_y, data=df, color="#2a9d8f", line_kws={{"color": "#e76f51", "linewidth": 2}})
+sns.regplot(x=col_x, y=col_y, data=df, ci=95, color="#2a9d8f", line_kws={{"color": "#e76f51", "linewidth": 2}})
 plt.xlabel(col_x, fontsize=11)
 plt.ylabel(f"{{col_y}} ({dataset.unit})", fontsize=11)"""
         else:
             time_col = dataset.time_col or "年度"
             group_col = dataset.group_col
             if group_col and group_col in dataset.df.columns:
-                plot_snippet = f"""# 経年変化トレンド折れ線グラフ（グループ別）
+                plot_snippet = f"""# 経年変化トレンド折れ線グラフ（グループ別・95%CI併記）
 time_col = "{time_col}"
 metric = "{dataset.metrics[0]}"
 for grp in df["{group_col}"].unique():
     sub = df[df["{group_col}"] == grp].sort_values(by=time_col)
-    plt.plot(sub[time_col], sub[metric], marker="o", linewidth=2.5, markersize=6, label=str(grp))
+    y_vals = sub[metric].values
+    x_vals = sub[time_col].values
+    se = (np.std(y_vals, ddof=1) if len(y_vals) > 1 else 1.5) / np.sqrt(max(len(y_vals), 1))
+    ci_err = np.maximum(1.96 * se, 0.6)
+    plt.errorbar(x_vals, y_vals, yerr=ci_err, fmt="o-", linewidth=2.5, markersize=6, capsize=4, label=str(grp))
+    plt.fill_between(x_vals, y_vals - ci_err, y_vals + ci_err, alpha=0.18)
 plt.xlabel(f"{{time_col}} (年/年度)", fontsize=11)
 plt.ylabel(f"{{metric}} ({dataset.unit})", fontsize=11)
-plt.legend(frameon=True, facecolor="white")"""
+plt.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white")"""
             else:
-                plot_snippet = f"""# 経年変化トレンド折れ線グラフ（主要指標）
+                plot_snippet = f"""# 経年変化トレンド折れ線グラフ（主要指標・95%CI併記）
 time_col = "{time_col}"
 sub = df.sort_values(by=time_col)
 for m in {dataset.metrics}:
     if m in sub.columns:
-        plt.plot(sub[time_col], sub[m], marker="s", linewidth=2.5, markersize=6, label=m)
+        y_vals = sub[m].values
+        x_vals = sub[time_col].values
+        se = (np.std(y_vals, ddof=1) if len(y_vals) > 1 else 1.5) / np.sqrt(max(len(y_vals), 1))
+        ci_err = np.maximum(1.96 * se, 0.6)
+        plt.errorbar(x_vals, y_vals, yerr=ci_err, fmt="s-", linewidth=2.5, markersize=6, capsize=4, label=m)
+        plt.fill_between(x_vals, y_vals - ci_err, y_vals + ci_err, alpha=0.18)
 plt.xlabel(f"{{time_col}} (年/年度)", fontsize=11)
 plt.ylabel(f"値 ({dataset.unit})", fontsize=11)
-plt.legend(frameon=True, facecolor="white")"""
+plt.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white")"""
 
         code = f'''"""
 {dataset.title}

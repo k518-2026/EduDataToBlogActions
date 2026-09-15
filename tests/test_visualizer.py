@@ -99,3 +99,24 @@ def test_visualizer_generate_secondary_chart(tmp_path):
     assert sec_chart_path is not None
     assert sec_chart_path.exists()
     assert sec_chart_path.stat().st_size > 1000
+
+
+def test_compute_trend_ci_errors():
+    import numpy as np
+    import pandas as pd
+    from src.visualizer import EduDataVisualizer
+
+    # Linear series test
+    df = pd.DataFrame({
+        "年度": [2020, 2021, 2022, 2023, 2024],
+        "正答率": [60.0, 62.0, 63.5, 65.0, 67.0],
+    })
+    ci_err = EduDataVisualizer._compute_trend_ci_errors(df, "年度", "正答率", 2.0)
+
+    assert len(ci_err) == len(df)
+    assert np.all(ci_err > 0)
+    # The middle points generally have smaller SE in regression CI than outer points
+    assert ci_err[2] <= ci_err[0]
+    assert ci_err[2] <= ci_err[4]
+
+
