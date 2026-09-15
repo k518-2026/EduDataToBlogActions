@@ -429,7 +429,7 @@ class EduPaperPdfGenerator:
             ]
             data.append(row)
 
-        col_widths = [48, 18, 28, 28, 28, 27, 27]  # Sum = 204 pt
+        col_widths = [64, 16, 25, 24, 25, 25, 25]  # Sum = 204 pt
         table = Table(data, colWidths=col_widths, repeatRows=1)
         table.setStyle(
             TableStyle(
@@ -749,9 +749,16 @@ class EduPaperPdfGenerator:
                     target_h = 115.0
                     target_w = target_h * (orig_w / orig_h)
 
+                # Clean dataset title for concise academic caption
+                clean_fig_title = dataset.title
+                if "】" in clean_fig_title:
+                    clean_fig_title = clean_fig_title.split("】", 1)[1].strip()
+                if len(clean_fig_title) > 20:
+                    clean_fig_title = clean_fig_title[:18] + "…"
+
                 figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
-                    Paragraph(f"図１　{dataset.title} の推移と傾向分析", self.styles["FigureCaption"]),
+                    Paragraph(f"図１　{clean_fig_title}の経年推移と傾向分析", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure1_elements))
                 story.append(Spacer(1, 4))
@@ -769,9 +776,15 @@ class EduPaperPdfGenerator:
                     target_h = 115.0
                     target_w = target_h * (orig_w / orig_h)
 
+                clean_fig_title2 = dataset.title
+                if "】" in clean_fig_title2:
+                    clean_fig_title2 = clean_fig_title2.split("】", 1)[1].strip()
+                if len(clean_fig_title2) > 20:
+                    clean_fig_title2 = clean_fig_title2[:18] + "…"
+
                 figure2_elements = [
                     Image(str(secondary_chart_path), width=target_w, height=target_h),
-                    Paragraph(f"図２　{dataset.title} における相関構造または属性間比較", self.styles["FigureCaption"]),
+                    Paragraph(f"図２　{clean_fig_title2}の相関構造および比較分析", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure2_elements))
                 story.append(Spacer(1, 4))
