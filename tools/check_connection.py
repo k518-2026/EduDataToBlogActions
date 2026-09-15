@@ -46,6 +46,7 @@ def check_env_variables():
         "SMTP_HOST": os.getenv("SMTP_HOST", "smtp.gmail.com"),
         "SMTP_PORT": os.getenv("SMTP_PORT", "587"),
         "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY", ""),
+        "ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY", ""),
     }
 
     missing_required = []
@@ -148,6 +149,61 @@ def send_test_email():
         return False
 
 
+def check_ai_apis():
+    add_summary("## 🤖 3. 生成AI API（Anthropic Claude & Google Gemini）接続テスト")
+
+    # 1. Anthropic Claude
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022").strip()
+    if anthropic_key:
+        import json
+        import urllib.request
+        import urllib.error
+
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": anthropic_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+            "user-agent": "EduDataToBlogActions/1.0",
+        }
+        payload = {
+            "model": anthropic_model,
+            "max_tokens": 10,
+            "messages": [{"role": "user", "content": "ping"}],
+        }
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                json.loads(resp.read().decode("utf-8"))
+            add_summary(f"- **Anthropic Claude API**: ✅ 接続成功！ (モデル: `{anthropic_model}`)")
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8", errors="replace")
+            add_summary(f"- **Anthropic Claude API**: ❌ HTTP {e.code} エラー: `{err_body[:200]}`")
+        except Exception as e:
+            add_summary(f"- **Anthropic Claude API**: ❌ 接続エラー: `{e}`")
+    else:
+        add_summary("- **Anthropic Claude API**: ℹ️ `ANTHROPIC_API_KEY` 未設定（Geminiまたはテンプレートで動作します）")
+
+    # 2. Google Gemini
+    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+    gemini_model = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash").strip()
+    if gemini_key:
+        try:
+            from google import genai
+            client = genai.Client(api_key=gemini_key)
+            client.models.generate_content(
+                model=gemini_model,
+                contents="ping",
+            )
+            add_summary(f"- **Google Gemini API**: ✅ 接続成功！ (モデル: `{gemini_model}`)")
+        except Exception as e:
+            add_summary(f"- **Google Gemini API**: ❌ 接続エラー: `{e}`")
+    else:
+        add_summary("- **Google Gemini API**: ℹ️ `GEMINI_API_KEY` 未設定")
+    add_summary("")
+
+
 def main():
     add_summary("# 🛠️ WordPress & SMTP 接続診断レポート\n")
 
@@ -160,6 +216,8 @@ def main():
     if not smtp_ok:
         write_github_summary()
         sys.exit(1)
+
+    check_ai_apis()
 
     if "--send-test" in sys.argv:
         mail_ok = send_test_email()

@@ -17,6 +17,7 @@ from typing import List, Optional
 from google import genai
 from google.genai import types
 
+from src.academic_contexts import get_academic_context
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
@@ -510,6 +511,8 @@ class AcademicPaperGenerator:
     def _build_academic_prompt(
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> str:
+        ctx = get_academic_context(dataset.id, dataset.category)
+
         stats_lines = []
         for m, s in analysis.descriptive_stats.items():
             m_unit = resolve_metric_unit(m, dataset.unit)
@@ -532,6 +535,7 @@ class AcademicPaperGenerator:
             )
 
         insights_lines = "\n".join([f"- {ins}" for ins in analysis.key_insights])
+        curated_ref_lines = "\n".join([f"    * {r}" for r in ctx.curated_references])
 
         return f"""あなたは教育工学、教育統計学、およびSTEM/理数・情報教育を専門とする大学教授・主任研究員です。
 日本の教育工学・情報教育系学術論文誌の投稿規程および執筆の手引（ショートレター／学術論文）の体裁に厳格に準拠した、極めて学術性の高い本格的な学術論文を執筆してください。
@@ -543,6 +547,10 @@ class AcademicPaperGenerator:
 - 出典機関: {clean_text_spaces(dataset.source_name)} ({dataset.source_url})
 - 単位: {dataset.unit}
 - データ概要: {dataset.description}
+- 本研究の学術主題: {ctx.academic_topic}
+- 適用すべき理論的枠組み: {ctx.theoretical_framework}
+- 中核的学術課題・対立点: {ctx.core_research_problems}
+- 研究背景の執筆指針: {ctx.specific_prompt_guidance}
 
 ### 【実測統計解析データ（本文中の論拠として必ず数値を引用すること）】
 記述統計量:
@@ -566,12 +574,16 @@ class AcademicPaperGenerator:
    - 文体は完全な「である・だ」調。
    - ※重要【単位の正確な記述】: 数値に付す単位において「点 / %」や「人 / %」のような合成スラッシュ記号は絶対に記述しないこと。必ず各指標固有の単一の単位（得点なら「点」、割合・比率なら「%」、人数なら「人」など）のみを使用すること。
    - ※特定の学会名（「日本教育工学会」等）は本文・抄録・見出し等に一切記述しないこと。
+   - ★【定型句・クリシェの完全禁止】: 「近年のSociety 5.0の進展に伴い…」「近年の知識基盤社会の深化およびSociety 5.0の進展に伴い…」「現代社会において急速に進展するDXに伴い…」「情報化社会の急速な進展に伴い…」などの紋切り型の一般論から書き始めることを【厳格に禁止】します。必ず上記「本研究の学術主題」および「研究背景の執筆指針」に即し、本データセット固有の理論的対立点・学術的アポリアからダイレクトに書き始めてください。
+
 2. **各フィールドの記述要件**:
    - **title**: ★【厳守】35〜45文字程度の簡潔な学術論文題目（2行以内におさまる文字数を厳守）。末尾に「†」を付す（例: 〜に関する計量的実証分析†）。「【TIMSS】」等の角括弧プレフィックスは論文タイトルに含めないこと。
    - **subtitle**: 副題（できる限り簡潔に）。
    - **abstract**: 和文抄録。320〜380文字（400字以内かつ8割以上を満たすこと）。冒頭は「本研究は，〇〇（出典機関）が公開する公的オープンデータ（〇〇）を用い，〜」のように無駄な改行や英数字と日本語の間の不自然な半角空白を含めず、スムーズな文章にすること。
    - **keywords**: 5〜6語の専門用語の配列（全角カンマ「，」で区切る）。
-   - **background**: 800〜1200文字。問題の社会的・教育的背景を論理的かつ丁寧に詳述すること。★【必須】研究背景の中で【4本以上】の学術文献・公的報告書（海外論文・国際報告書を2本以上＋国内の学習指導要領解説や公的調査報告等を2本以上）を直接引用（著者名・年号）し、国際的動向から国内のカリキュラム改革（学習指導要領・GIGAスクール構想）の現状と課題、実証的データ分析（EBPM）の不可欠性へと論理的・丁寧に接続すること。
+   - **background**: 800〜1200文字。問題の社会的・教育的背景を論理的かつ丁寧に詳述すること。★【必須】研究背景の中で【4本以上】の学術文献・公的報告書（海外論文・国際報告書を2本以上＋国内の公的調査報告等を2本以上）を直接引用（著者名・年号）し、本研究固有の理論的課題から実証的データ分析（EBPM）の不可欠性へと論理的・丁寧に接続すること。
+     【推奨引用文献（これらを本文中で直接引用し、referencesに含めること）】:
+{curated_ref_lines}
    - **objectives**: 400〜600文字。具体的リサーチクエスチョン（RQ）および作業仮説。★【必須】リサーチクエスチョンは【厳密に2つまで（RQ1, RQ2）】とし、各RQごとに必ず改行して「・RQ1：〜」「・RQ2：〜」と箇条書きで明瞭に記述すること（1行にまとめず、各RQを独立行とすること）。
    - **methodology**: 600〜800文字。標本特性、指標の操作的定義、適用した統計解析手法。また，各平均値・推定値の標本誤差および信頼性を視覚化するため，グラフ描画（折れ線グラフおよび棒グラフ）において95%信頼区間（95% CI）を算出し，誤差棒および信頼区間帯として明示している旨を含めること。
    - **results_text**: 800〜1100文字。★【必須】必ず【RQ1に関する結果】→【RQ2に関する結果】の順で記述すること。「表１」（記述統計・分布特性）、「表２」（回帰分析）、「図１」（推移トレンド・95%信頼区間併記）、「図２」（相関・格差・95%信頼区間併記）の図表を参照しながら実測数値を網羅して客観的に記述すること。
@@ -774,189 +786,52 @@ class AcademicPaperGenerator:
         clean_title_core = re.sub(r"^【.*?】\s*", "", dataset.title).strip()
         clean_title_core = clean_text_spaces(clean_title_core)
 
-        if is_math:
-            title = f"{clean_title_core}に関する計量的実証分析†"
-            subtitle = "オープンデータに基づく算数・数学教育における学力構造と学習環境の定量的解明"
-            keywords = ["算数・数学教育", "学力到達度", "教育計量分析", "記述統計", "線形回帰分析"]
-            abstract = (
-                f"本研究は，{clean_source}の公的オープンデータ（{clean_title_core}）に基づき，"
-                f"初等中等教育における算数・数学的リテラシーの達成水準，経年変化トレンド，および指標間関連性を実証的に分析したものである．"
-                f"対象標本（N={count_str}）における主要指標「{first_metric}」の記述統計量を求めたところ，"
-                f"平均値は{avg_str}，中央値は{med_str}，標準偏差は{std_str}，四分位範囲(IQR)は{iqr_str}を示した．"
-                f"{trend_desc}これらの計量結果に基づき，概念的理解を促す探究型授業設計および個別最適な学びの実現に向けた教育的示唆を論じる．"
-            )
-            background = (
-                "近年の知識基盤社会の深化およびSociety 5.0の進展に伴い，算数・数学的リテラシーは単なる計算技能や公式の機械的適用にとどまらず，"
-                "現実世界の複雑な事象を数理モデルとして捉え，論理的に推論し，批判的・客観的に検証するための普遍的な知的基盤として不可欠な役割を担っている．"
-                "国際的な教育動向に目を向けると，OECD (2023) が公表したPISA 2022調査報告では，数学的リテラシーにおける思考力・判断力および実生活での問題解決能力が重視される一方，"
-                "数学に対する児童生徒の学習不安や意欲減退，さらには社会経済的背景（SES）に伴う国際的な学力格差の拡大が深刻な構造的課題として指摘されている．"
-                "また，国際教育到達度評価学会（IEA）によるTIMSS 2019国際調査報告（Mullis et al.，2020）においても，"
-                "算数・数学に対する好意度や自己効力感といった情意面（Affective Domain）の向上が認知的な学力到達度と強く連動するメカニズムが実証的に報告されており，"
-                "単なる反復演習を超えた内発的動機づけの醸成が国際的な教育改善の合意事項となっている．\n\n"
-                "我が国においても，文部科学省 (2018) の新学習指導要領解説において「数学的な見方・考え方」を働かせた探究的・協働的な問題解決能力の育成が中核に位置づけられ，"
-                "主体的・対話的で深い学びの実現に向けた授業改善が推進されている．しかしながら，文部科学省・国立教育政策研究所 (2024) の全国学力調査報告が示す通り，"
-                "学年の進行に伴う数学への苦手意識の固定化や，地域間・学校種別間における学力格差の顕在化など，克服すべき課題が依然として山積している．"
-                "これらの教育課題に対して実効性のある指導改善策を導出するためには，理念的な議論にとどまらず，信頼性の高い公的オープンデータを客観的かつ体系的に解析し，"
-                "科学的証拠（Evidence-based Education）に基づいて教育実態と指導効果の構造を解明することが強く求められる．"
-            )
-            objectives = (
-                "本研究の目的は，公的教育オープンデータを活用して初等中等教育における算数・数学教育の到達度および学習実態を多角的に検証し，"
-                "学校現場の指導改善および教育政策立案に資する定量的知見を提示することである．具体的には，以下の2つのリサーチクエスチョン（RQ）を設定する：\n\n"
-                f"・RQ1: 主要指標（{first_metric}等）における中心傾向（平均値・中央値）および散布度（標準偏差・四分位範囲IQR）の分布特性はどのような構造を有しているか．\n"
-                "・RQ2: 時系列推移における線形回帰トレンド（傾き・決定係数<i>R</i><sup>2</sup>・CAGR）および指標間の共分散・相関構造にはどのような連動性が認められるか．"
-            )
-            methodology = (
-                f"本研究のデータソースには，{clean_source}により調査・公開された「{clean_title_core}」の公式データセットを採用した．"
-                f"本データは{dataset.region}を対象とし，信頼性の高い公的サンプリング手法に基づき集計されたものである．\n\n"
-                f"分析対象とした指標群は，{', '.join(dataset.metrics)}であり，欠損値処理および型変換を施した上で以下の統計解析手法を適用した．\n"
-                "1. 記述統計分析: 平均値，中央値，不偏標準偏差（ddof=1），最小値・最大値，ならびに第1四分位数・第3四分位数から四分位範囲（IQR）を算出し，データの対称性とばらつきを評価した．\n"
-                "2. 経年変化分析: 複数時点の時系列データに対し，変化量，変化率（%），幾何平均年間成長率（CAGR）を算定するとともに，最小二乗法による単回帰分析を行い決定係数（<i>R</i><sup>2</sup>）および回帰直線の傾きを導出した．\n"
-                "3. 相関分析: 量的変数間においてピアソン積率相関係数（<i>r</i>）および両側検定による<i>p</i>値を算出し，指標間の共分散関係を検証した．\n"
-                "4. 信頼区間の算定と可視化: 各推定値の標本誤差および信頼性を視覚化するため，グラフ描画（折れ線グラフおよび棒グラフ）においてStudentのt分布および回帰標準誤差に基づく95%信頼区間（95% CI）を算出し，誤差棒および信頼区間帯として図中に明示した．"
-            )
-            results_text = (
-                "本データセットの計量分析結果を，リサーチクエスチョンに沿って順に報告する．\n\n"
-                "【RQ1に関する分析結果：主要指標の現状水準と分布構造（表１参照）】\n"
-                f"主要指標「{first_metric}」について基本記述統計量を算出したところ，標本数 N={count_str}，平均値 {avg_str}，中央値 {med_str}，"
-                f"不偏標準偏差 {std_str} であった．最小値は {min_str}，最大値は {max_str} であり，全変動レンジならびに"
-                f"四分位範囲 IQR={iqr_str} から，対象標本内において一定の散布度が確認された．表１に示す通り，各指標の中心傾向とばらつきの双方が明確に定量化された．\n\n"
-                "【RQ2に関する分析結果：時系列推移トレンドおよび指標間相関構造（表２・図１・図２参照）】\n"
-                f"{trend_desc if trend_desc else '時系列データに基づく推移分析を実施したところ，各属性区分において明瞭な推移傾向が観察された．'}"
-                " 表２に示す通り，時系列回帰モデルの推定により回帰勾配および決定係数が算出され，図１の推移チャート（95%信頼区間併記）からも経年的な変化の方向性が視覚的に裏付けられた．\n"
-                f"さらに，指標間の関連性分析（図２参照）においては，{corr_desc if corr_desc else '各指標間において特有の連動性が確認された．'}"
-                " 図２の散布図・属性比較グラフ（95%信頼区間併記）が示す通り，学力水準と学習肯定感との間には統計的に有意な構造的連関性が明瞭に表出している．"
-            )
-            discussion = (
-                "本実測結果を踏まえ，設定したリサーチクエスチョンに沿って先行研究と対比しながら教育学的メカニズムを考察する．\n\n"
-                "【RQ1に関する考察：学力分布の安定性と情意面の構造】\n"
-                "RQ1で明らかとなった学力水準の分布と散布度に関して，先行研究と対比を行う．清水 (2020) は算数・数学教育において「数学的な見方・考え方」を深める授業設計が"
-                "児童生徒の自己肯定感を高め，学力の二極化を抑制すると論じている．本研究の実測結果においても，主要指標の平均値と中央値が近接し安定した中心傾向を示した点は先行研究の知見と整合的（同じところ）である．"
-                "また，小柳 (2019) が提唱する問題解決型授業の構成原理に照らしても，基礎的概念の定着が確認された点は指導改善の成果を表出している．"
-                "一方で，OECD (2023) の国際比較が警鐘を鳴らす学力二極化と対比すると，本データセットのIQR（表１）は比較的狭小であり，初等中等教育段階での基礎的均質性が保たれている点は本邦特有の知見（違うところ）である．\n\n"
-                "【RQ2に関する考察：時系列動向と学習環境の教育的示唆】\n"
-                "RQ2で検出された時系列回帰トレンドおよび指標間相関に関して考察する．堀田 (2021) は初等中等教育のデジタルトランスフォーメーションにおいて，"
-                "1人1台端末を活用した動的モデリングや個別最適な学習が児童生徒の意欲向上と学力定着に寄与することを提唱している．本研究の相関分析（図２）で確認された通り，"
-                "端末活用率や学習好意度が平均正答率と強く連動している点は堀田 (2021) の主張を強く支持する（同じところ）．"
-                "さらに，黒上・小柳 (2020) が論じるシンキングツールを活用した探究活動の重要性とも軌を一にしている．"
-                "しかしながら，Mullis et al. (2020) の国際報告が示すような学習好意度と学力伸長の単純な同時進展とは異なり，"
-                "本研究の回帰分析（表２・図１）では好意度の微増と学力の緩やかな下降という非線形な乖離（違うところ）が検出された．"
-                "この乖離は，単なる情意の改善にとどまらず，授業内での深い概念的理解への転換が不可欠であることを示唆している．\n\n"
-                "【研究の限界と今後の課題】\n"
-                "最後に，本研究の限界および今後の課題として次の2点が挙げられる．第1に，本分析は公的集計統計に基づく巨視的検証であり，"
-                "家庭学習時間や社会経済的背景（SES）等の微視的交絡因子を完全には統制できていない点である．"
-                "第2に，学校や授業内のミクロな学習ログと学力推移を結びつけた縦断的追跡研究（Longitudinal Study）の推進が今後の重要な課題である．"
-            )
-            references = [
-                "堀田龍也 (2021) 初等中等教育のデジタルトランスフォーメーションの動向と課題. 教育情報研究, <b>37</b> (2) ：15-24.",
-                "黒上晴夫, 小柳和喜雄 (2020) シンキングツールを活用した深い学びの授業改善. 教育工学研究報告集, <b>20</b> (2) ：31-38.",
-                "文部科学省 (2018) 小学校学習指導要領（平成29年告示）解説 算数編. 東洋館出版社, pp.1-240.",
-                "文部科学省・国立教育政策研究所 (2024) 令和6年度 全国学力・学習状況調査 報告書. 国立教育政策研究所.",
-                "MULLIS, I. V. S., MARTIN, M. O., FOY, P., KELLY, D. L. and FISHBEIN, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
-                "OECD (2023) PISA 2022 Results (Volume I): The State of Learning and Equity in Education. OECD Publishing, Paris. https://doi.org/10.1787/53f23881-en",
-                "小柳和喜雄 (2019) 算数・数学科における深い学びを実現する問題解決型授業の構成原理. 教育方法学研究, <b>45</b> ：45-56.",
-                "清水静栄 (2020) 算数・数学教育における「数学的な見方・考え方」の育成と授業改善. 日本数学教育学会誌, <b>102</b> (4) ：12-23.",
-            ]
-            title_en = f"Quantitative Empirical Analysis of {clean_title_core} in Primary and Secondary Mathematics Education"
-            authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
-            summary_en = (
-                f"This study conducts an empirical quantitative analysis of mathematical literacy in primary and secondary education "
-                f"using official public open data ({clean_title_core}) published by {clean_source}. "
-                f"The descriptive statistics for '{first_metric}' revealed a mean of {avg_str}, median of {med_str}, "
-                f"and standard deviation of {std_str}. Regression analysis indicated statistically significant trends over time. "
-                f"Based on these empirical findings, pedagogical implications for exploratory lesson design and personalized adaptive learning are discussed."
-            )
-            keywords_en = ["MATHEMATICS EDUCATION", "EDUCATIONAL ASSESSMENT", "QUANTITATIVE ANALYSIS", "DESCRIPTIVE STATISTICS", "LINEAR REGRESSION"]
-        else:
-            title = f"{clean_title_core}に関する計量的実証分析†"
-            subtitle = "公的オープンデータに基づく学校情報教育・プログラミング教育環境と情報活用能力の構造的検証"
-            keywords = ["情報教育", "プログラミング教育", "ICT環境整備", "GIGAスクール構想", "情報活用能力"]
-            abstract = (
-                f"本稿は，{clean_source}の公式オープンデータ（{clean_title_core}）に基づき，"
-                f"学校現場における情報教育・プログラミング教育の推進実態およびICT環境整備の定量的構造を計量的に解明することを目的とした．"
-                f"標本数 N={count_str} における代表指標「{first_metric}」を検証した結果，"
-                f"平均値は{avg_str}，中央値は{med_str}，標準偏差は{std_str}，四分位範囲(IQR)は{iqr_str}を示した．"
-                f"{trend_desc}本分析から得られた定量的知見をもとに，情報モラル教育，探究的なプログラミング指導法，ならびに地域間格差の是正に向けた具体的方策を提言する．"
-            )
-            background = (
-                "人工知能（AI），ビッグデータ，クラウドコンピューティングが社会経済の基盤を根本から変革する現代において，"
-                "情報活用能力およびプログラミング的思考（Computational Thinking）の育成は，国家の将来を左右する最重要教育課題として位置づけられている．"
-                "国際的な動向を概観すると，Wing (2006) が提唱した「万人のための計算論的思考」の理念は，単なるコーディング技能の習得を超えて，"
-                "問題を抽象化・構造化し，アルゴリズム的に解決策を創出する21世紀型汎用スキルとして世界各国の初等中等教育カリキュラムに急速に導入された．"
-                "また，UNESCO (2024) が公表した世界教育モニタリング報告（Global Education Monitoring Report 2023）においては，"
-                "教育現場へのデジタル技術導入が学習者の自律性と協働性を高める可能性を認める一方で，インフラ整備の地域格差や指導法の形骸化がもたらす"
-                "教育的不平等の拡大に強い警鐘が鳴らされており，テクノロジーの配置にとどまらない実質的な指導改善が国際基準となっている．\n\n"
-                "我が国においても，文部科学省 (2020) の『小学校プログラミング教育の手引』に基づくプログラミング教育必修化や，"
-                "GIGAスクール構想の下での1人1台端末環境の整備，高校「情報I」の共通テスト導入など，体系的な教育改革が推進されている．"
-                "しかしながら，文部科学省 (2024) の学校教育情報化実態調査が示す通り，日常的な授業での活用頻度や指導内容の質，教員の指導力，"
-                "自治体間・学校種別間の指導格差など，運用段階における課題が深刻化している．"
-                "これらの課題を克服し，真に実効性のある情報教育を実現するためには，公的オープンデータを統計的かつ客観的に検証し，"
-                "科学的根拠（Evidence-based Education）に基づいた政策的・実践的アプローチを展開することが不可欠である．"
-            )
-            objectives = (
-                "本研究は，初等中等教育における情報教育・プログラミング教育および学校ICT環境の推進実態を公的オープンデータから多角的に検証し，"
-                "学校現場の授業改善および教育施策の立案に資する定量的エビデンスを提示することを主目的とする．具体的には，以下の2つのリサーチクエスチョン（RQ）を設定する：\n\n"
-                f"・RQ1: 主要指標（{first_metric}等）の平均値・標準偏差・四分位範囲IQRに見られる現状水準と自治体・学校種別の散布度にはどのような特徴があるか．\n"
-                "・RQ2: 時系列推移における線形回帰トレンド（傾き・決定係数<i>R</i><sup>2</sup>・CAGR）および環境整備と実践的活用能力との指標間相関にはどのような構造的連動性が認められるか．"
-            )
-            methodology = (
-                f"本研究では，{clean_source}により調査・公開された公的統計「{clean_title_core}」をデータソースとして使用した．"
-                f"本データは{dataset.region}を対象とし，厳格な調査設計に基づき作成された信頼性の高い母集団推定値である．\n\n"
-                f"対象指標として{', '.join(dataset.metrics)}を抽出し，以下の統計分析フレームワークを適用した．\n"
-                "1. 基礎記述統計: 各指標の標本数，平均値，中央値，不偏標準偏差，最小・最大値，四分位範囲（IQR）を算定し，外れ値の影響度と分布形状を精査した．\n"
-                "2. トレンド・回帰分析: 時系列軸が存在するデータについては，期間変化量，年平均成長率（CAGR），ならびに最小二乗法に基づく線形単回帰直線の傾き・決定係数（<i>R</i><sup>2</sup>）を推定した．\n"
-                "3. 相関分析: 各指標のペアに対しピアソン積率相関係数（<i>r</i>）および両側有意確率（<i>p</i>値）を算出し，関連の強弱と統計的有意性を検証した．\n"
-                "4. 信頼区間の算定と可視化: 推定値の標本誤差および信頼性を視覚化するため，グラフ描画（折れ線グラフおよび棒グラフ）においてStudentのt分布および回帰標準誤差に基づく95%信頼区間（95% CI）を算出し，誤差棒および信頼区間帯として図中に明示した．"
-            )
-            results_text = (
-                "データ解析により得られた定量的知見を，リサーチクエスチョンに即して順に報告する．\n\n"
-                "【RQ1に関する分析結果：主要指標の現状水準と分布構造（表１参照）】\n"
-                f"主要指標「{first_metric}」について基本記述統計量を算出したところ，標本数 N={count_str}，平均値 {avg_str}，中央値 {med_str}，"
-                f"不偏標準偏差 {std_str}，四分位範囲 IQR={iqr_str} が記録された．最小値 {min_str} から最大値 {max_str} に至る分布レンジは，"
-                "表１に示す通り自治体・学校間における導入・活用の多様性を如実に反映しており，中心傾向とばらつきの双方が明確に把握された．\n\n"
-                "【RQ2に関する分析結果：時系列推移トレンドおよび指標間相関構造（表２・図１・図２参照）】\n"
-                f"{trend_desc if trend_desc else '時系列の経年推移を検証したところ，各区分において着実な伸長傾向が確認された．'}"
-                " 表２に示すトレンド指標および図１の推移グラフ（95%信頼区間併記）からも，近年の急速な進展と今後の定着に向けた課題が視覚化された．\n"
-                f"さらに，指標間の相関分析（図２参照）においては，{corr_desc if corr_desc else '各指標間において構造的な連関性が検出された．'}"
-                " 図２の散布図・属性比較グラフ（95%信頼区間併記）が明瞭に示す通り，ハードウェアの整備進捗と日常的な探究活用・学習成果との間には有意な正の相関構造が存在している．"
-            )
-            discussion = (
-                "以上の実測結果に基づき，リサーチクエスチョンに沿って先行研究の知見と対比しながら教育工学的考察を展開する．\n\n"
-                "【RQ1に関する考察：ICT環境の整備水準と活用格差】\n"
-                "RQ1で明らかとなった指標の現状水準と散布度に関して考察する．国立教育政策研究所 (2021) は，情報活用能力の育成には単なる端末配備のみならず，"
-                "各学校における日常的なデータ活用・課題解決型学習の定着が重要であると指摘している．本研究の実測データにおいて，主要指標が一定水準以上の平均値を達成した点は先行研究の提言に沿う進展（同じところ）である．"
-                "また，中川・村井 (2018) が提唱する情報活用能力育成の枠組みからも，基礎的ICT環境の基盤化が確認された点は評価できる．"
-                "一方で，UNESCO (2024) が指摘するように，全国一律の整備完了の影で学校・地域間の散布度（IQR）が依然として大きく，実際の授業活用頻度においては顕著な格差が存在している点は，"
-                "整備完了率というマクロ指標のみでは捉えきれない本データ分析特有の乖離的知見（違うところ）である．\n\n"
-                "【RQ2に関する考察：経年トレンドと実践的活用の深化】\n"
-                "RQ2で検出された経年変化トレンドおよび指標間相関に関して考察する．堀田 (2021) は初等中等教育におけるDX推進の動向として，教員の指導力向上とICT支援体制の充実が"
-                "児童生徒の主体的・探究的な端末活用の鍵を握ると提唱している．本研究の相関分析（図２）で示された通り，環境整備率と日常的活用率が強固に連動している点は堀田 (2021) の指摘と整合的（同じところ）である．"
-                "さらに，佐藤・堀田 (2022) のクラウド活用実証研究が示す個別最適な学びの進展とも軌を一にしている．"
-                "しかしながら，Wing (2006) が提唱した「普遍的な思考スキルとしてのプログラミング的思考」への昇華という観点から見ると，"
-                "本研究の時系列回帰分析（表２・図１）が示す成長速度は機器配備の速度に比べて緩やかであり，認知的深まりを伴う高度な探究活用への移行にはなお時間を要している（違うところ）．\n\n"
-                "【研究の限界と今後の課題】\n"
-                "最後に，本研究の限界および今後の課題として，本分析は公的統計の集計値に基づくマクロ検証であり，授業内における児童生徒の思考プロセスや認知的変容を"
-                "直接的に測定できていない点が挙げられる．今後は，学習履歴ログ（スタディ・ログ）を活用したミクロな学習分析とマクロ統計を統合した縦断的追跡研究の推進が課題である．"
-            )
-            references = [
-                "堀田龍也 (2021) 初等中等教育のデジタルトランスフォーメーションの動向と課題. 教育情報研究, <b>37</b> (2) ：15-24.",
-                "国立教育政策研究所 (2021) 指導と評価の一体化のための学習評価に関する参考資料 高等学校 情報編. 東洋館出版社, pp.1-180.",
-                "文部科学省 (2020) 小学校プログラミング教育の手引（第三版）. 文部科学省.",
-                "文部科学省 (2024) 令和5年度 学校における教育の情報化の実態等に関する調査結果. 文部科学省.",
-                "中川一史, 村井万寿夫 (2018) 1人1台端末環境における情報活用能力育成の枠組みと実践的課題. 情報教育研究, <b>11</b> (1) ：15-24.",
-                "佐藤和紀, 堀田龍也 (2022) クラウドを活用した個別最適な学びと協働的な学びの一体的充実に関する実証的研究. 教育メディア研究, <b>29</b> (1) ：1-14.",
-                "UNESCO (2024) Global Education Monitoring Report 2023: Technology in Education - A Tool on Whose Terms? UNESCO Publishing, Paris.",
-                "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35. https://doi.org/10.1145/1118178.1118215",
-            ]
-            title_en = f"Quantitative Empirical Analysis of {clean_title_core} in School Informatics and Programming Education"
-            authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
-            summary_en = (
-                f"This paper investigates the implementation status of programming education and ICT environment in primary and secondary schools "
-                f"based on public open data ({clean_title_core}) provided by {clean_source}. "
-                f"Statistical analysis for '{first_metric}' demonstrated a mean of {avg_str}, median of {med_str}, and standard deviation of {std_str}. "
-                f"Trend analysis confirmed systematic progress across surveyed indicators. "
-                f"Based on these results, we discuss pedagogical strategies for lesson improvement and teacher professional development."
-            )
-            keywords_en = ["INFORMATICS EDUCATION", "PROGRAMMING EDUCATION", "ICT ENVIRONMENT", "GIGA SCHOOL INITIATIVE", "EDUCATIONAL TECHNOLOGY"]
+        ctx = get_academic_context(dataset.id, dataset.category)
+
+        title = ctx.fallback_title
+        subtitle = ctx.fallback_subtitle
+        keywords = ctx.fallback_keywords
+        abstract = (
+            f"本研究は，{clean_source}の公的オープンデータ（{clean_title_core}）に基づき，"
+            f"{ctx.academic_topic}を計量的に解明することを目的とした実証分析である．"
+            f"対象標本（N={count_str}）における主要指標「{first_metric}」の記述統計量を求めたところ，"
+            f"平均値は{avg_str}，中央値は{med_str}，標準偏差は{std_str}，四分位範囲(IQR)は{iqr_str}を示した．"
+            f"{trend_desc}得られた知見に基づき，学校教育の指導改善および政策展開に向けた教育学的示唆を論じる．"
+        )
+        background = ctx.fallback_background
+        objectives = ctx.fallback_objectives
+        methodology = (
+            f"本研究のデータソースには，{clean_source}により調査・公開された「{clean_title_core}」の公式データセットを採用した．"
+            f"本データは{dataset.region}を対象とし，信頼性の高い公的サンプリング手法に基づき集計されたものである．\n\n"
+            f"分析対象とした指標群は，{', '.join(dataset.metrics)}であり，欠損値処理および型変換を施した上で以下の統計解析手法を適用した．\n"
+            "1. 記述統計分析: 平均値，中央値，不偏標準偏差（ddof=1），最小値・最大値，ならびに第1四分位数・第3四分位数から四分位範囲（IQR）を算出し，データの対称性とばらつきを評価した．\n"
+            "2. 経年変化分析: 複数時点の時系列データに対し，変化量，変化率（%），幾何平均年間成長率（CAGR）を算定するとともに，最小二乗法による単回帰分析を行い決定係数（<i>R</i><sup>2</sup>）および回帰直線の傾きを導出した．\n"
+            "3. 相関分析: 量的変数間においてピアソン積率相関係数（<i>r</i>）および両側検定による<i>p</i>値を算出し，指標間の共分散関係を検証した．\n"
+            "4. 信頼区間の算定と可視化: 各推定値の標本誤差および信頼性を視覚化するため，グラフ描画（折れ線グラフおよび棒グラフ）においてStudentのt分布および回帰標準誤差に基づく95%信頼区間（95% CI）を算出し，誤差棒および信頼区間帯として図中に明示した．"
+        )
+        results_text = (
+            "本データセットの計量分析結果を，リサーチクエスチョンに沿って順に報告する．\n\n"
+            "【RQ1に関する分析結果：主要指標の現状水準と分布構造（表１参照）】\n"
+            f"主要指標「{first_metric}」について基本記述統計量を算出したところ，標本数 N={count_str}，平均値 {avg_str}，中央値 {med_str}，"
+            f"不偏標準偏差 {std_str} であった．最小値は {min_str}，最大値は {max_str} であり，全変動レンジならびに"
+            f"四分位範囲 IQR={iqr_str} から，対象標本内において一定の散布度が確認された．表１に示す通り，各指標の中心傾向とばらつきの双方が明確に定量化された．\n\n"
+            "【RQ2に関する分析結果：時系列推移トレンドおよび指標間相関構造（表２・図１・図２参照）】\n"
+            f"{trend_desc if trend_desc else '時系列データに基づく推移分析を実施したところ，各属性区分において明瞭な推移傾向が観察された．'}"
+            " 表２に示す通り，時系列回帰モデルの推定により回帰勾配および決定係数が算出され，図１の推移チャート（95%信頼区間併記）からも経年的な変化の方向性が視覚的に裏付けられた．\n"
+            f"さらに，指標間の関連性分析（図２参照）においては，{corr_desc if corr_desc else '各指標間において特有の連動性が確認された．'}"
+            " 図２の散布図・属性比較グラフ（95%信頼区間併記）が示す通り，指標間において統計的に有意な構造的連関性が表出している．"
+        )
+        discussion = ctx.fallback_discussion
+        references = sort_jset_references(ctx.curated_references)
+
+        title_en = f"Quantitative Empirical Analysis of {clean_title_core} in Educational Statistics"
+        authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
+        summary_en = (
+            f"This study conducts an empirical quantitative analysis of educational open data ({clean_title_core}) published by {clean_source}. "
+            f"The descriptive statistics for '{first_metric}' revealed a mean of {avg_str}, median of {med_str}, and standard deviation of {std_str}. "
+            f"Based on these empirical findings with 95% confidence intervals, pedagogical implications and theoretical considerations are discussed."
+        )
+        keywords_en = ["EDUCATIONAL STATISTICS", "QUANTITATIVE ANALYSIS", "DESCRIPTIVE STATISTICS", "CONFIDENCE INTERVALS", "PEDAGOGICAL IMPLICATIONS"]
 
         references = sort_jset_references(references)
 
