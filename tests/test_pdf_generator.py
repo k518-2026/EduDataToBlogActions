@@ -153,7 +153,7 @@ def test_reporter_integrates_pdf_link(tmp_path):
 
 
 def test_enhanced_academic_paper_requirements():
-    """Verifies foreign citations in background, clean RQ lines, multi-tables/figures in results, and comparative discussion."""
+    """Verifies foreign citations in background, exactly 2 RQs, aligned Results & Discussion by RQ1->RQ2, 4 references, and 2 citations per RQ in discussion."""
     catalog = DatasetCatalog()
     for dataset_id in ["japan_national_assessment_math", "japan_mext_ict_informatization"]:
         dataset = catalog.get_by_id(dataset_id)
@@ -162,27 +162,48 @@ def test_enhanced_academic_paper_requirements():
         paper_gen = AcademicPaperGenerator()
         paper = paper_gen.generate_paper(dataset, analysis)
 
-        # 1. Background cites >= 2 foreign sources
+        # 1. Background cites >= 2 foreign sources and has detailed explanation (> 400 chars)
         foreign_keywords = ["OECD", "TIMSS", "Mullis", "UNESCO", "Wing", "PISA"]
         found_foreign = [kw for kw in foreign_keywords if kw in paper.background]
         assert len(found_foreign) >= 2, f"Expected >= 2 foreign citations in background for {dataset_id}, found: {found_foreign}"
+        assert len(paper.background) >= 400, f"Expected detailed background (>=400 chars), found: {len(paper.background)}"
 
-        # 2. RQ has separate lines and bullets
-        rq_lines = [line.strip() for line in paper.objectives.split("\n") if any(k in line for k in ["RQ1", "RQ2", "RQ3"])]
-        assert len(rq_lines) >= 3, f"Expected at least 3 separate RQ lines in objectives, found: {rq_lines}"
+        # 2. Exactly 2 RQs (RQ1, RQ2 on separate lines, RQ3 must not exist)
+        rq_lines = [line.strip() for line in paper.objectives.split("\n") if any(line.startswith(f"・{k}") or line.startswith(k) for k in ["RQ1", "RQ2", "RQ3"])]
+        assert len(rq_lines) == 2, f"Expected exactly 2 RQ lines in objectives for {dataset_id}, found: {rq_lines}"
+        assert "RQ1" in rq_lines[0] and "RQ2" in rq_lines[1]
+        assert "RQ3" not in paper.objectives, f"RQ3 must not exist in {dataset_id}"
         for line in rq_lines:
             assert line.startswith("・"), f"RQ line should start with bullet: {line}"
 
-        # 3. Results text references multiple tables and figures
+        # 3. Strictly 4 references
+        assert len(paper.references) == 4, f"Expected strictly 4 references for {dataset_id}, found: {len(paper.references)}"
+
+        # 4. Results text references RQ1 then RQ2 in order, plus multi-tables/figures
+        assert "RQ1" in paper.results_text and "RQ2" in paper.results_text
+        assert paper.results_text.index("RQ1") < paper.results_text.index("RQ2"), "Results must discuss RQ1 before RQ2"
         assert "表１" in paper.results_text
         assert "表２" in paper.results_text
         assert "図１" in paper.results_text
         assert "図２" in paper.results_text
 
-        # 4. Discussion compares similarities, differences, and future challenges
+        # 5. Discussion compares similarities and differences for RQ1 then RQ2 in order, plus future challenges
+        assert "RQ1" in paper.discussion and "RQ2" in paper.discussion
+        assert paper.discussion.index("RQ1") < paper.discussion.index("RQ2"), "Discussion must discuss RQ1 before RQ2"
         assert "同じところ" in paper.discussion or "共通点" in paper.discussion
         assert "違うところ" in paper.discussion or "相違点" in paper.discussion
         assert "今後の課題" in paper.discussion
+
+        # 6. Discussion cites 2 prior studies for RQ1 and 2 prior studies for RQ2
+        rq1_disc = paper.discussion[:paper.discussion.index("RQ2")]
+        rq2_disc = paper.discussion[paper.discussion.index("RQ2"):]
+        if dataset_id == "japan_national_assessment_math":
+            assert "清水" in rq1_disc and "OECD" in rq1_disc, "RQ1 discussion in Math must cite 清水 and OECD"
+            assert "堀田" in rq2_disc and "Mullis" in rq2_disc, "RQ2 discussion in Math must cite 堀田 and Mullis"
+        else:
+            assert "国立教育政策研究所" in rq1_disc and "UNESCO" in rq1_disc, "RQ1 discussion in ICT must cite 国立教育政策研究所 and UNESCO"
+            assert "堀田" in rq2_disc and "Wing" in rq2_disc, "RQ2 discussion in ICT must cite 堀田 and Wing"
+
 
 
 def test_pdf_with_multiple_tables_and_figures_and_ai_disclosure(tmp_path):
