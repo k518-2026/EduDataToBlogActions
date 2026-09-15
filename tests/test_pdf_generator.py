@@ -4,7 +4,14 @@ Unit tests for Academic Paper and PDF Generator modules.
 from pathlib import Path
 import pytest
 
-from src.academic_paper import AcademicPaperGenerator, AcademicPaper, normalize_jset_text
+from src.academic_paper import (
+    AcademicPaperGenerator,
+    AcademicPaper,
+    normalize_jset_text,
+    sort_jset_references,
+    normalize_jset_reference,
+    get_jset_author_sort_key,
+)
 from src.analyzer import EduDataAnalyzer
 from src.fetchers.catalog import DatasetCatalog
 from src.pdf.font_loader import register_japanese_fonts
@@ -249,3 +256,64 @@ def test_pdf_with_multiple_tables_and_figures_and_ai_disclosure(tmp_path):
         + pdf_bytes.count(b"/Type /Page ")
     )
     assert page_count == 4, f"Expected exactly 4 pages for short letter, found {page_count}"
+
+
+def test_sort_jset_references_alphabetical_order():
+    """
+    Verifies that references are sorted strictly by author surname in alphabetical order
+    interleaving Japanese (Romaji surname reading) and English/Foreign authors (A-Z) in a single list,
+    and foreign author surnames are in ALL CAPS with 'and'.
+    """
+    raw_shuffled_refs = [
+        "清水静栄 (2020) 算数・数学教育における「数学的な見方・考え方」の育成と授業改善. 日本数学教育学会誌, <b>102</b> (4) : 12-23.",
+        "文部科学省・国立教育政策研究所 (2024) 令和6年度 全国学力・学習状況調査 報告書. 国立教育政策研究所.",
+        "Mullis, I. V. S., Martin, M. O., Foy, P., Kelly, D. L., & Fishbein, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
+        "堀田龍也 (2021) 初等中等教育のデジタルトランスフォーメーションの動向と課題. 教育情報研究, <b>37</b> (2) ：15-24.",
+        "OECD (2023) PISA 2022 Results (Volume I): The State of Learning and Equity in Education. OECD Publishing, Paris. https://doi.org/10.1787/53f23881-en",
+        "黒上晴夫, 小柳和喜雄 (2020) シンキングツールを活用した深い学びの授業改善. 教育工学研究報告集, <b>20</b> (2) ：31-38.",
+        "小柳和喜雄 (2019) 算数・数学科における深い学びを実現する問題解決型授業の構成原理. 教育方法学研究, <b>45</b> ：45-56.",
+        "文部科学省 (2018) 小学校学習指導要領（平成29年告示）解説 算数編. 東洋館出版社, pp.1-240.",
+    ]
+
+    sorted_refs = sort_jset_references(raw_shuffled_refs)
+
+    # 1. Verify exact 8 entries
+    assert len(sorted_refs) == 8
+
+    # 2. Verify foreign author normalization
+    mullis_entry = [r for r in sorted_refs if "TIMSS 2019" in r][0]
+    assert "MULLIS, I. V. S." in mullis_entry, "Foreign author surname should be capitalized"
+    assert " and " in mullis_entry, "Co-authors should be joined with 'and'"
+    author_part = mullis_entry.split("(2020)")[0]
+    assert " & " not in author_part, "Author list should not contain '&'"
+
+    # 3. Verify colon normalization
+    shimizu_entry = [r for r in sorted_refs if "清水静栄" in r][0]
+    assert "：12-23" in shimizu_entry, "Colon before page range should be full-width '：'"
+
+    # 4. Verify strict alphabetical order by lead author surname Romaji reading
+    # 堀田 (Horita: H) -> 黒上 (Kurokami: K) -> 文部科学省 (Monbukagakusho: Mo 2018)
+    # -> 文部科学省・国立 (Monbukagakusho: Mo 2024) -> MULLIS (Mu) -> OECD (Oe) -> 小柳 (Oyanagi: Oy) -> 清水 (Shimizu: Sh)
+    expected_lead_authors = [
+        "堀田",
+        "黒上",
+        "文部科学省 (2018)",
+        "文部科学省・国立教育政策研究所 (2024)",
+        "MULLIS",
+        "OECD",
+        "小柳",
+        "清水",
+    ]
+    for idx, expected in enumerate(expected_lead_authors):
+        assert expected in sorted_refs[idx], f"Expected reference {idx+1} to contain '{expected}', got: {sorted_refs[idx]}"
+
+
+def test_reference_hanging_indent_style():
+    """Verifies that the reference style in EduPaperPdfGenerator has the exact JSET 2-character hanging indent."""
+    pdf_gen = EduPaperPdfGenerator()
+    ref_style = pdf_gen.styles["Reference"]
+
+    assert ref_style.fontSize == 8.5, f"Expected 8.5pt font size, got {ref_style.fontSize}"
+    assert ref_style.leftIndent == 17.0, f"Expected 17.0pt leftIndent (2 full-width chars), got {ref_style.leftIndent}"
+    assert ref_style.firstLineIndent == -17.0, f"Expected -17.0pt firstLineIndent (hanging indent), got {ref_style.firstLineIndent}"
+

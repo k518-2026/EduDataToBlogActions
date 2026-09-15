@@ -36,7 +36,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from src.academic_paper import AcademicPaper
+from src.academic_paper import AcademicPaper, sort_jset_references
 from src.analyzer import AnalysisResult
 from src.fetchers.base import EducationDataset
 from src.pdf.font_loader import register_japanese_fonts
@@ -346,13 +346,13 @@ class EduPaperPdfGenerator:
             spaceAfter=4,
         )
 
-        # References (Hanging indent: 2 characters = 17pt)
+        # References (Hanging indent: 2 characters = 17pt, JSET standard 8.5pt font)
         styles["Reference"] = ParagraphStyle(
             "Reference",
             parent=sheet["Normal"],
             fontName=self.mincho_font,
-            fontSize=8.0,
-            leading=11.5,
+            fontSize=8.5,
+            leading=12.0,
             leftIndent=17.0,
             firstLineIndent=-17.0,
             spaceAfter=3,
@@ -823,13 +823,10 @@ class EduPaperPdfGenerator:
         # ==========================================
         story.append(PageBreak())
         story.append(Paragraph("参　考　文　献", self.styles["Heading1"]))
-        for ref in paper.references:
+        sorted_references = sort_jset_references(paper.references)
+        for ref in sorted_references:
             if ref.strip():
-                # Clean any leading brackets
-                clean_ref = ref.strip()
-                if clean_ref.startswith("[") and "]" in clean_ref[:5]:
-                    clean_ref = clean_ref.split("]", 1)[1].strip()
-                story.append(Paragraph(clean_ref, self.styles["Reference"]))
+                story.append(Paragraph(ref.strip(), self.styles["Reference"]))
 
         # ==========================================
         # 8. English Summary & KEYWORDS (End of paper)

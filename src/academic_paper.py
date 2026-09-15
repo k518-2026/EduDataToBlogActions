@@ -47,6 +47,400 @@ def normalize_jset_text(text: str) -> str:
     return "".join(normalized_parts)
 
 
+# Comprehensive Romaji transliteration dictionary for Japanese education researchers and agencies
+JAPANESE_NAME_ROMAJI: dict[str, str] = {
+    # Organizations / Ministries
+    "文部科学省": "MONBUKAGAKUSHO",
+    "文部省": "MONBUSHO",
+    "国立教育政策研究所": "KOKURITSUKYOIKUSEISAKUKENKYUSHO",
+    "国立教育研究所": "KOKURITSUKYOIKUKENKYUSHO",
+    "国立大学法人": "KOKURITSUTAIGAKUHOJIN",
+    "独立行政法人": "DOKURITSUGYOSEIHOJIN",
+    "総務省": "SOMUSHO",
+    "経済産業省": "KEIZAISANGYOSHO",
+    "内閣府": "NAIKAKUFU",
+    "日本学術振興会": "NIHONGAKUJUTSUSHINKOKAI",
+    "日本教育工学会": "NIHONKYOIKUKOGAKUKAI",
+    "一般社団法人": "IPPANSHADANHOJIN",
+    "公益社団法人": "KOEKISHADANHOJIN",
+    "教育政策研究所": "KYOIKUSEISAKUKENKYUSHO",
+
+    # Education / EdTech / CS / Math Researchers & Common Surnames
+    "堀田": "HORITA",
+    "黒上": "KUROKAMI",
+    "小柳": "OYANAGI",
+    "清水": "SHIMIZU",
+    "佐藤": "SATO",
+    "中川": "NAKAGAWA",
+    "村井": "MURAI",
+    "八木澤": "YAGISAWA",
+    "八木沢": "YAGISAWA",
+    "山内": "YAMAUCHI",
+    "赤堀": "AKAHORI",
+    "生田": "IKUTA",
+    "稲垣": "INAGAKI",
+    "今野": "KONNO",
+    "岩崎": "IWASAKI",
+    "上野": "UENO",
+    "大谷": "OTANI",
+    "加藤": "KATO",
+    "金子": "KANEKO",
+    "木原": "KIHARA",
+    "久保田": "KUBOTA",
+    "坂本": "SAKAMOTO",
+    "鈴木": "SUZUKI",
+    "高橋": "TAKAHASHI",
+    "田中": "TANAKA",
+    "豊福": "TOYOFUKU",
+    "中村": "NAKAMURA",
+    "野中": "NONAKA",
+    "長谷川": "HASEGAWA",
+    "東原": "HIGASHIHARA",
+    "平岡": "HIRAOKA",
+    "藤村": "FUJIMURA",
+    "松田": "MATSUDA",
+    "三宅": "MIYAKE",
+    "村上": "MURAKAMI",
+    "森本": "MORIMOTO",
+    "山口": "YAMAGUCHI",
+    "吉田": "YOSHIDA",
+    "渡辺": "WATANABE",
+    "渡邊": "WATANABE",
+    "渡邉": "WATANABE",
+    "伊藤": "ITO",
+    "山本": "YAMAMOTO",
+    "小林": "KOBAYASHI",
+    "山田": "YAMADA",
+    "佐々木": "SASAKI",
+    "松本": "MATSUMOTO",
+    "井上": "INOUE",
+    "木村": "KIMURA",
+    "林": "HAYASHI",
+    "斎藤": "SAITO",
+    "齋藤": "SAITO",
+    "齊藤": "SAITO",
+    "池田": "IKEDA",
+    "橋本": "HASHIMOTO",
+    "阿部": "ABE",
+    "石川": "ISHIKAWA",
+    "山崎": "YAMAZAKI",
+    "森": "MORI",
+    "森田": "MORITA",
+    "前田": "MAEDA",
+    "藤田": "FUJITA",
+    "後藤": "GOTO",
+    "岡田": "OKADA",
+    "近藤": "KONDO",
+    "石井": "ISHII",
+    "遠藤": "ENDO",
+    "青木": "AOKI",
+    "藤井": "FUJII",
+    "西村": "NISHIMURA",
+    "福田": "FUKUDA",
+    "太田": "OTA",
+    "三浦": "MIURA",
+    "藤原": "FUJIWARA",
+    "岡本": "OKAMOTO",
+    "中島": "NAKAJIMA",
+    "原田": "HARADA",
+    "小野": "ONO",
+    "竹内": "TAKEUCHI",
+    "和田": "WADA",
+    "中山": "NAKAYAMA",
+    "石田": "ISHIDA",
+    "上田": "UEDA",
+    "原": "HARA",
+    "柴田": "SHIBATA",
+    "酒井": "SAKAI",
+    "工藤": "KUDO",
+    "横山": "YOKOYAMA",
+    "宮崎": "MIYAZAKI",
+    "宮本": "MIYAMOTO",
+    "内田": "UCHIDA",
+    "高木": "TAKAGI",
+    "安藤": "ANDO",
+    "島田": "SHIMADA",
+    "谷口": "TANIGUCHI",
+    "大野": "ONO",
+    "高田": "TAKADA",
+    "丸山": "MARUYAMA",
+    "今井": "IMAI",
+    "河野": "KONO",
+    "川野": "KAWANO",
+    "藤本": "FUJIMOTO",
+    "武田": "TAKEDA",
+    "村田": "MURATA",
+    "杉山": "SUGIYAMA",
+    "増田": "MASUDA",
+    "平野": "HIRANO",
+    "大塚": "OTSUKA",
+    "千葉": "CHIBA",
+    "久保": "KUBO",
+    "松井": "MATSUI",
+    "吉崎": "YOSHIZAKI",
+    "吉川": "YOSHIKAWA",
+    "荒木": "ARAKI",
+    "安達": "ADACHI",
+    "足立": "ADACHI",
+    "浅井": "ASAI",
+    "飯田": "IIDA",
+    "飯島": "IIJIMA",
+    "五十嵐": "IGARASHI",
+    "市川": "ICHIKAWA",
+    "一柳": "ICHIYANAGI",
+    "岩田": "IWATA",
+    "植田": "UEDA",
+    "宇野": "UNO",
+    "江口": "EGUCHI",
+    "榎本": "ENOMOTO",
+    "大島": "OSHIMA",
+    "大西": "ONISHI",
+    "大橋": "OHASHI",
+    "大森": "OMORI",
+    "荻野": "OGINO",
+    "奥田": "OKUDA",
+    "小澤": "OZAWA",
+    "小沢": "OZAWA",
+    "笠井": "KASAI",
+    "片山": "KATAYAMA",
+    "勝野": "KATSUNO",
+    "川合": "KAWAI",
+    "川口": "KAWAGUCHI",
+    "川崎": "KAWASAKI",
+    "川島": "KAWASHIMA",
+    "川上": "KAWAKAMI",
+    "神田": "KANDA",
+    "菊地": "KIKUCHI",
+    "菊池": "KIKUCHI",
+    "北村": "KITAMURA",
+    "北川": "KITAGAWA",
+    "栗原": "KURIHARA",
+    "小池": "KOIKE",
+    "古賀": "KOGA",
+    "小泉": "KOIZUMI",
+    "小松": "KOMATSU",
+    "小山": "KOYAMA",
+    "佐伯": "SAEKI",
+    "佐久間": "SAKUMA",
+    "櫻井": "SAKURAI",
+    "桜井": "SAKURAI",
+    "笹原": "SASAHARA",
+    "篠原": "SHINOHARA",
+    "白石": "SHIRAISHI",
+    "菅原": "SUGAWARA",
+    "杉本": "SUGIMOTO",
+    "須藤": "SUDO",
+    "関": "SEKI",
+    "関根": "SEKINE",
+    "高野": "TAKANO",
+    "竹田": "TAKEDA",
+    "立花": "TACHIBANA",
+    "田村": "TAMURA",
+    "辻": "TSUJI",
+    "土屋": "TSUCHIYA",
+    "堤": "TSUTSUMI",
+    "角田": "TSUNODA",
+    "寺田": "TERADA",
+    "富田": "TOMITA",
+    "中井": "NAKAI",
+    "中野": "NAKANO",
+    "永井": "NAGAI",
+    "永田": "NAGATA",
+    "西田": "NISHIDA",
+    "西山": "NISHIYAMA",
+    "野口": "NOGUCHI",
+    "野田": "NODA",
+    "野村": "NOMURA",
+    "萩原": "HAGIWARA",
+    "服部": "HATTORI",
+    "花岡": "HANAOKA",
+    "馬場": "BABA",
+    "濱田": "HAMADA",
+    "浜田": "HAMADA",
+    "早川": "HAYAKAWA",
+    "伴": "BAN",
+    "樋口": "HIGUCHI",
+    "平井": "HIRAI",
+    "平田": "HIRATA",
+    "広瀬": "HIROSE",
+    "廣瀬": "HIROSE",
+    "深井": "FUKAI",
+    "福井": "FUKUI",
+    "福島": "FUKUSHIMA",
+    "堀": "HORI",
+    "本多": "HONDA",
+    "本田": "HONDA",
+    "前川": "MAEKAWA",
+    "牧野": "MAKINO",
+    "松浦": "MATSUURA",
+    "松岡": "MATSUOKA",
+    "松下": "MATSUSHITA",
+    "松野": "MATSUNO",
+    "水野": "MIZUNO",
+    "南": "MINAMI",
+    "宮井": "MIYAI",
+    "宮川": "MIYAGAWA",
+    "三好": "MIYOSHI",
+    "向井": "MUKAI",
+    "村松": "MURAMATSU",
+    "望月": "MOCHIZUKI",
+    "森下": "MORISHITA",
+    "矢野": "YANO",
+    "山根": "YAMANE",
+    "吉野": "YOSHINO",
+    "米田": "YONEDA",
+    "若林": "WAKABAYASHI",
+    "和久井": "WAKUI",
+}
+
+# Single-kanji initial transliteration heuristic fallback
+KANJI_INITIAL_ROMAJI: dict[str, str] = {
+    "阿": "A", "安": "A", "青": "A", "赤": "A", "浅": "A", "荒": "A", "足": "A",
+    "飯": "I", "井": "I", "池": "I", "石": "I", "伊": "I", "今": "I", "岩": "I", "生": "I", "稲": "I", "市": "I",
+    "上": "U", "内": "U", "宇": "U", "植": "U", "梅": "U",
+    "江": "E", "遠": "E", "榎": "E",
+    "大": "O", "岡": "O", "小": "O", "荻": "O", "奥": "O", "尾": "O",
+    "加": "KA", "金": "KA", "河": "KA", "川": "KA", "神": "KA", "笠": "KA", "片": "KA", "勝": "KA",
+    "木": "KI", "菊": "KI", "北": "KI",
+    "工": "KU", "久": "KU", "黒": "KU", "栗": "KU",
+    "近": "KO", "古": "KO",
+    "佐": "SA", "斎": "SA", "齋": "SA", "齊": "SA", "坂": "SA", "酒": "SA", "笹": "SA",
+    "柴": "SHI", "島": "SHI", "嶋": "SHI", "清": "SHI", "白": "SHI", "篠": "SHI",
+    "杉": "SU", "鈴": "SU", "菅": "SU", "須": "SU",
+    "関": "SE",
+    "高": "TA", "田": "TA", "竹": "TA", "武": "TA", "谷": "TA", "立": "TA",
+    "千": "CH",
+    "辻": "TSU", "土": "TSU", "堤": "TSU", "角": "TSU",
+    "寺": "TE",
+    "富": "TO", "豊": "TO",
+    "中": "NA", "永": "NA",
+    "西": "NI",
+    "野": "NO",
+    "橋": "HA", "長": "HA", "林": "HA", "原": "HA", "服": "HA", "花": "HA", "馬": "HA", "濱": "HA", "浜": "HA", "早": "HA",
+    "平": "HI", "東": "HI", "樋": "HI", "広": "HI", "廣": "HI",
+    "福": "FU", "藤": "FU", "深": "FU",
+    "堀": "HO", "本": "HO",
+    "前": "MA", "松": "MA", "丸": "MA", "増": "MA", "牧": "MA",
+    "三": "MI", "宮": "MI", "南": "MI", "水": "MI", "向": "MI",
+    "村": "MU",
+    "森": "MO", "望": "MO",
+    "矢": "YA", "山": "YA", "八": "YA", "柳": "YA",
+    "吉": "YO", "横": "YO", "米": "YO",
+    "和": "WA", "渡": "WA", "若": "WA",
+}
+
+
+def normalize_jset_reference(ref: str) -> str:
+    """
+    Normalizes a single reference entry into JSET compliant typography:
+    - Strips leading numbers, brackets, bullets (e.g. '[1]', '1.', '・', '-')
+    - Surnames of foreign authors in ALL CAPS (e.g. 'Mullis, I. V. S.' -> 'MULLIS, I. V. S.')
+    - Replaces '&' with 'and' before the last author
+    - Full-width colon before page ranges ('：15-24')
+    - Journal volume in bold '<b>巻</b> (号)'
+    """
+    s = ref.strip()
+    if not s:
+        return ""
+
+    # 1. Strip leading numbering or bullets: '[1]', '1.', '・', '-', '*'
+    s = re.sub(r"^[\[\(\d\]\).\s・\-*]+", "", s).strip()
+
+    # 2. Extract author part before year
+    parts = re.split(r"([（(]\d{4}[a-z]?[)）])", s, maxsplit=1)
+    if len(parts) >= 2:
+        author_sec = parts[0]
+        year_sec = parts[1]
+        body_sec = parts[2] if len(parts) > 2 else ""
+
+        # Replace '&' with 'and' in author list
+        author_sec = re.sub(r"\s*&\s*", " and ", author_sec)
+        author_sec = re.sub(r",\s*and\s+", " and ", author_sec)
+
+        # Normalize Latin author names to ALL CAPS surnames
+        # e.g. 'Mullis, I. V. S.' -> 'MULLIS, I. V. S.'
+        # 'Wing, J. M.' -> 'WING, J. M.'
+        if re.match(r"^[A-Za-z]", author_sec.strip()):
+            def caps_surname(match):
+                word = match.group(1)
+                initials = match.group(2)
+                return f"{word.upper()}, {initials}"
+
+            author_sec = re.sub(
+                r"\b([A-Z][a-z]+),\s*([A-Z]\.(?:\s*[A-Z]\.)*)",
+                caps_surname,
+                author_sec,
+            )
+
+        s = author_sec.strip() + " " + year_sec.strip() + " " + body_sec.strip()
+
+    # 3. Ensure full-width colon before page ranges: ': 15-24' or ':15-24' -> ' ：15-24'
+    s = re.sub(r"(?:,\s*|(?<=\))\s*):\s*(\d+(?:[-–—]\d+)?)", r" ：\1", s)
+
+    # 4. Clean multiple spaces
+    s = re.sub(r"[ \t]+", " ", s).strip()
+    return s
+
+
+def get_jset_author_sort_key(ref: str) -> str:
+    """
+    Extracts the alphabetical sorting key for JSET references (A-Z):
+    - Japanese authors: sorted by Romaji surname reading
+    - Foreign authors / Agencies: sorted by author surname / agency name in Latin
+    - Multi-author: sorted by lead author
+    - Same author: sorted by year ascending
+    """
+    clean = re.sub(r"^[\[\(\d\]\).\s・\-*]+", "", ref).strip()
+    m = re.match(r"^([^(\d]+?)(?:[（(](\d{4}[a-z]?)[)）]|\s+(\d{4}))", clean)
+    if m:
+        author_part = m.group(1).strip()
+        year = m.group(2) or m.group(3) or "9999"
+    else:
+        author_part = clean.split()[0] if clean.split() else clean
+        year = "9999"
+
+    # Take lead author if multiple authors: '黒上晴夫, 小柳和喜雄' -> '黒上晴夫'
+    first_author = re.split(r"[,，・、\s]+", author_part)[0].strip()
+    if "・" in author_part:
+        first_author = author_part.split("・")[0].strip()
+
+    # If Latin / English author or organization:
+    if re.match(r"^[A-Za-z]", first_author):
+        lead_key = first_author.upper()
+        return f"{lead_key}_{year}_{clean[:20]}"
+
+    # Longest prefix match in Japanese dictionary
+    for k in sorted(JAPANESE_NAME_ROMAJI.keys(), key=len, reverse=True):
+        if first_author.startswith(k):
+            return f"{JAPANESE_NAME_ROMAJI[k]}_{year}_{clean[:20]}"
+
+    # Fallback to single kanji initial table
+    if first_author and first_author[0] in KANJI_INITIAL_ROMAJI:
+        return f"{KANJI_INITIAL_ROMAJI[first_author[0]]}_{first_author}_{year}"
+
+    return f"ZZZ_{first_author}_{year}"
+
+
+def sort_jset_references(references: List[str]) -> List[str]:
+    """
+    Normalizes each reference and sorts the list alphabetically by the lead author's surname
+    according to JSET official guidelines (Rule 2.11.2):
+    - Japanese and foreign references in a single combined list (和文誌・英文誌で分けない)
+    - Sorted by author's surname alphabetical reading (A-Z)
+    - Foreign author surnames in ALL CAPS with 'and'
+    - Hanging indent 2 characters preserved in layout
+    """
+    cleaned_refs = []
+    seen = set()
+    for ref in references:
+        r = normalize_jset_reference(ref)
+        if r and r not in seen:
+            seen.add(r)
+            cleaned_refs.append(r)
+
+    return sorted(cleaned_refs, key=get_jset_author_sort_key)
+
+
 @dataclass
 class AcademicPaper:
     """Represents a full JSET-compliant academic paper."""
@@ -181,7 +575,16 @@ class AcademicPaperGenerator:
      - RQ1に関する考察では、先行研究を【2本以上】引用し、「本結果と同じところ（共通点）」と「本結果と違うところ（相違点）」を対比して教育学的考察を行うこと。
      - RQ2に関する考察では、別の先行研究を【2本以上】引用し、「本結果と同じところ（共通点）」と「本結果と違うところ（相違点）」を対比して教育学的考察を行うこと。
      - 節の末尾に必ず「今後の課題（研究の限界および今後の展望）」を明記すること。
-   - **references**: ★【必須】合計【8本以上】の実在する信頼できる学術文献リスト（背景で引用した4本以上 ＋ RQ1の考察で引用した2本以上 ＋ RQ2の考察で引用した2本以上）。著者の苗字アルファベット順。標準的な学術論文誌形式（著者名 (年) 題名. 雑誌名, <b>巻</b> (号) ：ページ番号.）。特定の学会名（「日本教育工学会」等）は含めないこと。
+   - **references**: ★【極めて重要：学会執筆規程に厳格準拠した並び順・書式】
+     合計【8本以上】の実在する信頼できる学術文献リスト（背景で引用した4本以上 ＋ RQ1の考察で引用した2本以上 ＋ RQ2の考察で引用した2本以上）。
+     1. 【並び順】本文中で引用した参考文献は，論文の最後に「著者の苗字のアルファベット順」で一括して記載すること（和文誌・英文誌で分けない）。
+        - 日本人著者：苗字のローマ字読みのアルファベット順（例: 堀田(Horita) → 黒上(Kurokami) → 文部科学省(Monbukagakusho) → 小柳(Oyanagi) → 清水(Shimizu)）。
+        - 外国人著者・国際機関：著者姓または機関名のアルファベット順（例: MULLIS → OECD → UNESCO → WING）。
+        - 和文・英文を分けず、すべて混合して著者の姓のアルファベット順（A〜Z）に厳格に並べること。
+        - 同一著者（機関）の文献が複数ある場合は、発表年の昇順（古い年→新しい年）で並べること。
+     2. 【著者名表記】外国人著者の苗字（姓）はすべて大文字（ALL CAPS、例: MULLIS, I. V. S.、WING, J. M.、GODA, Y.）とし、共著者間の接続は「and」を用いること（「&」は不可）。
+     3. 【雑誌・書誌書式】著者名 (西暦年) 題目. 雑誌名, <b>巻数</b> (号数) ：始め-終わりページ. （※巻数は太字<b> </b>、ページ範囲の前は全角コロン「：」とすること）。
+     4. ※特定の学会名（「日本教育工学会」等）は含めないこと。各文献の先頭に「[1]」「1.」「・」等の番号・記号は付けないこと。
    - **title_en**: 英語論文タイトル。
    - **authors_en**: 英語著者所属（例: Taro NIHON*1 and Jiro KYOUIKU*2 : Faculty of Education...）。
    - **summary_en**: 英文抄録（Summary）。和文抄録の正確な英語翻訳（100〜150語）。
@@ -221,6 +624,7 @@ class AcademicPaperGenerator:
         references = data.get("references", [])
         if isinstance(references, str):
             references = [r.strip() for r in references.split("\n") if r.strip()]
+        references = sort_jset_references(references)
 
         keywords_en = data.get("keywords_en", [])
         if isinstance(keywords_en, str):
@@ -295,6 +699,7 @@ class AcademicPaperGenerator:
         references = data.get("references", [])
         if isinstance(references, str):
             references = [r.strip() for r in references.split("\n") if r.strip()]
+        references = sort_jset_references(references)
 
         keywords_en = data.get("keywords_en", [])
         if isinstance(keywords_en, str):
@@ -437,7 +842,7 @@ class AcademicPaperGenerator:
                 "黒上晴夫, 小柳和喜雄 (2020) シンキングツールを活用した深い学びの授業改善. 教育工学研究報告集, <b>20</b> (2) ：31-38.",
                 "文部科学省 (2018) 小学校学習指導要領（平成29年告示）解説 算数編. 東洋館出版社, pp.1-240.",
                 "文部科学省・国立教育政策研究所 (2024) 令和6年度 全国学力・学習状況調査 報告書. 国立教育政策研究所.",
-                "Mullis, I. V. S., Martin, M. O., Foy, P., Kelly, D. L., & Fishbein, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
+                "MULLIS, I. V. S., MARTIN, M. O., FOY, P., KELLY, D. L. and FISHBEIN, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
                 "OECD (2023) PISA 2022 Results (Volume I): The State of Learning and Equity in Education. OECD Publishing, Paris. https://doi.org/10.1787/53f23881-en",
                 "小柳和喜雄 (2019) 算数・数学科における深い学びを実現する問題解決型授業の構成原理. 教育方法学研究, <b>45</b> ：45-56.",
                 "清水静栄 (2020) 算数・数学教育における「数学的な見方・考え方」の育成と授業改善. 日本数学教育学会誌, <b>102</b> (4) ：12-23.",
@@ -530,7 +935,7 @@ class AcademicPaperGenerator:
                 "中川一史, 村井万寿夫 (2018) 1人1台端末環境における情報活用能力育成の枠組みと実践的課題. 情報教育研究, <b>11</b> (1) ：15-24.",
                 "佐藤和紀, 堀田龍也 (2022) クラウドを活用した個別最適な学びと協働的な学びの一体的充実に関する実証的研究. 教育メディア研究, <b>29</b> (1) ：1-14.",
                 "UNESCO (2024) Global Education Monitoring Report 2023: Technology in Education - A Tool on Whose Terms? UNESCO Publishing, Paris.",
-                "Wing, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35. https://doi.org/10.1145/1118178.1118215",
+                "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35. https://doi.org/10.1145/1118178.1118215",
             ]
             title_en = f"Quantitative Empirical Analysis of {dataset.title} in School Informatics and Programming Education"
             authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
@@ -542,6 +947,8 @@ class AcademicPaperGenerator:
                 f"Based on these results, we discuss pedagogical strategies for lesson improvement and teacher professional development."
             )
             keywords_en = ["INFORMATICS EDUCATION", "PROGRAMMING EDUCATION", "ICT ENVIRONMENT", "GIGA SCHOOL INITIATIVE", "EDUCATIONAL TECHNOLOGY"]
+
+        references = sort_jset_references(references)
 
         return AcademicPaper(
             title=title,
