@@ -42,6 +42,8 @@ def test_peer_review_generator_math_dataset():
     assert len(review.minor_revisions) >= 2
     assert len(review.questions_to_authors) >= 2
     assert len(review.ai_disclosure_evaluation) > 30
+    assert len(review.ai_review_disclosure) > 30
+    assert "生成AI" in review.ai_review_disclosure
 
     # Ensure critical methodological critiques are included
     full_text = review.overall_critique + "".join(review.major_revisions)
@@ -129,7 +131,7 @@ def test_report_builder_and_markdown_publisher_with_peer_review(tmp_path):
 
     assert "査読報告書PDF" in report.markdown_content
     assert "https://github.com/example/review.pdf" in report.markdown_content
-    assert "査読報告書（PDF）を閲覧" in report.html_content
+    assert "査読報告書（生成AI模擬査読・PDF）を閲覧" in report.html_content
 
     # Test publisher copies the review PDF into reports_dir/pdf/
     reports_dir = tmp_path / "reports"

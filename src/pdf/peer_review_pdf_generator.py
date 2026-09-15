@@ -62,7 +62,7 @@ class PeerReviewNumberedCanvas(canvas.Canvas):
         if p >= 2:
             self.setFont(self.mincho_font, 8.0)
             self.setFillColor(colors.HexColor("#64748b"))
-            self.drawString(MARGIN_X, PAGE_HEIGHT - MARGIN_Y + 12, "学術論文誌 査読結果通知書・査読報告書 (Peer Review Report)")
+            self.drawString(MARGIN_X, PAGE_HEIGHT - MARGIN_Y + 12, "学術論文誌 査読結果通知書・査読報告書 (生成AI模擬査読シミュレータ)")
             self.drawRightString(PAGE_WIDTH - MARGIN_X, PAGE_HEIGHT - MARGIN_Y + 12, f"審査書類 [Confidential]")
             self.setStrokeColor(colors.HexColor("#cbd5e1"))
             self.setLineWidth(0.5)
@@ -71,7 +71,7 @@ class PeerReviewNumberedCanvas(canvas.Canvas):
         # Running Footer (All pages)
         self.setFont(self.mincho_font, 8.0)
         self.setFillColor(colors.HexColor("#64748b"))
-        self.drawString(MARGIN_X, MARGIN_Y - 14, "※本通知書は学術審査に係る機密文書です．審査目的以外の無断転載・複製を禁じます．")
+        self.drawString(MARGIN_X, MARGIN_Y - 14, "※本査読書は学生への教育支援目的で生成AIにより自動作成された模擬査読です．無断転載を禁じます．")
         self.drawRightString(PAGE_WIDTH - MARGIN_X, MARGIN_Y - 14, f"第 {p} 頁 / 全 {total_pages} 頁")
         self.setStrokeColor(colors.HexColor("#cbd5e1"))
         self.setLineWidth(0.5)
@@ -190,6 +190,21 @@ class PeerReviewPdfGenerator:
             spaceAfter=6,
         )
 
+        styles["AIDisclosureBox"] = ParagraphStyle(
+            "AIDisclosureBox",
+            parent=sheet["Normal"],
+            fontName=self.mincho_font,
+            fontSize=8.2,
+            leading=12.2,
+            textColor=colors.HexColor("#1e293b"),
+            backColor=colors.HexColor("#f0fdf4"),  # soft mint/green background
+            borderColor=colors.HexColor("#86efac"),  # green border
+            borderWidth=0.6,
+            borderPadding=6,
+            spaceBefore=3,
+            spaceAfter=6,
+        )
+
         styles["MajorRevisionItem"] = ParagraphStyle(
             "MajorRevisionItem",
             parent=sheet["Normal"],
@@ -281,7 +296,7 @@ class PeerReviewPdfGenerator:
         # 1. Header Organization Line
         header_table_data = [
             [
-                Paragraph("学術論文誌 編集委員会 査読部会", self.styles["HeaderOrg"]),
+                Paragraph("学術論文誌 編集委員会 査読部会（生成AI模擬査読）", self.styles["HeaderOrg"]),
                 Paragraph(f"審査実施日: {review.review_date}", ParagraphStyle("HDate", parent=self.styles["HeaderOrg"], alignment=2)),
             ]
         ]
@@ -313,6 +328,10 @@ class PeerReviewPdfGenerator:
                 Paragraph("査読判定結果", self.styles["MetaLabel"]),
                 Paragraph(f"<b>【 {review.decision} 】</b>", self.styles["DecisionBadge"]),
             ],
+            [
+                Paragraph("査読実施方式", self.styles["MetaLabel"]),
+                Paragraph("<b>生成AI（LLM / 模擬査読シミュレータ）による自動審査（学生教育・推敲支援）</b>", self.styles["MetaValue"]),
+            ],
         ]
         t_meta = Table(meta_table_data, colWidths=[85, CONTENT_W - 85])
         t_meta.setStyle(TableStyle([
@@ -320,14 +339,14 @@ class PeerReviewPdfGenerator:
             ("BACKGROUND", (1, 2), (1, 2), colors.HexColor("#fef2f2")),  # soft red background for decision
             ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#94a3b8")),
             ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
             ("LEFTPADDING", (0, 0), (-1, -1), 6),
             ("RIGHTPADDING", (0, 0), (-1, -1), 6),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]))
         story.append(t_meta)
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 6))
 
         # 4. Evaluation Criteria Matrix Table (5大審査基準)
         story.append(Paragraph("1．審査評価マトリクス (Evaluation Matrix)", self.styles["SectionHeading"]))
@@ -365,19 +384,19 @@ class PeerReviewPdfGenerator:
             ("LINEBELOW", (0, 0), (-1, 0), 0.8, colors.HexColor("#0f172a")),
             ("LINEBELOW", (0, -1), (-1, -1), 1.0, colors.HexColor("#0f172a")),
             ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#cbd5e1")),
-            ("TOPPADDING", (0, 0), (-1, -1), 3.5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5),
+            ("TOPPADDING", (0, 0), (-1, -1), 3.0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3.0),
             ("LEFTPADDING", (0, 0), (-1, -1), 4.5),
             ("RIGHTPADDING", (0, 0), (-1, -1), 4.5),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ]))
         story.append(t_eval)
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 6))
 
         # 5. Overall Critique (総合講評)
         story.append(Paragraph("2．総合講評 (Overall Critique)", self.styles["SectionHeading"]))
         story.append(Paragraph(review.overall_critique, self.styles["CritiqueBox"]))
-        story.append(Spacer(1, 6))
+        story.append(Spacer(1, 4))
 
         # 6. Major Revisions (主要修正要求事項 - 必須項目)
         story.append(Paragraph("3．主要修正要求事項（Major Revisions：採録に向けた必須対応事項）", self.styles["SectionHeading"]))
@@ -388,8 +407,8 @@ class PeerReviewPdfGenerator:
         ))
         for i, item in enumerate(review.major_revisions, 1):
             item_text = f"<b>[要求 {i}]</b> {item.strip()}"
-            story.append(Paragraph(item_text, self.styles["MajorRevisionItem"]))
-        story.append(Spacer(1, 6))
+            story.append(KeepTogether(Paragraph(item_text, self.styles["MajorRevisionItem"])))
+        story.append(Spacer(1, 5))
 
         # 7. Minor Revisions (軽微な修正事項)
         story.append(Paragraph("4．軽微な修正事項（Minor Revisions：表現・体裁等の改善点）", self.styles["SectionHeading"]))
@@ -406,9 +425,18 @@ class PeerReviewPdfGenerator:
         # 9. AI Disclosure Review (生成AI利用開示に対する評価)
         story.append(Paragraph("6．研究倫理および生成AI利用開示に関する審査所見", self.styles["SectionHeading"]))
         story.append(Paragraph(review.ai_disclosure_evaluation, self.styles["CritiqueBox"]))
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 6))
 
-        # 10. Reviewer Footnote Block
+        # 10. AI Review Report Generation Disclosure (本査読書自体の生成AI利用に関する開示)
+        story.append(Paragraph("7．本査読報告書の作成に関する開示（生成AIによる査読シミュレーション）", self.styles["SectionHeading"]))
+        disclosure_text = (
+            f"<b>【付記：査読レポートの自動生成に関する透明性開示】</b><br/>"
+            f"{review.ai_review_disclosure}"
+        )
+        story.append(Paragraph(disclosure_text, self.styles["AIDisclosureBox"]))
+        story.append(Spacer(1, 8))
+
+        # 11. Reviewer Footnote Block
         footer_block = [
             HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#94a3b8"), spaceAfter=6),
             Paragraph(

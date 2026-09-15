@@ -21,6 +21,14 @@ from src.fetchers.base import EducationDataset
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_AI_REVIEW_DISCLOSURE = (
+    "本査読報告書は，学術論文執筆を学ぶ学生や若手研究者への教育支援（批判的推敲プロセスの模擬体験）を目的として，"
+    "大規模言語モデル・生成AI（Generative AI / Gemini）を活用して自動生成された模擬査読レポートです．"
+    "教育統計学・教育工学の厳格な学術基準（マクロ集計データの制約，生態学的誤謬の回避，交絡因子の統制，論理的整合性等）"
+    "に準拠した指摘を行っていますが，実際の論文修正や教育現場への適用にあたっては，指導教員等の専門的助言とともに批判的に吟味してください．"
+)
+
+
 @dataclass
 class PeerReviewReport:
     """Represents a rigorous academic peer review report."""
@@ -34,6 +42,7 @@ class PeerReviewReport:
     questions_to_authors: List[str]              # 著者への試問・確認事項
     ai_disclosure_evaluation: str                # 生成AI利用開示に関する評価
     review_date: str = field(default_factory=lambda: datetime.now().strftime("%Y年%m月%d日"))
+    ai_review_disclosure: str = DEFAULT_AI_REVIEW_DISCLOSURE
 
 
 class PeerReviewGenerator:
@@ -181,6 +190,7 @@ class PeerReviewGenerator:
             minor_revisions=data.get("minor_revisions", []),
             questions_to_authors=data.get("questions_to_authors", []),
             ai_disclosure_evaluation=data.get("ai_disclosure_evaluation", ""),
+            ai_review_disclosure=data.get("ai_review_disclosure", DEFAULT_AI_REVIEW_DISCLOSURE),
         )
 
     def _generate_template_fallback(
@@ -296,4 +306,5 @@ class PeerReviewGenerator:
             minor_revisions=minor_revisions,
             questions_to_authors=questions_to_authors,
             ai_disclosure_evaluation=ai_disclosure_evaluation,
+            ai_review_disclosure=DEFAULT_AI_REVIEW_DISCLOSURE,
         )

@@ -8,8 +8,8 @@
 > 本分析の背景・目的（RQ）・調査手法・統計解析結果（表/図）・教育的考察・引用参考文献を網羅した学術論文PDF（JIS B5判・2段組）をGitHub上で閲覧・ダウンロードできます。
 > [👉 学術論文PDFを閲覧・ダウンロード（GitHub）](https://github.com/k518-2026/EduDataToBlogActions/blob/main/reports/pdf/2026-09-15_japan_national_assessment_math_paper.pdf)
 
-> 📋 **査読報告書PDF（学術査読結果通知書）も同時公開中**:
-> 学会誌査読委員の視点から，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています。
+> 📋 **査読報告書PDF（生成AIによる模擬査読結果通知書）も同時公開中**:
+> 学会誌査読委員の視点を模した生成AI（Generative AI）により，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています（学生教育・推敲支援目的）。
 > [👉 査読報告書PDFを閲覧・ダウンロード（GitHub）](https://github.com/k518-2026/EduDataToBlogActions/blob/main/reports/pdf/2026-09-15_japan_national_assessment_math_review.pdf)
 
 ---

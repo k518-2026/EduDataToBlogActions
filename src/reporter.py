@@ -527,13 +527,13 @@ plt.show()
 
         if peer_review_pdf_url:
             review_badge_md = f"""
-> 📋 **査読報告書PDF（学術査読結果通知書）も同時公開中**:
-> 学会誌査読委員の視点から，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています。
+> 📋 **査読報告書PDF（生成AIによる模擬査読結果通知書）も同時公開中**:
+> 学会誌査読委員の視点を模した生成AI（Generative AI）により，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています（学生教育・推敲支援目的）。
 > [👉 査読報告書PDFを閲覧・ダウンロード（GitHub）]({peer_review_pdf_url})
 """
             review_btn_html = f"""
                 <a href="{peer_review_pdf_url}" target="_blank" rel="noopener noreferrer" style="background-color:#475569; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); margin-top:8px;">
-                  📋 査読報告書（PDF）を閲覧
+                  📋 査読報告書（生成AI模擬査読・PDF）を閲覧
                 </a>
 """
 
@@ -551,9 +551,9 @@ plt.show()
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
               <div style="max-width:540px;">
                 <div style="font-size:11px; font-weight:bold; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Academic Paper &amp; Peer Review Report (PDF)</div>
-                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート ＆ 📋 学術査読報告書</h4>
+                <h4 style="margin:2px 0 6px 0; color:#0f172a; font-size:16px; font-weight:bold;">📄 学術論文形式の完全版レポート ＆ 📋 学術査読報告書（生成AIシミュレーション）</h4>
                 <p style="margin:0; font-size:13px; line-height:1.5; color:#334155;">
-                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）と、厳格な査読委員視点による査読結果通知書（A4判）をGitHub上で公開しています。
+                  研究背景、目的（RQ）、調査方法、詳細な統計解析（表・図）、教育学的考察、および引用参考文献を体系的にまとめた本格的な学術論文PDF（JIS B5判・2段組）と、厳格な査読委員視点を模した生成AIによる模擬査読結果通知書（A4判）をGitHub上で公開しています。
                 </p>
               </div>
               <div style="text-align:right;">
