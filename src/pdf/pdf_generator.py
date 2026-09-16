@@ -463,12 +463,23 @@ class EduPaperPdfGenerator:
                 Paragraph("CAGR", self.styles["TableHeader"]),
                 Paragraph("傾き", self.styles["TableHeader"]),
                 Paragraph("<i>R</i><sup>2</sup>", self.styles["TableHeader"]),
+                Paragraph("<i>BF</i><sub>10</sub>", self.styles["TableHeader"]),
             ]
             data = [headers]
             for tr in analysis.trends[:6]:
                 metric_name = str(tr.group_name or tr.metric)
-                disp_name = metric_name[:8] + "…" if len(metric_name) > 9 else metric_name
+                disp_name = metric_name[:7] + "…" if len(metric_name) > 8 else metric_name
                 cagr_text = f"{tr.cagr:.1f}%" if tr.cagr is not None else "-"
+                if getattr(tr, "bf10", None) is not None:
+                    if tr.bf10 >= 1000:
+                        bf_text = ">1000"
+                    elif tr.bf10 >= 100:
+                        bf_text = f"{tr.bf10:.0f}"
+                    else:
+                        bf_text = f"{tr.bf10:.1f}"
+                else:
+                    bf_text = "-"
+
                 row = [
                     Paragraph(disp_name, self.styles["TableCellLeft"]),
                     Paragraph(f"{tr.start_val:.1f}", self.styles["TableCell"]),
@@ -477,12 +488,13 @@ class EduPaperPdfGenerator:
                     Paragraph(cagr_text, self.styles["TableCell"]),
                     Paragraph(f"{tr.slope:.2f}", self.styles["TableCell"]),
                     Paragraph(f"{tr.r_squared:.2f}", self.styles["TableCell"]),
+                    Paragraph(bf_text, self.styles["TableCell"]),
                 ]
                 data.append(row)
 
-            col_widths = [54, 25, 25, 25, 25, 25, 25]  # Sum = 204 pt
-            caption = "表２　時系列トレンド分析および回帰分析結果一覧"
-            note = "注）CAGRは年平均成長率，傾きは単回帰直線の勾配，R²は決定係数．"
+            col_widths = [44, 23, 23, 23, 23, 22, 23, 23]  # Sum = 204 pt
+            caption = "表２　時系列トレンド分析および回帰・ベイズ分析結果一覧"
+            note = "注）CAGRは年平均成長率，傾きは単回帰直線の勾配，R²は決定係数，BF₁₀はJZSベイズファクター（>3でH1支持，<0.33でH0支持）．"
 
         elif analysis.correlations and len(analysis.correlations) > 0:
             headers = [
@@ -490,25 +502,37 @@ class EduPaperPdfGenerator:
                 Paragraph("指標Y", self.styles["TableHeader"]),
                 Paragraph("相関<i>r</i>", self.styles["TableHeader"]),
                 Paragraph("<i>p</i>値", self.styles["TableHeader"]),
+                Paragraph("<i>BF</i><sub>10</sub>", self.styles["TableHeader"]),
                 Paragraph("判定", self.styles["TableHeader"]),
             ]
             data = [headers]
             for cr in analysis.correlations[:5]:
-                x_name = str(cr.metric_x)[:7] + "…" if len(str(cr.metric_x)) > 8 else str(cr.metric_x)
-                y_name = str(cr.metric_y)[:7] + "…" if len(str(cr.metric_y)) > 8 else str(cr.metric_y)
+                x_name = str(cr.metric_x)[:6] + "…" if len(str(cr.metric_x)) > 7 else str(cr.metric_x)
+                y_name = str(cr.metric_y)[:6] + "…" if len(str(cr.metric_y)) > 7 else str(cr.metric_y)
                 p_text = "<.001" if cr.p_value < 0.001 else f"{cr.p_value:.3f}"
+                if getattr(cr, "bf10", None) is not None:
+                    if cr.bf10 >= 1000:
+                        bf_text = ">1000"
+                    elif cr.bf10 >= 100:
+                        bf_text = f"{cr.bf10:.0f}"
+                    else:
+                        bf_text = f"{cr.bf10:.1f}"
+                else:
+                    bf_text = "-"
+
                 row = [
                     Paragraph(x_name, self.styles["TableCellLeft"]),
                     Paragraph(y_name, self.styles["TableCellLeft"]),
                     Paragraph(f"{cr.pearson_r:.2f}", self.styles["TableCell"]),
                     Paragraph(p_text, self.styles["TableCell"]),
-                    Paragraph(cr.interpretation[:6], self.styles["TableCell"]),
+                    Paragraph(bf_text, self.styles["TableCell"]),
+                    Paragraph(cr.interpretation[:5], self.styles["TableCell"]),
                 ]
                 data.append(row)
 
-            col_widths = [54, 54, 32, 32, 32]  # Sum = 204 pt
-            caption = "表２　主要指標間におけるピアソン相関係数と有意確率一覧"
-            note = "注）rはピアソン積率相関係数，p値は両側検定有意確率．"
+            col_widths = [48, 48, 27, 27, 27, 27]  # Sum = 204 pt
+            caption = "表２　主要指標間における相関・有意確率・ベイズファクター一覧"
+            note = "注）rはピアソン積率相関係数，p値は両側検定有意確率，BF₁₀はJZSベイズファクター（対立仮説H1の支持度）．"
 
         else:
             headers = [

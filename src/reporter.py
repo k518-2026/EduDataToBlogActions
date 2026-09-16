@@ -119,8 +119,43 @@ plt.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white
 import pandas as pd
 import numpy as np
 from scipy import stats
+from scipy.integrate import quad
+from scipy.special import gamma
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+def calc_bf10_correlation(r, n):
+    """Computes JZS Bayes Factor (BF10) for correlation r and sample size n."""
+    if n <= 2 or not np.isfinite(r):
+        return 1.0, "証拠不十分（N数不足）"
+    abs_r = abs(r)
+    if abs_r >= 0.99999:
+        return 99999.0, "極めて強い証拠（H1支持）"
+    effective_r = max(abs_r, 1e-6)
+    try:
+        def integrand(g):
+            return np.exp(
+                ((n - 2) / 2) * np.log(1 + g)
+                + (-(n - 1) / 2) * np.log(1 + (1 - effective_r**2) * g)
+                + (-1.5) * np.log(g)
+                + (-n / (2 * g))
+            )
+        val, _ = quad(integrand, 0, np.inf)
+        bf10 = float(np.sqrt(n / 2.0) / gamma(0.5) * val)
+    except Exception:
+        bf10 = 1.0
+    if not np.isfinite(bf10) or bf10 < 0:
+        bf10 = 1.0
+    if bf10 >= 100: interp = "極めて強い証拠（H1支持）"
+    elif bf10 >= 30: interp = "非常に強い証拠（H1支持）"
+    elif bf10 >= 10: interp = "強い証拠（H1支持）"
+    elif bf10 >= 3: interp = "中程度の証拠（H1支持）"
+    elif bf10 >= 1: interp = "弱い証拠（H1支持: 逸話的）"
+    elif bf10 >= 1/3: interp = "弱い証拠（H0支持: 逸話的）"
+    elif bf10 >= 1/10: interp = "中程度の証拠（H0支持）"
+    elif bf10 >= 1/30: interp = "強い証拠（H0支持）"
+    else: interp = "極めて強い証拠（H0支持）"
+    return round(bf10, 2), interp
 
 # ==============================================================================
 # 1. オープンデータの読み込み・データフレーム構築
@@ -153,12 +188,12 @@ for m in metrics:
         print(f"  四分位範囲 (IQR): {{iqr:.2f}}")
 
 # ==============================================================================
-# 3. 経年変化トレンド・線形回帰分析 (決定係数 R²)
+# 3. 経年変化トレンド・線形回帰分析 & ベイズファクター (BF₁₀)
 # ==============================================================================
 time_col = "{dataset.time_col or ''}"
 if time_col and time_col in df.columns:
     print("\\n==================================================")
-    print("📈 経年トレンド線形回帰分析")
+    print("📈 経年トレンド線形回帰・ベイズファクター分析")
     print("==================================================")
     df_sorted = df.sort_values(by=time_col)
     for m in metrics:
@@ -169,6 +204,7 @@ if time_col and time_col in df.columns:
                 y_vals = sub[m]
                 res = stats.linregress(x_vals, y_vals)
                 r_sq = res.rvalue ** 2
+                bf, bf_interp = calc_bf10_correlation(res.rvalue, len(x_vals))
                 start_v, end_v = y_vals.iloc[0], y_vals.iloc[-1]
                 diff = end_v - start_v
                 pct = (diff / start_v * 100) if start_v != 0 else 0
@@ -176,13 +212,14 @@ if time_col and time_col in df.columns:
                 print(f"  開始年 ({{x_vals.iloc[0]}}) -> 最新年 ({{x_vals.iloc[-1]}}): {{start_v:.2f}} -> {{end_v:.2f}}")
                 print(f"  変化量: {{diff:+.2f}} {dataset.unit} (変化率: {{pct:+.1f}}%)")
                 print(f"  回帰の傾き: {{res.slope:.3f}} / 決定係数 (R²): {{r_sq:.3f}} / p値: {{res.pvalue:.4f}}")
+                print(f"  ベイズファクター (BF₁₀): {{bf}} [{{bf_interp}}]")
 
 # ==============================================================================
-# 4. 相関分析 (ピアソン相関係数 r)
+# 4. 相関分析 (ピアソン相関係数 r & ベイズファクター BF₁₀)
 # ==============================================================================
 if len(metrics) >= 2:
     print("\\n==================================================")
-    print("🔍 指標間の相関分析")
+    print("🔍 指標間の相関分析・ベイズファクター")
     print("==================================================")
     for i in range(len(metrics)):
         for j in range(i + 1, len(metrics)):
@@ -191,7 +228,8 @@ if len(metrics) >= 2:
                 sub = df[[col_x, col_y]].dropna()
                 if len(sub) >= 3:
                     r, p = stats.pearsonr(sub[col_x], sub[col_y])
-                    print(f"{{col_x}} × {{col_y}}: 相関係数 r = {{r:.3f}}, p値 = {{p:.4f}}")
+                    bf, bf_interp = calc_bf10_correlation(r, len(sub))
+                    print(f"{{col_x}} × {{col_y}}: 相関係数 r = {{r:.3f}}, p値 = {{p:.4f}}, BF₁₀ = {{bf}} [{{bf_interp}}]")
 
 # ==============================================================================
 # 5. データの可視化・グラフ生成
@@ -327,17 +365,18 @@ plt.show()
 
         unit_str = f" ({dataset.unit})" if dataset.unit else ""
         md_rows = [
-            f"| 指標 / グループ | 調査開始 | 初期値{unit_str} | 最新調査 | 最新値{unit_str} | 増減量{unit_str} | 変化率 | 年平均成長率 (CAGR) | 決定係数 (R²) |",
-            "| :--- | :---: | ---: | :---: | ---: | ---: | ---: | ---: | ---: |",
+            f"| 指標 / グループ | 調査開始 | 初期値{unit_str} | 最新調査 | 最新値{unit_str} | 増減量{unit_str} | 変化率 | 年平均成長率 (CAGR) | 決定係数 (R²) | ベイズファクター (BF₁₀) |",
+            "| :--- | :---: | ---: | :---: | ---: | ---: | ---: | ---: | ---: | :--- |",
         ]
         html_rows = []
         for i, tr in enumerate(analysis.trends):
             grp_str = f"[{tr.group_name}] " if tr.group_name else ""
             cagr_val_str = f"{tr.cagr:+.2f}%" if tr.cagr is not None else "-"
+            bf_val_str = f"{tr.bf10:.2f} ({tr.bf_interpretation})" if tr.bf10 is not None else "-"
             md_rows.append(
                 f"| {grp_str}{tr.metric} | {tr.start_time} | {tr.start_val:.2f} | "
                 f"{tr.end_time} | {tr.end_val:.2f} | {tr.diff:+.2f} | {tr.pct_change:+.1f}% | "
-                f"{cagr_val_str} | {tr.r_squared:.3f} |"
+                f"{cagr_val_str} | {tr.r_squared:.3f} | {bf_val_str} |"
             )
 
             # Diff badge
@@ -357,6 +396,18 @@ plt.show()
             else:
                 r2_badge = f'<span style="color:#64748b; font-size:12px;">{tr.r_squared:.3f}</span>'
 
+            # BF10 badge
+            if tr.bf10 is not None:
+                if tr.bf10 >= 3.0:
+                    bf_pill = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:11.5px;">{tr.bf10:.2f}</span>'
+                elif tr.bf10 <= 1.0 / 3.0:
+                    bf_pill = f'<span style="background-color:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:11.5px;">{tr.bf10:.2f}</span>'
+                else:
+                    bf_pill = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:8px; font-size:11.5px;">{tr.bf10:.2f}</span>'
+                bf_html = f'{bf_pill} <span style="color:#64748b; font-size:11.5px;">{tr.bf_interpretation}</span>'
+            else:
+                bf_html = '<span style="color:#94a3b8;">-</span>'
+
             bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
             html_rows.append(
                 f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
@@ -369,6 +420,7 @@ plt.show()
                   <td style="padding:10px 14px; text-align:right; font-family:Consolas, monospace;">{pct_pill}</td>
                   <td style="padding:10px 14px; text-align:right; color:#475569; font-family:Consolas, monospace;">{cagr_val_str}</td>
                   <td style="padding:10px 14px; text-align:right; font-family:Consolas, monospace;">{r2_badge}</td>
+                  <td style="padding:10px 14px; text-align:left;">{bf_html}</td>
                 </tr>"""
             )
 
@@ -396,6 +448,7 @@ plt.show()
                   <th style="padding:10px 14px; text-align:right;">変化率</th>
                   <th style="padding:10px 14px; text-align:right;">CAGR</th>
                   <th style="padding:10px 14px; text-align:right;">決定係数 (R²)</th>
+                  <th style="padding:10px 14px; text-align:left;">ベイズファクター (BF₁₀)</th>
                 </tr>
               </thead>
               <tbody>
@@ -415,13 +468,15 @@ plt.show()
             return "", ""
 
         md_rows = [
-            "| 分析指標ペア (X × Y) | 相関係数 (r) | 有意確率 (p値) | 相関の強さ・判定 |",
-            "| :--- | :---: | :---: | :--- |",
+            "| 分析指標ペア (X × Y) | 相関係数 (r) | 有意確率 (p値) | ベイズファクター (BF₁₀) | 相関の強さ・判定 |",
+            "| :--- | :---: | :---: | :---: | :--- |",
         ]
         html_rows = []
         for i, cr in enumerate(analysis.correlations):
+            bf_val_str = f"{cr.bf10:.2f}" if getattr(cr, "bf10", None) is not None else "-"
+            bf_interp_str = f" [{cr.bf_interpretation}]" if getattr(cr, "bf_interpretation", None) else ""
             md_rows.append(
-                f"| **{cr.metric_x}** × **{cr.metric_y}** | {cr.pearson_r:+.3f} | {cr.p_value:.4f} | {cr.interpretation} |"
+                f"| **{cr.metric_x}** × **{cr.metric_y}** | {cr.pearson_r:+.3f} | {cr.p_value:.4f} | {bf_val_str} | {cr.interpretation}{bf_interp_str} |"
             )
 
             # Correlation badge
@@ -432,13 +487,26 @@ plt.show()
             else:
                 r_badge = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.pearson_r:+.3f}</span>'
 
+            # BF10 badge
+            if getattr(cr, "bf10", None) is not None:
+                if cr.bf10 >= 3.0:
+                    bf_badge = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.bf10:.2f}</span>'
+                elif cr.bf10 <= 1.0 / 3.0:
+                    bf_badge = f'<span style="background-color:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.bf10:.2f}</span>'
+                else:
+                    bf_badge = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:10px;">{cr.bf10:.2f}</span>'
+            else:
+                bf_badge = '<span style="color:#94a3b8;">-</span>'
+
             bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+            bf_detail = f'<br><span style="color:#64748b; font-size:11px;">{cr.bf_interpretation}</span>' if getattr(cr, "bf_interpretation", None) else ""
             html_rows.append(
                 f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
                   <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{cr.metric_x} <span style="color:#94a3b8; font-weight:normal;">×</span> {cr.metric_y}</td>
                   <td style="padding:10px 14px; text-align:center; font-family:Consolas, monospace;">{r_badge}</td>
                   <td style="padding:10px 14px; text-align:center; color:#64748b; font-family:Consolas, monospace;">{cr.p_value:.4f}</td>
-                  <td style="padding:10px 14px; color:#334155;"><span style="background-color:#f1f5f9; padding:2px 8px; border-radius:6px; font-size:12px;">{cr.interpretation}</span></td>
+                  <td style="padding:10px 14px; text-align:center; font-family:Consolas, monospace;">{bf_badge}</td>
+                  <td style="padding:10px 14px; color:#334155;"><span style="background-color:#f1f5f9; padding:2px 8px; border-radius:6px; font-size:12px;">{cr.interpretation}</span>{bf_detail}</td>
                 </tr>"""
             )
 
@@ -447,7 +515,7 @@ plt.show()
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
           <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px;">
             <div style="font-weight:bold; color:#1e293b; font-size:14px; display:inline-flex; align-items:center; gap:6px;">
-              🔍 指標間の相関分析（ピアソン積率相関係数）
+              🔍 指標間の相関分析（ピアソン積率相関係数 & ベイズファクター）
             </div>
           </div>
           <div style="overflow-x:auto;">
@@ -457,6 +525,7 @@ plt.show()
                   <th style="padding:10px 14px; text-align:left;">分析指標ペア (X × Y)</th>
                   <th style="padding:10px 14px; text-align:center;">相関係数 (r)</th>
                   <th style="padding:10px 14px; text-align:center;">有意確率 (p値)</th>
+                  <th style="padding:10px 14px; text-align:center;">ベイズファクター (BF₁₀)</th>
                   <th style="padding:10px 14px; text-align:left;">判定・解釈</th>
                 </tr>
               </thead>

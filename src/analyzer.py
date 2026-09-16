@@ -44,6 +44,8 @@ class TrendResult:
     cagr: Optional[float]
     slope: float
     r_squared: float
+    bf10: Optional[float] = None
+    bf_interpretation: Optional[str] = None
 
 
 @dataclass
@@ -53,6 +55,65 @@ class CorrelationResult:
     pearson_r: float
     p_value: float
     interpretation: str
+    bf10: float = 1.0
+    bf_interpretation: str = ""
+
+
+def compute_bayes_factor_correlation(r: float, n: int) -> Tuple[float, str]:
+    """
+    Computes JZS Bayes Factor (BF10) for Pearson correlation coefficient r and sample size n
+    using Wetzels & Wagenmakers (2012) / Ly et al. (2016) integral formulation.
+    Returns (bf10, interpretation).
+    """
+    if n <= 2 or not np.isfinite(r):
+        return 1.0, "証拠不十分（N数不足）"
+
+    abs_r = abs(r)
+    if abs_r >= 0.99999:
+        return 99999.0, "極めて強い証拠（H1支持）"
+
+    # Clamp extremely small r to avoid log underflow
+    effective_r = max(abs_r, 1e-6)
+
+    try:
+        from scipy.integrate import quad
+        def integrand(g):
+            return np.exp(
+                ((n - 2) / 2) * np.log(1 + g)
+                + (-(n - 1) / 2) * np.log(1 + (1 - effective_r**2) * g)
+                + (-1.5) * np.log(g)
+                + (-n / (2 * g))
+            )
+        val, _ = quad(integrand, 0, np.inf)
+        from scipy.special import gamma
+        bf10 = float(np.sqrt(n / 2.0) / gamma(0.5) * val)
+    except Exception:
+        bf10 = 1.0
+
+    if not np.isfinite(bf10) or bf10 < 0:
+        bf10 = 1.0
+
+    # Interpret BF10 following Jeffreys (1961) / Lee & Wagenmakers (2013) classification
+    if bf10 >= 100.0:
+        interp = "極めて強い証拠（H1支持）"
+    elif bf10 >= 30.0:
+        interp = "非常に強い証拠（H1支持）"
+    elif bf10 >= 10.0:
+        interp = "強い証拠（H1支持）"
+    elif bf10 >= 3.0:
+        interp = "中程度の証拠（H1支持）"
+    elif bf10 >= 1.0:
+        interp = "弱い証拠（H1支持: 逸話的）"
+    elif bf10 >= 1.0 / 3.0:
+        interp = "弱い証拠（H0支持: 逸話的）"
+    elif bf10 >= 1.0 / 10.0:
+        interp = "中程度の証拠（H0支持）"
+    elif bf10 >= 1.0 / 30.0:
+        interp = "強い証拠（H0支持）"
+    else:
+        interp = "極めて強い証拠（H0支持）"
+
+    return round(bf10, 2), interp
 
 
 @dataclass
@@ -141,6 +202,7 @@ class EduDataAnalyzer:
                     if len(sub) >= 4:
                         r, p_val = stats.pearsonr(sub[col_x], sub[col_y])
                         interp = self._interpret_correlation(r)
+                        bf10, bf_interp = compute_bayes_factor_correlation(float(r), len(sub))
                         correlations.append(
                             CorrelationResult(
                                 metric_x=col_x,
@@ -148,6 +210,8 @@ class EduDataAnalyzer:
                                 pearson_r=round(float(r), 3),
                                 p_value=round(float(p_val), 4),
                                 interpretation=interp,
+                                bf10=bf10,
+                                bf_interpretation=bf_interp,
                             )
                         )
 
@@ -207,6 +271,7 @@ class EduDataAnalyzer:
         # Linear regression
         slope, intercept, r_value, p_value, std_err = stats.linregress(x_vals, y_vals)
         r_squared = round(float(r_value**2), 3)
+        bf10, bf_interp = compute_bayes_factor_correlation(float(r_value), len(x_vals))
 
         # CAGR calculation
         cagr = None
@@ -227,6 +292,8 @@ class EduDataAnalyzer:
             cagr=cagr,
             slope=round(float(slope), 3),
             r_squared=r_squared,
+            bf10=bf10,
+            bf_interpretation=bf_interp,
         )
 
     def _interpret_correlation(self, r: float) -> str:
@@ -265,11 +332,12 @@ class EduDataAnalyzer:
             elif abs(tr.diff) < 1.0 or abs(tr.pct_change) < 2.0:
                 tag = "⚠️ 伸び悩み・停滞"
 
+            bf_info = f", ベイズファクター BF₁₀ = {tr.bf10} [{tr.bf_interpretation}]" if tr.bf10 is not None else ""
             insights.append(
                 f"{tag}: {prefix}「{tr.metric}」は{tr.start_time}年の {tr.start_val}{m_unit} から "
                 f"{tr.end_time}年には {tr.end_val}{m_unit} へと "
                 f"{tr.diff:+.1f}{m_unit}（{tr.pct_change:+.1f}%）{growth_desc}しました{cagr_str}。"
-                f"（線形トレンド決定係数 R² = {tr.r_squared}）"
+                f"（線形トレンド決定係数 R² = {tr.r_squared}{bf_info}）"
             )
 
         # Divergence between multiple trends
@@ -302,9 +370,10 @@ class EduDataAnalyzer:
                 corr_tag = "⚡ 意外な非連動（独立性）"
             elif cr.pearson_r < -0.4:
                 corr_tag = "⚡ 逆転の相関（トレードオフ）"
+            bf_info = f", ベイズファクター BF₁₀ = {cr.bf10} [{cr.bf_interpretation}]" if cr.bf10 is not None else ""
             insights.append(
                 f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、{cr.interpretation}が認められました"
-                f"（相関係数 r = {cr.pearson_r}, p = {cr.p_value}）。"
+                f"（相関係数 r = {cr.pearson_r}, p = {cr.p_value}{bf_info}）。"
             )
 
         return insights

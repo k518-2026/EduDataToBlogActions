@@ -468,7 +468,8 @@ class EduDataVisualizer:
             if (cr.metric_x == col_x and cr.metric_y == col_y) or (
                 cr.metric_x == col_y and cr.metric_y == col_x
             ):
-                r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value})"
+                bf_str = f", BF10 = {cr.bf10}" if getattr(cr, "bf10", None) is not None else ""
+                r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value}{bf_str})"
                 break
 
         y_unit = resolve_metric_unit(col_y, dataset.unit)
