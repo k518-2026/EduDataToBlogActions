@@ -4,6 +4,7 @@
 
 | 配信日 | カテゴリ | レポートタイトル | データセットID | 配信方式 |
 | :---: | :---: | :--- | :---: | :---: |
+| 2026-09-16 | 教育データ分析,情報教育,プログラミング教育,GIGAスクール | 【UNESCO/ITU】各国のプログラミング・デジタルスキル比較 (2026年09月16日) | `unesco_world_ict_skills` | wordpress_mail |
 | 2026-09-16 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力調査】小・中学校における算数・数学の平均正答率と意識推移 (2026年09月16日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-16 | 教育データ分析,算数数学教育,STEM教育 | 【全国学力調査】小・中学校における算数・数学の平均正答率と意識推移 (2026年09月16日) | `japan_national_assessment_math` | wordpress_mail |
 | 2026-09-16 | 教育データ分析,情報教育,プログラミング教育,GIGAスクール | 【学校教育情報化実態調査】1人1台端末利活用率とICT指導力の推移 (2026年09月16日) | `japan_mext_ict_informatization` | wordpress_mail |
