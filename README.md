@@ -43,7 +43,7 @@
 EduDataToBlogActions/
 ├── .github/
 │   └── workflows/
-│       └── daily_report.yml          # GitHub Actions 定期実行（〜9/19: 5時・11時、9/20〜: 毎朝5時JST）
+│       └── daily_report.yml          # GitHub Actions 定期実行（〜9/30: 朝5時・夜10時、10/1〜: 毎朝5時JST）
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                     # 環境変数・パス・定数設定

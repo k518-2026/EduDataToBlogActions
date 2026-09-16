@@ -3,10 +3,10 @@ name: Daily Educational Open Data Analysis & Blog Auto-Poster
 on:
   # Scheduled runs (JST = UTC + 9)
   # 1. 毎朝 05:00 JST (20:00 UTC) - 恒常運用
-  # 2. 午前 11:00 JST (02:00 UTC) - 2026年9月19日まで1日2回運用
+  # 2. 夜 22:00 JST (13:00 UTC) - 2026年9月30日まで1日2回運用
   schedule:
     - cron: '0 20 * * *'
-    - cron: '0 2 * * *'
+    - cron: '0 13 * * *'
 
   # Manual execution from GitHub Actions UI
   workflow_dispatch:
@@ -58,11 +58,11 @@ jobs:
           if [ "${{ github.event_name }}" = "schedule" ]; then
             SCHEDULE_CRON="${{ github.event.schedule }}"
             echo "Triggered by schedule cron: $SCHEDULE_CRON"
-            # 11:00 JST slot (02:00 UTC)
-            if [ "$SCHEDULE_CRON" = "0 2 * * *" ] || ([ "$JST_HOUR" -ge 10 ] && [ "$JST_HOUR" -le 13 ]); then
-              if [ "$JST_YMD" -gt 20260919 ]; then
+            # 22:00 JST slot (13:00 UTC)
+            if [ "$SCHEDULE_CRON" = "0 13 * * *" ] || ([ "$JST_HOUR" -ge 21 ] && [ "$JST_HOUR" -le 23 ]); then
+              if [ "$JST_YMD" -gt 20260930 ]; then
                 echo "should_run=false" >> "$GITHUB_OUTPUT"
-                echo "::notice title=11:00 JST Run Skipped::2026年9月19日を経過したため、11:00 JSTの追加投稿はスキップされ、毎朝05:00 JSTの定期投稿のみが継続されます。"
+                echo "::notice title=22:00 JST Run Skipped::2026年9月30日を経過したため、22:00 JSTの追加投稿はスキップされ、毎朝05:00 JSTの定期投稿のみが継続されます。"
                 exit 0
               fi
             fi
