@@ -4,6 +4,7 @@ Includes Japan Standard Time (JST) date handling, metric unit resolution, and te
 """
 from datetime import datetime
 import re
+from typing import Optional
 from zoneinfo import ZoneInfo
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -18,6 +19,23 @@ def get_jst_now() -> datetime:
         return datetime.now(JST)
     except Exception:
         return datetime.now()
+
+
+def format_bayes_factor(val: Optional[float]) -> str:
+    """
+    Formats Bayes Factor (BF10) according to academic reporting standards (JASP, Wagenmakers et al.).
+    Caps massive values at '>1000' and tiny values at '<0.001' to prevent awkward numbers.
+    """
+    if val is None:
+        return "-"
+    if not isinstance(val, (int, float)):
+        return str(val)
+    if val >= 1000.0:
+        return ">1000"
+    elif val < 0.001:
+        return "<0.001"
+    else:
+        return f"{val:.2f}"
 
 
 def resolve_metric_unit(metric: str, dataset_unit: str = "%") -> str:
@@ -62,16 +80,43 @@ def clean_text_spaces(text: str) -> str:
     # Replace full-width slashes between words: 'A／B' -> 'A・B'
     text = re.sub(r"／", "・", text)
 
+    # Standardize formula variable notations
+    text = re.sub(r"\bBF\s*10\b", "<i>BF</i><sub>10</sub>", text)
+    text = re.sub(r"\bR\s*2\b", "<i>R</i><sup>2</sup>", text)
+    text = re.sub(r"R\^2", "<i>R</i><sup>2</sup>", text)
+
+    # Prevent large unformatted floats for Bayes Factor (e.g. BF10 = 8169073518445.85 -> BF10>1000)
+    text = re.sub(
+        r"(<i>BF</i><sub>10</sub>|BF₁₀|BF10)\s*([=＝])\s*(?:\d{4,}(?:\.\d+)?|8\d{6,}(?:\.\d+)?)",
+        r"\1>1000",
+        text,
+    )
+
+    # Remove spaces around operators in statistical expressions (preventing line breaks between var, =, and val)
+    text = re.sub(
+        r"([<i>]*[A-Za-z]+[</i>]*(?:<sub>\w+</sub>|<sup>\w+</sup>)?|[A-Za-z]+値|p値)\s*([=＝><＜＞])\s*",
+        r"\1\2",
+        text,
+    )
+
+    # Prevent separation of numbers and units (e.g. '534.00 点' -> '534.00点')
+    text = re.sub(r"(\d+(?:\.\d+)?)\s*(点|%|％|人|校|年|度)", r"\1\2", text)
+
+    # Normalize half-width commas and colons in Japanese text context to full-width
+    text = re.sub(r"([一-龥ぁ-んァ-ヶ%％点人校度年)）\]｝」』])\s*,\s*", r"\1，", text)
+    text = re.sub(r"\s*,\s*([一-龥ぁ-んァ-ヶ(（\[［｛「『])", r"，\1", text)
+    text = re.sub(r"\s+,", "，", text)
+
     # Remove spaces between Japanese characters: '漢字　ひらがな' -> '漢字ひらがな'
     text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+([一-龥ぁ-んァ-ヶ])", r"\1\2", text)
     # Remove spaces between Japanese character and alphanumeric: '研究所 TIMSS' -> '研究所TIMSS', 'TIMSS 調査' -> 'TIMSS調査'
     text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+([A-Za-z0-9])", r"\1\2", text)
     text = re.sub(r"([A-Za-z0-9])\s+([一-龥ぁ-んァ-ヶ])", r"\1\2", text)
 
-    # Remove spaces around Japanese punctuation
-    text = re.sub(r"\s+([，．、。（）「」『』])", r"\1", text)
-    text = re.sub(r"([（「『])\s+", r"\1", text)
-    text = re.sub(r"\s+([）」』])", r"\1", text)
+    # Remove spaces around Japanese and ASCII brackets/punctuation (prevents starting lines with punctuation)
+    text = re.sub(r"\s+([，．、。（）「」『』)\]｝}〕〉》】!?！？:：;；])", r"\1", text)
+    text = re.sub(r"([（「『(\[{｛〔〈《【])\s+", r"\1", text)
+    text = re.sub(r"\s+([）」』)\]｝}〕〉》】])", r"\1", text)
     return text
 
 

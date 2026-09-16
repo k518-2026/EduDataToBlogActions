@@ -21,7 +21,7 @@ from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS, get_academic_contex
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import clean_text_spaces, resolve_anthropic_model, resolve_metric_unit
+from src.utils import clean_text_spaces, format_bayes_factor, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -680,14 +680,14 @@ class AcademicPaperGenerator:
         for tr in analysis.trends:
             tr_unit = resolve_metric_unit(tr.metric, dataset.unit)
             grp = f"[{tr.group_name}] " if tr.group_name else ""
-            bf_str = f"， ベイズファクター<i>BF</i><sub>10</sub>={tr.bf10} [{tr.bf_interpretation}]" if getattr(tr, "bf10", None) is not None else ""
+            bf_str = f"， ベイズファクター<i>BF</i><sub>10</sub>={format_bayes_factor(tr.bf10)} [{tr.bf_interpretation}]" if getattr(tr, "bf10", None) is not None else ""
             trends_lines.append(
                 f"- {grp}{tr.metric}: {tr.start_time}年 ({tr.start_val:.2f}) -> {tr.end_time}年 ({tr.end_val:.2f})， 変化量={tr.diff:+.2f}{tr_unit}， 変化率={tr.pct_change:+.1f}%， CAGR={tr.cagr}%， 決定係数<i>R</i><sup>2</sup>={tr.r_squared:.3f}， 回帰傾き={tr.slope:.3f}{bf_str}"
             )
 
         corr_lines = []
         for cr in analysis.correlations:
-            bf_str = f"， ベイズファクター<i>BF</i><sub>10</sub>={cr.bf10} [{cr.bf_interpretation}]" if getattr(cr, "bf10", None) is not None else ""
+            bf_str = f"， ベイズファクター<i>BF</i><sub>10</sub>={format_bayes_factor(cr.bf10)} [{cr.bf_interpretation}]" if getattr(cr, "bf10", None) is not None else ""
             corr_lines.append(
                 f"- {cr.metric_x} × {cr.metric_y}: 相関係数 <i>r</i>={cr.pearson_r:.3f}， <i>p</i>値={cr.p_value:.4f}{bf_str} ({cr.interpretation})"
             )
@@ -729,6 +729,11 @@ class AcademicPaperGenerator:
    - 句読点はすべて全角カンマ「，」および全角ピリオド「．」を使用すること（「、」「。」は使用不可）。
    - 数字は1桁数字は全角（１，２，３）、2桁以上は半角（24，44等）とすること。
    - 統計記号（<i>p</i>，<i>t</i>，<i>F</i>，<i>SD</i>，<i>r</i>，<i>R</i><sup>2</sup>，<i>BF</i><sub>10</sub> 等）はイタリック体（HTMLタグ <i> </i>）にすること。
+   - ★【統計数値・数式記号の改行・空白厳守要件】:
+     * 2段組レイアウトにおいて等号（=）や不等号（<, >）の前後で不自然に改行されるのを防ぐため、記号の前後に不要な半角空白を入れず直結させること（例: <i>r</i>=0.998、<i>p</i><.001、<i>R</i><sup>2</sup>=0.080、<i>BF</i><sub>10</sub>=0.33）。
+     * ベイズファクターは <i>BF</i><sub>10</sub>=0.33 や <i>BF</i><sub>10</sub>>1000 のように表記し、1000以上の場合は数万や数億などの長大な小数をそのまま書かず必ず >1000 と表記すること。
+     * 括弧の内側や句読点（，．）の直前に半角空白を入れないこと（例: 「（変化量: +0.10点，変化率: +0.02%）」とし、「+0.02% ) , 」のように空白を空けないこと）。
+     * 和文中の読点は全角「，」、句点は全角「．」で統一し、半角カンマや半角ピリオドを文末・文中に混在させないこと。
    - 文体は完全な「である・だ」調。
    - ※重要【単位の正確な記述】: 数値に付す単位において「点 / %」や「人 / %」のような合成スラッシュ記号は絶対に記述しないこと。必ず各指標固有の単一の単位（得点なら「点」、割合・比率なら「%」、人数なら「人」など）のみを使用すること。
    - ※特定の学会名（「日本教育工学会」等）は本文・抄録・見出し等に一切記述しないこと。
@@ -961,20 +966,21 @@ class AcademicPaperGenerator:
         if analysis.trends:
             tr = analysis.trends[0]
             tr_unit = resolve_metric_unit(tr.metric, dataset.unit)
-            bf_tr_str = f"，JZSベイズファクター <i>BF</i><sub>10</sub> = {tr.bf10}（{tr.bf_interpretation}）" if getattr(tr, "bf10", None) is not None else ""
+            bf_tr_str = f"，JZSベイズファクター<i>BF</i><sub>10</sub>={format_bayes_factor(tr.bf10)}（{tr.bf_interpretation}）" if getattr(tr, "bf10", None) is not None else ""
             trend_desc = (
                 f"時系列推移の検証では，{tr.metric}において{tr.start_time}年の{tr.start_val:.2f}{tr_unit}から"
-                f"{tr.end_time}年の{tr.end_val:.2f}{tr_unit}へと変化し（変化量: {tr.diff:+.2f}{tr_unit}，変化率: {tr.pct_change:+.1f}%，"
-                f"年平均成長率 CAGR: {tr.cagr}%），最小二乗法による単回帰分析の結果，決定係数 <i>R</i><sup>2</sup> = {tr.r_squared:.3f}（回帰傾き: {tr.slope:.3f}{bf_tr_str}）が算出された．"
+                f"{tr.end_time}年の{tr.end_val:.2f}{tr_unit}へと変化し（変化量:{tr.diff:+.2f}{tr_unit}，変化率:{tr.pct_change:+.1f}%，"
+                f"年平均成長率 CAGR:{tr.cagr}%），最小二乗法による単回帰分析の結果，決定係数<i>R</i><sup>2</sup>={tr.r_squared:.3f}（回帰傾き:{tr.slope:.3f}{bf_tr_str}）が算出された．"
             )
 
         corr_desc = ""
         if analysis.correlations:
             cr = analysis.correlations[0]
-            bf_cr_str = f"，ベイズファクター <i>BF</i><sub>10</sub> = {cr.bf10} [{cr.bf_interpretation}]" if getattr(cr, "bf10", None) is not None else ""
+            bf_cr_str = f"，ベイズファクター<i>BF</i><sub>10</sub>={format_bayes_factor(cr.bf10)} [{cr.bf_interpretation}]" if getattr(cr, "bf10", None) is not None else ""
+            p_val_fmt = "<.001" if cr.p_value < 0.001 else f"={cr.p_value:.4f}"
             corr_desc = (
-                f"指標間の関連性分析においては，{cr.metric_x}と{cr.metric_y}の間に対象データ全域において相関係数 <i>r</i> = {cr.pearson_r:.3f}"
-                f"（<i>p</i>値 = {cr.p_value:.4f}{bf_cr_str}）の統計的有意な関連（{cr.interpretation}）が確認された．"
+                f"指標間の関連性分析においては，{cr.metric_x}と{cr.metric_y}の間に対象データ全域において相関係数<i>r</i>={cr.pearson_r:.3f}"
+                f"（<i>p</i>値{p_val_fmt}{bf_cr_str}）の統計的有意な関連（{cr.interpretation}）が確認された．"
             )
 
         clean_source = clean_text_spaces(dataset.source_name)

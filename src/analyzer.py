@@ -11,7 +11,7 @@ import pandas as pd
 from scipy import stats
 
 from src.fetchers.base import EducationDataset
-from src.utils import resolve_metric_unit
+from src.utils import format_bayes_factor, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -332,7 +332,7 @@ class EduDataAnalyzer:
             elif abs(tr.diff) < 1.0 or abs(tr.pct_change) < 2.0:
                 tag = "⚠️ 伸び悩み・停滞"
 
-            bf_info = f", ベイズファクター BF₁₀ = {tr.bf10} [{tr.bf_interpretation}]" if tr.bf10 is not None else ""
+            bf_info = f", ベイズファクター BF₁₀ = {format_bayes_factor(tr.bf10)} [{tr.bf_interpretation}]" if tr.bf10 is not None else ""
             insights.append(
                 f"{tag}: {prefix}「{tr.metric}」は{tr.start_time}年の {tr.start_val}{m_unit} から "
                 f"{tr.end_time}年には {tr.end_val}{m_unit} へと "
@@ -370,7 +370,7 @@ class EduDataAnalyzer:
                 corr_tag = "⚡ 意外な非連動（独立性）"
             elif cr.pearson_r < -0.4:
                 corr_tag = "⚡ 逆転の相関（トレードオフ）"
-            bf_info = f", ベイズファクター BF₁₀ = {cr.bf10} [{cr.bf_interpretation}]" if cr.bf10 is not None else ""
+            bf_info = f", ベイズファクター BF₁₀ = {format_bayes_factor(cr.bf10)} [{cr.bf_interpretation}]" if cr.bf10 is not None else ""
             insights.append(
                 f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、{cr.interpretation}が認められました"
                 f"（相関係数 r = {cr.pearson_r}, p = {cr.p_value}{bf_info}）。"

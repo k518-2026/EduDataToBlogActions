@@ -376,3 +376,83 @@ def test_paper_title_and_abstract_across_catalogs(tmp_path):
         assert lines <= 2, f"Title for {dataset.id} exceeded 2 lines ({lines} lines): '{paper.title}'"
 
 
+def test_bayes_factor_formatting_caps_large_numbers():
+    """Verifies that format_bayes_factor properly formats numbers and caps >= 1000 at >1000."""
+    from src.utils import format_bayes_factor
+
+    assert format_bayes_factor(None) == "-"
+    assert format_bayes_factor(8169073518445.85) == ">1000"
+    assert format_bayes_factor(1000.0) == ">1000"
+    assert format_bayes_factor(999.99) == "999.99"
+    assert format_bayes_factor(45.2) == "45.20"
+    assert format_bayes_factor(0.3333) == "0.33"
+    assert format_bayes_factor(0.0001) == "<0.001"
+
+
+def test_clean_text_spaces_formulas_and_punctuation():
+    """Verifies that clean_text_spaces handles brackets, commas, units, and formula operators."""
+    from src.utils import clean_text_spaces
+
+    # Parentheses and commas spacing cleanup
+    raw = "（変化量: +0.10点 , 変化率: +0.02% ) , 最小二乗法"
+    cleaned = clean_text_spaces(raw)
+    assert ") ," not in cleaned
+    assert " )" not in cleaned
+    assert "（変化量: +0.10点，変化率: +0.02%)，最小二乗法" in cleaned
+
+    # Formula spaces cleanup
+    formula_raw = "決定係数 <i>R</i><sup>2</sup> = 0.080，JZSベイズファクター BF 10 = 0.33，相関係数 <i>r</i> = 0.998（<i>p</i>値 = 0.0000）"
+    formula_cleaned = clean_text_spaces(formula_raw)
+    assert "R2 = 0.080" not in formula_cleaned
+    assert "BF 10 = 0.33" not in formula_cleaned
+    assert "<i>R</i><sup>2</sup>=0.080" in formula_cleaned
+    assert "<i>BF</i><sub>10</sub>=0.33" in formula_cleaned
+    assert "<i>r</i>=0.998" in formula_cleaned
+
+    # Massive unformatted Bayes Factor in text
+    large_bf_text = "ベイズファクター BF 10 = 8169073518445.85 [極めて強い証拠]"
+    large_bf_cleaned = clean_text_spaces(large_bf_text)
+    assert "8169073518445" not in large_bf_cleaned
+    assert "<i>BF</i><sub>10</sub>>1000" in large_bf_cleaned
+
+
+def test_japanese_line_breaking_no_punctuation_starts_line():
+    """Verifies that ReportLab CJK wrapping never starts a line with punctuation (行頭禁則処理)."""
+    from reportlab.platypus import Paragraph
+    from src.pdf.pdf_generator import COL_W, EduPaperPdfGenerator
+
+    pdf_gen = EduPaperPdfGenerator()
+    style = pdf_gen.styles["Body"]
+
+    # Verify style has CJK wordWrap
+    assert style.wordWrap == "CJK"
+
+    def get_line_texts(para):
+        results = []
+        for line in para.blPara.lines:
+            if hasattr(line, "words"):
+                results.append("".join(w.text if hasattr(w, "text") else str(w) for w in line.words))
+            elif isinstance(line, (tuple, list)) and len(line) > 1:
+                results.append("".join(w.text if hasattr(w, "text") else str(w) for w in line[1]))
+            else:
+                results.append(str(line))
+        return results
+
+    forbidden_starts = ("，", "．", "、", "。", "）", ")", "]", "］", "}", "｝", "％", "%", "!", "！", "?", "？", ":", "：")
+
+    # Test across multiple padding offsets to stress-test margin boundaries
+    base_text = "時系列推移の検証では，小学校算数正答率において2021年の533.90点から2024年の534.00点へと変化し（変化量:+0.10点，変化率:+0.02%），最小二乗法による単回帰分析の結果，決定係数<i>R</i><sup>2</sup>=0.080（回帰傾き:0.033，JZSベイズファクター<i>BF</i><sub>10</sub>=0.33（証拠なし／決定不能（H0支持的）））が算出された．"
+
+    for pad in range(1, 30):
+        test_str = ("あ" * pad) + base_text
+        p = pdf_gen._para(test_str, style)
+        p.wrap(COL_W, 1000)
+        lines = get_line_texts(p)
+        for idx, l in enumerate(lines):
+            for forb in forbidden_starts:
+                assert not l.startswith(forb), f"Line {idx} started with forbidden character '{forb}' with pad {pad}: '{l[:20]}'"
+            # Check digits not cut across lines (e.g. starting with '.00')
+            assert not l.startswith(".00"), f"Line {idx} broke decimal digits with pad {pad}: '{l[:20]}'"
+
+
+

@@ -16,7 +16,7 @@ import seaborn as sns
 from src.analyzer import AnalysisResult
 from src.config import TEMP_DIR
 from src.fetchers.base import EducationDataset
-from src.utils import resolve_metric_unit
+from src.utils import format_bayes_factor, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -468,7 +468,7 @@ class EduDataVisualizer:
             if (cr.metric_x == col_x and cr.metric_y == col_y) or (
                 cr.metric_x == col_y and cr.metric_y == col_x
             ):
-                bf_str = f", BF10 = {cr.bf10}" if getattr(cr, "bf10", None) is not None else ""
+                bf_str = f", BF10 = {format_bayes_factor(cr.bf10)}" if getattr(cr, "bf10", None) is not None else ""
                 r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value}{bf_str})"
                 break
 

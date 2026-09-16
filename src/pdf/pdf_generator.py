@@ -15,11 +15,19 @@ from datetime import datetime
 import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
+from unicodedata import category
 
-from src.utils import clean_text_spaces, format_title_two_lines, get_jst_now, resolve_metric_unit
+from src.utils import (
+    clean_text_spaces,
+    format_bayes_factor,
+    format_title_two_lines,
+    get_jst_now,
+    resolve_metric_unit,
+)
 
 from PIL import Image as PILImage
 from reportlab.lib import colors
+import reportlab.lib.textsplit as rlp_ts
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
@@ -37,6 +45,14 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+import reportlab.platypus.paragraph as rlp_para
+from reportlab.platypus.paragraph import (
+    cjkU,
+    isBytes,
+    _FUZZ,
+    makeCJKParaLine,
+    ParaLines,
+)
 
 from src.academic_paper import AcademicPaper, sort_jset_references
 from src.analyzer import AnalysisResult
@@ -44,6 +60,94 @@ from src.fetchers.base import EducationDataset
 from src.pdf.font_loader import register_japanese_fonts
 
 logger = logging.getLogger(__name__)
+
+# ==========================================
+# Strict Japanese Typography (JIS X 4051 行頭・行末禁則処理)
+# ==========================================
+_EXTRA_CANNOT_START = "，．％%）)]｝}」』〉》〕〜ー!?！？:：;；"
+for ch in _EXTRA_CANNOT_START:
+    if ch not in rlp_para.ALL_CANNOT_START:
+        rlp_para.ALL_CANNOT_START += ch
+    if ch not in rlp_ts.ALL_CANNOT_START:
+        rlp_ts.ALL_CANNOT_START += ch
+
+_ALL_CANNOT_END = "（([｛{〔「『【"
+
+
+def _jset_cjkFragSplit(frags, maxWidths, calcBounds, encoding="utf8"):
+    """Enhanced CJK text splitting with strict Japanese typography (JIS X 4051 行頭・行末禁則処理)."""
+    U = []
+    for f in frags:
+        text = f.text
+        if isBytes(text):
+            text = text.decode(encoding)
+        if text:
+            U.extend([cjkU(t, f, encoding) for t in text])
+        else:
+            U.append(cjkU(text, f, encoding))
+    lines = []
+    i = widthUsed = lineStartPos = 0
+    maxWidth = maxWidths[0]
+    nU = len(U)
+    while i < nU:
+        u = U[i]
+        i += 1
+        w = u.width
+        if hasattr(w, "normalizedValue"):
+            w._normalizer = maxWidth
+            w = w.normalizedValue(maxWidth)
+        widthUsed += w
+        lineBreak = hasattr(u.frag, "lineBreak")
+        endLine = (widthUsed > maxWidth + _FUZZ and widthUsed > 0) or lineBreak
+        if endLine:
+            extraSpace = maxWidth - widthUsed
+            if not lineBreak:
+                if ord(u) < 0x3000:
+                    limitCheck = (lineStartPos + i) >> 1
+                    for j in range(i - 1, limitCheck, -1):
+                        uj = U[j]
+                        if uj and category(uj) == "Zs" or ord(uj) >= 0x3000:
+                            k = j + 1
+                            if k < i:
+                                j = k + 1
+                                extraSpace += sum(U[ii].width for ii in range(j, i))
+                                w = U[k].width
+                                u = U[k]
+                                i = j
+                                break
+
+                # Rule 1: character u cannot start line, keep on current line unless progress blocked
+                if u not in rlp_para.ALL_CANNOT_START and i > lineStartPos + 1:
+                    i -= 1
+                    extraSpace += w
+
+                # Rule 2: next line (starting at U[i]) must never start with a character in ALL_CANNOT_START
+                while i > lineStartPos + 1 and i < nU and U[i] in rlp_para.ALL_CANNOT_START:
+                    i -= 1
+                    extraSpace += U[i].width
+
+                # Rule 3: current line (ending at U[i-1]) must never end with a character in _ALL_CANNOT_END
+                while i > lineStartPos + 1 and U[i - 1] in _ALL_CANNOT_END:
+                    i -= 1
+                    extraSpace += U[i].width
+
+            lines.append(makeCJKParaLine(U[lineStartPos:i], maxWidth, widthUsed, extraSpace, lineBreak, calcBounds))
+            try:
+                maxWidth = maxWidths[len(lines)]
+            except IndexError:
+                maxWidth = maxWidths[-1]
+
+            lineStartPos = i
+            widthUsed = 0
+
+    if widthUsed > 0:
+        lines.append(makeCJKParaLine(U[lineStartPos:], maxWidth, widthUsed, maxWidth - widthUsed, False, calcBounds))
+
+    return ParaLines(kind=1, lines=lines)
+
+
+# Patch ReportLab paragraph module for bulletproof CJK typography
+rlp_para.cjkFragSplit = _jset_cjkFragSplit
 
 # Official JSET Page Size: JIS B5 (182mm x 257mm)
 JIS_B5 = (182 * mm, 257 * mm)
@@ -162,6 +266,7 @@ class EduPaperPdfGenerator:
             leading=19.0,
             alignment=1,  # Centered
             spaceAfter=4,
+            wordWrap="CJK",
         )
 
         styles["PaperSubtitle"] = ParagraphStyle(
@@ -172,6 +277,7 @@ class EduPaperPdfGenerator:
             leading=13.0,
             alignment=1,  # Centered
             spaceAfter=6,
+            wordWrap="CJK",
         )
 
         styles["AuthorMeta"] = ParagraphStyle(
@@ -182,6 +288,7 @@ class EduPaperPdfGenerator:
             leading=13.0,
             alignment=1,  # Centered
             spaceAfter=2,
+            wordWrap="CJK",
         )
 
         styles["AffiliationMeta"] = ParagraphStyle(
@@ -192,6 +299,7 @@ class EduPaperPdfGenerator:
             leading=12.0,
             alignment=1,  # Centered
             spaceAfter=8,
+            wordWrap="CJK",
         )
 
         styles["Abstract"] = ParagraphStyle(
@@ -202,6 +310,7 @@ class EduPaperPdfGenerator:
             leading=12.5,
             firstLineIndent=8.5,  # 1 full-width character indent
             spaceAfter=4,
+            wordWrap="CJK",
         )
 
         styles["Keywords"] = ParagraphStyle(
@@ -211,6 +320,7 @@ class EduPaperPdfGenerator:
             fontSize=8.5,
             leading=12.5,
             spaceAfter=6,
+            wordWrap="CJK",
         )
 
         # Section Headings (MS Gothic 8.5pt bold)
@@ -223,6 +333,7 @@ class EduPaperPdfGenerator:
             spaceBefore=7,
             spaceAfter=2,
             keepWithNext=False,
+            wordWrap="CJK",
         )
 
         styles["Heading2"] = ParagraphStyle(
@@ -234,6 +345,7 @@ class EduPaperPdfGenerator:
             spaceBefore=5,
             spaceAfter=2,
             keepWithNext=False,
+            wordWrap="CJK",
         )
 
         styles["Heading3"] = ParagraphStyle(
@@ -245,6 +357,7 @@ class EduPaperPdfGenerator:
             spaceBefore=4,
             spaceAfter=2,
             keepWithNext=False,
+            wordWrap="CJK",
         )
 
         # Body Text (MS Mincho 8.5pt, 1-char indent, leading 12.5pt)
@@ -256,6 +369,7 @@ class EduPaperPdfGenerator:
             leading=12.5,
             firstLineIndent=8.5,
             spaceAfter=2,
+            wordWrap="CJK",
         )
 
         # Research Question Bullets (14pt hanging indent for clean alignment)
@@ -268,6 +382,7 @@ class EduPaperPdfGenerator:
             leftIndent=14.0,
             firstLineIndent=-14.0,
             spaceAfter=2.5,
+            wordWrap="CJK",
         )
 
         # Generative AI Disclosure Note (Elegant callout box before references)
@@ -284,6 +399,7 @@ class EduPaperPdfGenerator:
             borderPadding=4.5,
             spaceBefore=5,
             spaceAfter=6,
+            wordWrap="CJK",
         )
 
         # Table & Figure Captions (MS Gothic 8.5pt)
@@ -297,6 +413,7 @@ class EduPaperPdfGenerator:
             spaceBefore=6,
             spaceAfter=3,
             keepWithNext=True,
+            wordWrap="CJK",
         )
 
         styles["FigureCaption"] = ParagraphStyle(
@@ -308,6 +425,7 @@ class EduPaperPdfGenerator:
             alignment=1,  # Centered
             spaceBefore=3,
             spaceAfter=6,
+            wordWrap="CJK",
         )
 
         # Table Cell Typography
@@ -318,6 +436,7 @@ class EduPaperPdfGenerator:
             fontSize=6.5,
             leading=8.5,
             alignment=1,  # Centered
+            wordWrap="CJK",
         )
 
         styles["TableCell"] = ParagraphStyle(
@@ -327,6 +446,7 @@ class EduPaperPdfGenerator:
             fontSize=6.5,
             leading=8.5,
             alignment=1,  # Centered
+            wordWrap="CJK",
         )
 
         styles["TableCellLeft"] = ParagraphStyle(
@@ -336,6 +456,7 @@ class EduPaperPdfGenerator:
             fontSize=6.5,
             leading=8.5,
             alignment=0,  # Left
+            wordWrap="CJK",
         )
 
         styles["TableNote"] = ParagraphStyle(
@@ -346,6 +467,7 @@ class EduPaperPdfGenerator:
             leading=8.0,
             alignment=0,
             spaceAfter=4,
+            wordWrap="CJK",
         )
 
         # References (Hanging indent: 2 characters = 17pt, JSET standard 8.5pt font)
@@ -358,6 +480,7 @@ class EduPaperPdfGenerator:
             leftIndent=17.0,
             firstLineIndent=-17.0,
             spaceAfter=3,
+            wordWrap="CJK",
         )
 
         # Summary Block Styles (End of paper)
@@ -371,6 +494,7 @@ class EduPaperPdfGenerator:
             spaceBefore=8,
             spaceAfter=4,
             keepWithNext=True,
+            wordWrap="CJK",
         )
 
         styles["SummaryBody"] = ParagraphStyle(
@@ -380,6 +504,7 @@ class EduPaperPdfGenerator:
             fontSize=8.0,
             leading=11.5,
             spaceAfter=4,
+            wordWrap="CJK",
         )
 
         styles["SummaryKeywords"] = ParagraphStyle(
@@ -389,6 +514,7 @@ class EduPaperPdfGenerator:
             fontSize=8.0,
             leading=11.5,
             spaceAfter=4,
+            wordWrap="CJK",
         )
 
         styles["SummaryDate"] = ParagraphStyle(
@@ -399,9 +525,14 @@ class EduPaperPdfGenerator:
             leading=10.0,
             alignment=1,
             spaceAfter=4,
+            wordWrap="CJK",
         )
 
         return styles
+
+    def _para(self, text: str, style: ParagraphStyle) -> Paragraph:
+        """Constructs a Paragraph after standardizing text spaces, numbers, and formulas."""
+        return Paragraph(clean_text_spaces(text), style)
 
     def _build_descriptive_stats_table(
         self, dataset: EducationDataset, analysis: AnalysisResult
@@ -470,15 +601,7 @@ class EduPaperPdfGenerator:
                 metric_name = str(tr.group_name or tr.metric)
                 disp_name = metric_name[:7] + "…" if len(metric_name) > 8 else metric_name
                 cagr_text = f"{tr.cagr:.1f}%" if tr.cagr is not None else "-"
-                if getattr(tr, "bf10", None) is not None:
-                    if tr.bf10 >= 1000:
-                        bf_text = ">1000"
-                    elif tr.bf10 >= 100:
-                        bf_text = f"{tr.bf10:.0f}"
-                    else:
-                        bf_text = f"{tr.bf10:.1f}"
-                else:
-                    bf_text = "-"
+                bf_text = format_bayes_factor(getattr(tr, "bf10", None))
 
                 row = [
                     Paragraph(disp_name, self.styles["TableCellLeft"]),
@@ -510,15 +633,7 @@ class EduPaperPdfGenerator:
                 x_name = str(cr.metric_x)[:6] + "…" if len(str(cr.metric_x)) > 7 else str(cr.metric_x)
                 y_name = str(cr.metric_y)[:6] + "…" if len(str(cr.metric_y)) > 7 else str(cr.metric_y)
                 p_text = "<.001" if cr.p_value < 0.001 else f"{cr.p_value:.3f}"
-                if getattr(cr, "bf10", None) is not None:
-                    if cr.bf10 >= 1000:
-                        bf_text = ">1000"
-                    elif cr.bf10 >= 100:
-                        bf_text = f"{cr.bf10:.0f}"
-                    else:
-                        bf_text = f"{cr.bf10:.1f}"
-                else:
-                    bf_text = "-"
+                bf_text = format_bayes_factor(getattr(cr, "bf10", None))
 
                 row = [
                     Paragraph(x_name, self.styles["TableCellLeft"]),
@@ -642,12 +757,12 @@ class EduPaperPdfGenerator:
             p_title,
         ]
         if paper.subtitle:
-            top_elements.append(Paragraph(clean_text_spaces(paper.subtitle), self.styles["PaperSubtitle"]))
+            top_elements.append(self._para(paper.subtitle, self.styles["PaperSubtitle"]))
         top_elements.extend([
-            Paragraph(author_jp, self.styles["AuthorMeta"]),
-            Paragraph(affil_jp, self.styles["AffiliationMeta"]),
-            Paragraph(clean_text_spaces(paper.abstract), self.styles["Abstract"]),
-            Paragraph(f"キーワード：{kw_jp}", self.styles["Keywords"]),
+            self._para(author_jp, self.styles["AuthorMeta"]),
+            self._para(affil_jp, self.styles["AffiliationMeta"]),
+            self._para(paper.abstract, self.styles["Abstract"]),
+            self._para(f"キーワード：{kw_jp}", self.styles["Keywords"]),
         ])
 
         # Dynamically measure exact height required for the top block
@@ -739,45 +854,45 @@ class EduPaperPdfGenerator:
         # ==========================================
         # 2. Section 1: はじめに
         # ==========================================
-        story.append(Paragraph("1．はじめに", self.styles["Heading1"]))
-        story.append(Paragraph("1.1. 研究の背景", self.styles["Heading2"]))
+        story.append(self._para("1．はじめに", self.styles["Heading1"]))
+        story.append(self._para("1.1. 研究の背景", self.styles["Heading2"]))
         for p in paper.background.split("\n\n"):
             if p.strip():
-                story.append(Paragraph(p.strip(), self.styles["Body"]))
+                story.append(self._para(p.strip(), self.styles["Body"]))
 
-        story.append(Paragraph("1.2. リサーチクエスチョンと作業仮説", self.styles["Heading2"]))
+        story.append(self._para("1.2. リサーチクエスチョンと作業仮説", self.styles["Heading2"]))
         for block in paper.objectives.split("\n"):
             line = block.strip()
             if not line:
                 continue
             if line.startswith(("・", "-", "*", "（", "(")) or "RQ" in line[:6]:
-                story.append(Paragraph(line, self.styles["RQBullet"]))
+                story.append(self._para(line, self.styles["RQBullet"]))
             else:
-                story.append(Paragraph(line, self.styles["Body"]))
+                story.append(self._para(line, self.styles["Body"]))
 
         # ==========================================
         # 3. Section 2: 調査対象および分析方法
         # ==========================================
-        story.append(Paragraph("2．調査対象および分析方法", self.styles["Heading1"]))
+        story.append(self._para("2．調査対象および分析方法", self.styles["Heading1"]))
         for p in paper.methodology.split("\n\n"):
             if p.strip():
-                story.append(Paragraph(p.strip(), self.styles["Body"]))
+                story.append(self._para(p.strip(), self.styles["Body"]))
 
         # ==========================================
         # 4. Section 3: 結果
         # ==========================================
-        story.append(Paragraph("3．結果", self.styles["Heading1"]))
+        story.append(self._para("3．結果", self.styles["Heading1"]))
         for p in paper.results_text.split("\n\n"):
             if p.strip():
-                story.append(Paragraph(p.strip(), self.styles["Body"]))
+                story.append(self._para(p.strip(), self.styles["Body"]))
 
         # Table 1: Caption ABOVE the table
         first_m = dataset.metrics[0] if dataset.metrics else ""
         unit_note = resolve_metric_unit(first_m, dataset.unit)
         table1_elements = [
-            Paragraph("表１　主要指標における基本記述統計量一覧", self.styles["TableCaption"]),
+            self._para("表１　主要指標における基本記述統計量一覧", self.styles["TableCaption"]),
             self._build_descriptive_stats_table(dataset, analysis),
-            Paragraph(f"注）単位は {unit_note}．Nは有効標本数，SDは不偏標準偏差．", self.styles["TableNote"]),
+            self._para(f"注）単位は {unit_note}．Nは有効標本数，SDは不偏標準偏差．", self.styles["TableNote"]),
         ]
         story.append(KeepTogether(table1_elements))
         story.append(Spacer(1, 4))
@@ -785,9 +900,9 @@ class EduPaperPdfGenerator:
         # Table 2: Caption ABOVE the table (Secondary Table)
         sec_cap, sec_table, sec_note = self._build_secondary_table(dataset, analysis)
         table2_elements = [
-            Paragraph(sec_cap, self.styles["TableCaption"]),
+            self._para(sec_cap, self.styles["TableCaption"]),
             sec_table,
-            Paragraph(sec_note, self.styles["TableNote"]),
+            self._para(sec_note, self.styles["TableNote"]),
         ]
         story.append(KeepTogether(table2_elements))
         story.append(Spacer(1, 4))
@@ -812,7 +927,7 @@ class EduPaperPdfGenerator:
 
                 figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
-                    Paragraph(f"図１　{clean_fig_title}の経年推移と傾向分析（95%CI併記）", self.styles["FigureCaption"]),
+                    self._para(f"図１　{clean_fig_title}の経年推移と傾向分析（95%CI併記）", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure1_elements))
                 story.append(Spacer(1, 4))
@@ -838,7 +953,7 @@ class EduPaperPdfGenerator:
 
                 figure2_elements = [
                     Image(str(secondary_chart_path), width=target_w, height=target_h),
-                    Paragraph(f"図２　{clean_fig_title2}の相関構造および比較分析（95%CI併記）", self.styles["FigureCaption"]),
+                    self._para(f"図２　{clean_fig_title2}の相関構造および比較分析（95%CI併記）", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure2_elements))
                 story.append(Spacer(1, 4))
@@ -848,20 +963,20 @@ class EduPaperPdfGenerator:
         # ==========================================
         # 5. Section 4: 考察
         # ==========================================
-        story.append(Paragraph("4．考察", self.styles["Heading1"]))
+        story.append(self._para("4．考察", self.styles["Heading1"]))
         for p in paper.discussion.split("\n\n"):
             if p.strip():
-                story.append(Paragraph(p.strip(), self.styles["Body"]))
+                story.append(self._para(p.strip(), self.styles["Body"]))
 
         # ==========================================
         # 6. References (参 考 文 献)
         # ==========================================
         story.append(PageBreak())
-        story.append(Paragraph("参　考　文　献", self.styles["Heading1"]))
+        story.append(self._para("参　考　文　献", self.styles["Heading1"]))
         sorted_references = sort_jset_references(paper.references)
         for ref in sorted_references:
             if ref.strip():
-                story.append(Paragraph(ref.strip(), self.styles["Reference"]))
+                story.append(self._para(ref.strip(), self.styles["Reference"]))
 
         # ==========================================
         # 7. English Summary & KEYWORDS (End of paper)
@@ -869,16 +984,16 @@ class EduPaperPdfGenerator:
         story.append(FrameBreak())
         if paper.summary_en:
             summary_elements = [
-                Paragraph("Summary", self.styles["SummaryHeading"]),
-                Paragraph(paper.summary_en, self.styles["SummaryBody"]),
+                self._para("Summary", self.styles["SummaryHeading"]),
+                self._para(paper.summary_en, self.styles["SummaryBody"]),
             ]
             if paper.keywords_en:
                 kw_en_str = "， ".join(paper.keywords_en)
                 summary_elements.append(
-                    Paragraph(f"KEYWORDS: {kw_en_str}", self.styles["SummaryKeywords"])
+                    self._para(f"KEYWORDS: {kw_en_str}", self.styles["SummaryKeywords"])
                 )
             summary_elements.append(
-                Paragraph(
+                self._para(
                     f"({get_jst_now().strftime('%B %d， %Y')})",
                     self.styles["SummaryDate"],
                 )
@@ -900,7 +1015,7 @@ class EduPaperPdfGenerator:
             "指導現場の実情に応じた批判的吟味を必ずしてください．"
         )
         story.append(Spacer(1, 6))
-        story.append(Paragraph(ai_notice_text, self.styles["AIDisclosure"]))
+        story.append(self._para(ai_notice_text, self.styles["AIDisclosure"]))
 
         # Build document with JSETNumberedCanvas
         doc.build(story, canvasmaker=JSETNumberedCanvas)

@@ -17,7 +17,7 @@ from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
 from src.insights import EducationalInsights
-from src.utils import clean_insight_text
+from src.utils import clean_insight_text, format_bayes_factor
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -372,7 +372,8 @@ plt.show()
         for i, tr in enumerate(analysis.trends):
             grp_str = f"[{tr.group_name}] " if tr.group_name else ""
             cagr_val_str = f"{tr.cagr:+.2f}%" if tr.cagr is not None else "-"
-            bf_val_str = f"{tr.bf10:.2f} ({tr.bf_interpretation})" if tr.bf10 is not None else "-"
+            bf_disp = format_bayes_factor(tr.bf10)
+            bf_val_str = f"{bf_disp} ({tr.bf_interpretation})" if tr.bf10 is not None else "-"
             md_rows.append(
                 f"| {grp_str}{tr.metric} | {tr.start_time} | {tr.start_val:.2f} | "
                 f"{tr.end_time} | {tr.end_val:.2f} | {tr.diff:+.2f} | {tr.pct_change:+.1f}% | "
@@ -399,11 +400,11 @@ plt.show()
             # BF10 badge
             if tr.bf10 is not None:
                 if tr.bf10 >= 3.0:
-                    bf_pill = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:11.5px;">{tr.bf10:.2f}</span>'
+                    bf_pill = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:11.5px;">{bf_disp}</span>'
                 elif tr.bf10 <= 1.0 / 3.0:
-                    bf_pill = f'<span style="background-color:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:11.5px;">{tr.bf10:.2f}</span>'
+                    bf_pill = f'<span style="background-color:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:8px; font-weight:bold; font-size:11.5px;">{bf_disp}</span>'
                 else:
-                    bf_pill = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:8px; font-size:11.5px;">{tr.bf10:.2f}</span>'
+                    bf_pill = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:8px; font-size:11.5px;">{bf_disp}</span>'
                 bf_html = f'{bf_pill} <span style="color:#64748b; font-size:11.5px;">{tr.bf_interpretation}</span>'
             else:
                 bf_html = '<span style="color:#94a3b8;">-</span>'
@@ -473,7 +474,8 @@ plt.show()
         ]
         html_rows = []
         for i, cr in enumerate(analysis.correlations):
-            bf_val_str = f"{cr.bf10:.2f}" if getattr(cr, "bf10", None) is not None else "-"
+            bf_disp = format_bayes_factor(getattr(cr, "bf10", None))
+            bf_val_str = bf_disp if getattr(cr, "bf10", None) is not None else "-"
             bf_interp_str = f" [{cr.bf_interpretation}]" if getattr(cr, "bf_interpretation", None) else ""
             md_rows.append(
                 f"| **{cr.metric_x}** × **{cr.metric_y}** | {cr.pearson_r:+.3f} | {cr.p_value:.4f} | {bf_val_str} | {cr.interpretation}{bf_interp_str} |"
@@ -490,11 +492,11 @@ plt.show()
             # BF10 badge
             if getattr(cr, "bf10", None) is not None:
                 if cr.bf10 >= 3.0:
-                    bf_badge = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.bf10:.2f}</span>'
+                    bf_badge = f'<span style="background-color:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; font-weight:bold;">{bf_disp}</span>'
                 elif cr.bf10 <= 1.0 / 3.0:
-                    bf_badge = f'<span style="background-color:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-weight:bold;">{cr.bf10:.2f}</span>'
+                    bf_badge = f'<span style="background-color:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-weight:bold;">{bf_disp}</span>'
                 else:
-                    bf_badge = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:10px;">{cr.bf10:.2f}</span>'
+                    bf_badge = f'<span style="background-color:#f1f5f9; color:#475569; padding:2px 8px; border-radius:10px;">{bf_disp}</span>'
             else:
                 bf_badge = '<span style="color:#94a3b8;">-</span>'
 
