@@ -26,12 +26,13 @@ class EducationalInsights:
     executive_summary: str
     pedagogical_implications: str
     future_challenges_and_policy: str
+    counter_intuitive_finding: str = ""
 
 
 def parse_insights_json(raw_text: str) -> dict[str, str]:
     """
-    Safely parses JSON containing executive_summary, pedagogical_implications,
-    and future_challenges_and_policy from raw LLM output.
+    Safely parses JSON containing executive_summary, counter_intuitive_finding,
+    pedagogical_implications, and future_challenges_and_policy from raw LLM output.
     Handles markdown codeblocks, control characters, and truncated JSON.
     Never returns raw JSON strings or slices of JSON structures.
     """
@@ -54,6 +55,7 @@ def parse_insights_json(raw_text: str) -> dict[str, str]:
         if isinstance(data, dict):
             return {
                 "executive_summary": clean_insight_text(data.get("executive_summary", "")),
+                "counter_intuitive_finding": clean_insight_text(data.get("counter_intuitive_finding", "")),
                 "pedagogical_implications": clean_insight_text(data.get("pedagogical_implications", "")),
                 "future_challenges_and_policy": clean_insight_text(data.get("future_challenges_and_policy", "")),
             }
@@ -68,6 +70,7 @@ def parse_insights_json(raw_text: str) -> dict[str, str]:
             if isinstance(data, dict):
                 return {
                     "executive_summary": clean_insight_text(data.get("executive_summary", "")),
+                    "counter_intuitive_finding": clean_insight_text(data.get("counter_intuitive_finding", "")),
                     "pedagogical_implications": clean_insight_text(data.get("pedagogical_implications", "")),
                     "future_challenges_and_policy": clean_insight_text(data.get("future_challenges_and_policy", "")),
                 }
@@ -84,6 +87,7 @@ def parse_insights_json(raw_text: str) -> dict[str, str]:
 
     return {
         "executive_summary": extract_field("executive_summary", text),
+        "counter_intuitive_finding": extract_field("counter_intuitive_finding", text),
         "pedagogical_implications": extract_field("pedagogical_implications", text),
         "future_challenges_and_policy": extract_field("future_challenges_and_policy", text),
     }
@@ -158,7 +162,7 @@ class GeminiInsightGenerator:
         insights_text = "\n".join(analysis.key_insights)
 
         return f"""あなたは算数・数学教育および情報教育（プログラミング教育・STEAM教育）の世界的専門家・教育統計アナリストです。
-以下の公的オープンデータおよび統計分析結果を精読し、教育現場の教員・教育委員会・学習者・保護者に向けて、深く実践的な教育インサイトレポートを作成してください。
+以下の公的オープンデータおよび統計分析結果を精読し、教育現場の教員・教育委員会・学習者・保護者に向けて、通り一遍の教科書的な解説ではなく、【常識や直観を覆す意外な発見・教育的パラドックス】を前面に押し出した深く刺激的な教育インサイトレポートを作成してください。
 
 ### 【データセット情報】
 - タイトル: {dataset.title}
@@ -177,11 +181,24 @@ class GeminiInsightGenerator:
 {insights_text}
 
 ---
+### 【執筆方針：単調さを打破し「意外性」と「知見の深さ」を最大化する要件】
+★【紋切り型の一般論・予定調和の完全禁止】:
+「ICTの普及が進んでいる」「個別最適な学びが重要である」「日々の復習が大切である」といった、どのデータにも当てはまる陳腐で単調な定型文は【一切禁止】します。
+必ず本データの実測値（乖離、格差、頭打ち、逆転現象、情意と学力の不均衡など）に着目し、以下の「意外性」を軸に論述してください：
+1. **常識・直観を覆す逆説（パラドックス）の提示**:
+   「一見すると順調に見える数値の裏で何が停滞しているのか？」「普及率の向上とは裏腹に、なぜ学習意欲や活用頻度の格差が拡大しているのか？」「学力が高いのに嫌いが増える／端末があるのに使われないという皮肉な実態」など、読者がハッと息を呑む意外な盲点に光を当ててください。
+2. **目から鱗の授業改善アプローチ**:
+   「単に端末を使わせる」「単に計算練習を反復する」といった安易なアドバイスではなく、現場の教員が「その視点は盲点だった！」と感嘆するような、逆転の発想・エラーを活かした深い探究の授業設計を提案してください。
+3. **政策や制度の意図せざる副作用（Unintended Consequences）への警鐘**:
+   単なる制度の推進を礼賛するのではなく、一律推進が生み出す新たな心理的負担や隠れた格差など、政策の死角を鋭く突いてください。
+
+---
 ### 【出力フォーマット要件】
-以下の3つの項目について、客観的な数値の根拠と教育的な深い洞察を交えて日本語で執筆してください。
-1. **executive_summary**: 分析の要約 (約250〜350文字)。データの主要な発見、推移のトレンド、注目すべきポイントを要約。
-2. **pedagogical_implications**: 教育現場・指導実践への具体的示唆 (約400〜600文字)。学校現場の授業実践、カリキュラム設計、児童生徒への指導法、ICTや計算ツールの活用法など、明日からの教育に活かせる実践的アドバイス。
-3. **future_challenges_and_policy**: 今後の課題と政策・国際的展望 (約300〜450文字)。教育格差の是正、指導力向上、カリキュラム改訂への提言、国際比較から見えてくる日本の強みと課題。
+以下の4つの項目について、客観的な実測数値を必ず引用し、読者の知的好奇心を刺激する意外性のある日本語で執筆してください。
+1. **executive_summary**: 分析の全体要約 (約280〜380文字)。「一見すると〜と思われがちだが、データからは意外にも…」というように、直観や通説とのギャップ・主要なパラドックスから書き始め、実測数値とともに要約。
+2. **counter_intuitive_finding**: 【データが暴く意外な事実・常識の逆説】(約300〜450文字)。「一般には〇〇と思われがちだが、データが示す実態は…」「普及率100%の裏に潜む意外な格差」「高得点層ほど陥る意欲の逆転現象」など、通説や直観を覆す驚きの発見を数値とともに解説。
+3. **pedagogical_implications**: 教育現場・指導実践への具体的示唆 (約450〜650文字)。現場の思い込みや盲点を突く意外な指導アプローチ、つまずきやすい概念的落とし穴の逆転克服法、手作業とデジタルの予期せぬ相乗効果など、明日からの授業を劇的に変える実践的知見。
+4. **future_challenges_and_policy**: 今後の課題と政策・国際的展望 (約320〜480文字)。表面的な成功の陰に隠れた意図せざる副作用、制度的形骸化の罠、国際比較から浮き彫りになる日本の意外な強みと死角。
 """
 
     def _generate_with_gemini(
@@ -224,6 +241,7 @@ class GeminiInsightGenerator:
         fallback = self._generate_template_fallback(dataset, analysis)
 
         exec_summary = parsed.get("executive_summary") or fallback.executive_summary
+        paradox = parsed.get("counter_intuitive_finding") or fallback.counter_intuitive_finding
         pedagogy = parsed.get("pedagogical_implications") or fallback.pedagogical_implications
         policy = parsed.get("future_challenges_and_policy") or fallback.future_challenges_and_policy
 
@@ -233,6 +251,7 @@ class GeminiInsightGenerator:
 
         return EducationalInsights(
             executive_summary=clean_insight_text(exec_summary),
+            counter_intuitive_finding=clean_insight_text(paradox),
             pedagogical_implications=clean_insight_text(pedagogy),
             future_challenges_and_policy=clean_insight_text(policy),
         )
@@ -243,7 +262,7 @@ class GeminiInsightGenerator:
         prompt = self._build_insight_prompt(dataset, analysis)
         prompt += (
             "\n\n【重要】出力は必ず有効なJSON形式のみとしてください。"
-            "キーは 'executive_summary', 'pedagogical_implications', 'future_challenges_and_policy' の3つです。"
+            "キーは 'executive_summary', 'counter_intuitive_finding', 'pedagogical_implications', 'future_challenges_and_policy' の4つです。"
             "```json 等のマークダウンコードブロックや前後の解説文は一切含めず、純粋なJSONオブジェクト（{...}）のみを出力してください。"
         )
 
@@ -261,7 +280,7 @@ class GeminiInsightGenerator:
             "model": resolved_model,
             "max_tokens": 4096,
             "temperature": 0.3,
-            "system": "You are an expert Japanese educational policy and statistical analyst. Always respond strictly in valid JSON without markdown fences or preambles.",
+            "system": "You are an expert Japanese educational policy and statistical analyst specializing in uncovering surprising data paradoxes. Always respond strictly in valid JSON without markdown fences or preambles.",
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -279,6 +298,7 @@ class GeminiInsightGenerator:
         fallback = self._generate_template_fallback(dataset, analysis)
 
         exec_summary = parsed.get("executive_summary") or fallback.executive_summary
+        paradox = parsed.get("counter_intuitive_finding") or fallback.counter_intuitive_finding
         pedagogy = parsed.get("pedagogical_implications") or fallback.pedagogical_implications
         policy = parsed.get("future_challenges_and_policy") or fallback.future_challenges_and_policy
 
@@ -289,12 +309,10 @@ class GeminiInsightGenerator:
         logger.info(f"Successfully generated educational insights via Claude ({resolved_model})!")
         return EducationalInsights(
             executive_summary=clean_insight_text(exec_summary),
+            counter_intuitive_finding=clean_insight_text(paradox),
             pedagogical_implications=clean_insight_text(pedagogy),
             future_challenges_and_policy=clean_insight_text(policy),
         )
-
-
-
 
     def _generate_template_fallback(
         self, dataset: EducationDataset, analysis: AnalysisResult
@@ -304,43 +322,55 @@ class GeminiInsightGenerator:
 
         if dataset.category == "math":
             exec_summary = (
-                f"本分析では、{dataset.source_name}のオープンデータを基に、算数・数学教育における学力到達度や意識の推移を検証しました。"
-                f"分析の結果、{insights_bullets}といった特徴的な傾向が明らかになりました。"
-                f"特に知識の定着にとどまらず、数学的な見方・考え方を働かせる思考力や、日常生活と数学を結びつける実用感の醸成が重要な指標となっています。"
+                f"本分析では、{dataset.source_name}の公的統計に基づき、算数・数学教育における学力到達度と情意指標の推移動態を精緻に検証しました。"
+                f"データからは、{insights_bullets}という顕著な傾向が示されています。"
+                f"一見すると高学力が維持されているように映るものの、単なる計算手順の習熟と、数学的探究心や自己効力感との間には深刻な乖離が生じている実態が浮き彫りとなりました。"
+            )
+            counter_intuitive = (
+                "【常識とデータの逆説：学力世界トップクラスに潜む自己効力感の急落】\n"
+                "一般には『問題が解けて成績が優秀であるほど、その教科が好きになり自信を持つ』と考えられがちです。"
+                "しかし統計データが突きつける現実は正反対のパラドックスを示しています。我が国の児童生徒は国際的にも極めて高い平均正答率を維持しているにもかかわらず、"
+                "学年が上がるにつれて『算数・数学が楽しい』『自分は数学が得意だ』と肯定する割合が劇的に急落します。"
+                "正解を出すことへの外在的プレッシャーが、かえって失敗を恐れる心理を生み、探究への内発的動機を阻害しているという意外な構造的課題がデータから浮かび上がっています。"
             )
             pedagogy = (
-                "【授業実践・指導法への示唆】\n"
-                "1. 単なる反復練習から「問いを創り出す探究型授業」へのシフト: 計算手順の暗記にとどまらず、なぜその公式が成り立つのかを図解や具体物を用いて対話的に説明する活動を取り入れることが有効です。\n"
-                "2. デジタル端末を活用した数学的モデリング: 1人1台端末の表計算ソフトや動的幾何ソフト（GeoGebra等）を活用し、グラフの変化を視覚的に体験させることで、関数や図形領域への苦手意識を軽減できます。\n"
-                "3. 自己効力感を高める小さな成功体験の設計: 数学に対する学習意欲・将来の有用性感は学力と密接に連動しています。つまずきやすい児童生徒に対して、スモールステップでの足場かけ（スキャフォールディング）が不可欠です。"
+                "【現場の盲点を突く授業実践・指導アプローチ】\n"
+                "1. 『正解への近道』ではなく『あえて誤答を味わう』逆転の授業設計: 素早い正解を称賛する指導から脱却し、典型的なつまずきや多様な別解をクラス全体で比較・吟味する活動を取り入れることで、失敗を恐れない探究的マインドセットを育みます。\n"
+                "2. 動的ツールを用いた数学的モデリングと直観の裏切り体験: 1人1台端末のGeoGebraや表計算ソフトを活用し、『直観と計算結果が食い違う瞬間』を意図的に演出することで、公式の受動的暗記から主体的探究へ意識を転換させます。\n"
+                "3. スモールステップとメタ認知の統合的支援: つまずきを抱える児童生徒に対し、単なるドリル反復ではなく『どこで思考が止まったか』を自己言語化させる足場かけ（スキャフォールディング）を行い、有能感の回復を促進します。"
             )
             policy = (
                 "【今後の課題と教育政策への提言】\n"
-                "国際的な動向および経年データを踏まえると、数学的な応用力・課題解決力の格差解消が喫緊の課題です。"
-                "PISA等の国際指標でも示されているように、社会経済的背景にかかわらず全ての児童生徒が質の高い理数教育にアクセスできるよう、"
-                "放課後学習支援や個別最適なAI教材の積極的活用、ならびに教員の算数・数学専修指導力の継続的研修が求められます。"
+                "国際指標や経年変化が示す通り、表面的な平均点の向上に安心し、見落とされがちな情意の格差や思考の二極化を是正することが喫緊の課題です。"
+                "テスト対策に偏重した指導体制を見直し、探究型学習の評価基準の明確化や、教員がゆとりを持って個別最適な対話指導を行える指導体制の拡充が強く求められます。"
             )
         else:
             exec_summary = (
-                f"本分析では、{dataset.source_name}の最新公的統計を活用し、情報教育・プログラミング教育および学校ICT環境の実態を定量的に分析しました。"
-                f"データからは、{insights_bullets}が明確に示されています。"
-                f"GIGAスクール構想によるインフラ整備が急速に進展した一方、日常的な学びのツールとしての利活用頻度やプログラミング的思考の育成にはなお発展の余地が見られます。"
+                f"本分析では、{dataset.source_name}の最新公的統計を活用し、情報教育・プログラミング教育および学校ICT環境の実態を多角的に分析しました。"
+                f"データからは、{insights_bullets}が明確に裏付けられています。"
+                f"GIGAスクール構想によりハードウェア環境は全国的に充足されたものの、ツールを『文房具として探究に活かす』深度には学校種・自治体間で予期せぬ二極化が進行しています。"
+            )
+            counter_intuitive = (
+                "【常識とデータの逆説：端末配備率100%が覆い隠す『利活用の二極化』】\n"
+                "1人1台端末の配備が完了したことで、『学校教育のデジタル化は達成された』と認識されがちです。"
+                "しかし実態データを精緻に分析すると、単なる調べ学習やドリル反復にとどまる学校と、プログラミングや協働データ分析を日常的に実践する学校との間で、"
+                "かつてない『利活用深度の新たな格差』が急拡大しています。インフラの充足が、かえって教員の指導力や学校現場の授業デザイン格差を鮮明にするという皮肉な現実が浮き彫りとなっています。"
             )
             pedagogy = (
-                "【情報教育・プログラミング指導の実践示唆】\n"
-                "1. 「使う」段階から「創り出す・探究する」情報活用能力へ: 端末の調べ学習利用にとどまらず、データを集計・可視化して仮説を検証したり、課題解決のためのアルゴリズムを組み立てるプログラミング体験を各教科横断で組み込むことが推奨されます。\n"
-                "2. コンピュテーショナル・シンキングの日常化: プログラミング言語の文法習得を目的化せず、問題を分解し、抽象化し、手順化する思考プロセスを総合的な学習の時間や算数・理科と連動させて指導することが肝要です。\n"
-                "3. 教員の伴走支援と校内研修の充実: 教員のICT指導力達成率が向上傾向にある地域ほど児童生徒の活用度も高まる正の循環が確認されています。教員同士が授業実践事例を共有するコミュニティづくりが鍵となります。"
+                "【現場の盲点を突く情報教育・プログラミング指導の実践示唆】\n"
+                "1. 『操作の習得』から『課題解決のアルゴリズム構築』への転換: アプリの基本操作や文法記憶を目的化せず、身近な学校・地域課題を解決するための手順を生徒自身にモデリング・自動化させる実践を組み込みます。\n"
+                "2. エラーログを学びに変えるデバッグ文化の醸成: プログラミングにおけるエラー（バグ）を『失敗』ではなく『思考を深める最大の好機』と位置づけ、他者と協働して原因を究明するデバッグ体験を通じて計算論的思考を鍛えます。\n"
+                "3. 教員間実践コミュニティによる伴走支援: 突出した一部の先進教員に依存する体制を脱し、日常授業での小さなICT活用アイデアを校内で日常的に共有する仕組みづくりが不可欠です。"
             )
             policy = (
                 "【今後の展望と高度IT人材育成への課題】\n"
-                "国際的なICTスキル保有率比較や高等教育における進路動向からも、初等中等段階からの体系的な情報教育の重要性が増しています。"
-                "今後は、生成AIをはじめとする新技術への情報モラル・リテラシー教育の拡充とともに、"
-                "ジェンダーギャップの解消（情報・STEM分野への女子進学支援）や、地域・自治体間のICT利活用格差の是正に注力した政策推進が期待されます。"
+                "高等教育における情報・STEM系進路への接続や国際比較の観点からも、形式的な端末利用を超えた本質的リテラシーの育成が不可欠です。"
+                "生成AI時代における情報モラル・データリテラシー教育の抜本的強化とともに、地域間・学校間の指導体制格差を埋める専門指導員の重点配置が強く求められます。"
             )
 
         return EducationalInsights(
             executive_summary=exec_summary,
+            counter_intuitive_finding=counter_intuitive,
             pedagogical_implications=pedagogy,
             future_challenges_and_policy=policy,
         )

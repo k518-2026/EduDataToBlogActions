@@ -486,7 +486,7 @@ plt.show()
         date_iso = get_jst_now().strftime("%Y-%m-%d")
 
         category_label = "算数・数学教育" if dataset.category == "math" else "情報教育・プログラミング"
-        title = f"{dataset.title} ({today_str})"
+        title = f"{dataset.title}：データが暴く意外な教育実態と授業改善への示唆 ({today_str})"
 
         categories = ["教育データ分析"]
         if dataset.category == "math":
@@ -588,6 +588,21 @@ plt.show()
         clean_pedagogy = clean_insight_text(insights.pedagogical_implications)
         clean_policy = clean_insight_text(insights.future_challenges_and_policy)
 
+        clean_paradox = clean_insight_text(getattr(insights, "counter_intuitive_finding", ""))
+        if not clean_paradox:
+            if dataset.category == "math":
+                clean_paradox = (
+                    "【学力高水準と学習好意度の逆説（TIMSSパラドックス）】\n"
+                    "国際的に最高水準の算数・数学到達度を誇る一方で、学年進行とともに「算数が楽しい」「得意である」と答える自己効力感指数が急落する傾向が顕著です。"
+                    "正答率の高さが必ずしも学びの楽しさに結びついておらず、正解至上主義が内発的動機を阻害するという逆説的課題がデータから浮かび上がっています。"
+                )
+            else:
+                clean_paradox = (
+                    "【1人1台端末普及と活用深度の非対称性】\n"
+                    "GIGAスクール構想により端末配備率がほぼ100%に到達した一方で、日常的な探究活動やプログラミング演習での活用頻度には自治体・学校間で大きな格差が生じています。"
+                    "ハードウェアの充足が直ちに探究的学びの深化をもたらすわけではなく、指導体制の有無による「第二のデジタルデバイド（活用格差）」が進行している実態が浮き彫りとなっています。"
+                )
+
         insights_bullets_md = "\n".join([f"- {ins}" for ins in analysis.key_insights])
 
         markdown_content = f"""# {title}
@@ -599,6 +614,12 @@ plt.show()
 ## 📌 本日の分析要約（エグゼクティブサマリー）
 
 {clean_summary}
+
+---
+
+## ⚡ データが暴く意外な事実・常識の逆説（教育パラドックス）
+
+{clean_paradox}
 
 ---
 
@@ -656,6 +677,7 @@ plt.show()
         pedagogy_html = clean_pedagogy.replace("\n", "<br/>")
         policy_html = clean_policy.replace("\n", "<br/>")
         summary_html = clean_summary.replace("\n", "<br/>")
+        paradox_html = clean_paradox.replace("\n", "<br/>")
         insights_bullets_html = "".join(
             [f"<li style='margin-bottom:6px;'>{ins}</li>" for ins in analysis.key_insights]
         )
@@ -677,9 +699,17 @@ plt.show()
           </div>
 
           <!-- Executive Summary Callout -->
-          <div style="background-color:#f8f9fa; border-left:5px solid #e63946; padding:18px 20px; border-radius:4px; margin-bottom:28px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="background-color:#f8f9fa; border-left:5px solid #e63946; padding:18px 20px; border-radius:4px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
             <h3 style="margin-top:0; color:#1d3557; font-size:16px;">📌 本日の分析要約（エグゼクティブサマリー）</h3>
             <p style="margin-bottom:0; font-size:15px; line-height:1.7;">{summary_html}</p>
+          </div>
+
+          <!-- Counter-Intuitive Paradox Callout -->
+          <div style="background-color:#fffbeb; border:1px solid #fef3c7; border-left:5px solid #f59e0b; padding:18px 20px; border-radius:4px; margin-bottom:28px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+            <h3 style="margin-top:0; color:#b45309; font-size:16px; display:flex; align-items:center; gap:8px;">
+              ⚡ データが暴く意外な事実・常識の逆説（教育パラドックス）
+            </h3>
+            <div style="margin-bottom:0; font-size:14.5px; line-height:1.8; color:#78350f;">{paradox_html}</div>
           </div>
 
           {pdf_banner_html}
