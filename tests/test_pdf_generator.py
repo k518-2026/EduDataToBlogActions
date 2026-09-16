@@ -18,6 +18,8 @@ from src.pdf.font_loader import register_japanese_fonts
 from src.pdf.pdf_generator import EduPaperPdfGenerator, JIS_B5
 from src.reporter import EduReportBuilder
 from src.insights import EducationalInsights
+from src.utils import contains_japanese, clean_english_text
+from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS
 
 
 def test_japanese_font_registration():
@@ -453,6 +455,82 @@ def test_japanese_line_breaking_no_punctuation_starts_line():
                 assert not l.startswith(forb), f"Line {idx} started with forbidden character '{forb}' with pad {pad}: '{l[:20]}'"
             # Check digits not cut across lines (e.g. starting with '.00')
             assert not l.startswith(".00"), f"Line {idx} broke decimal digits with pad {pad}: '{l[:20]}'"
+
+
+def test_english_summary_zero_japanese():
+    """Validates that English Summary, Title, and Keywords contain 0 Japanese characters across all 8 datasets."""
+    catalog = DatasetCatalog()
+    analyzer = EduDataAnalyzer()
+    paper_gen = AcademicPaperGenerator()
+
+    for dataset_id in DATASET_ACADEMIC_CONTEXTS.keys():
+        dataset = catalog.get_by_id(dataset_id)
+        assert dataset is not None, f"Dataset {dataset_id} not found in catalog"
+        analysis = analyzer.analyze(dataset)
+        paper = paper_gen.generate_paper(dataset, analysis)
+
+        # English title
+        assert paper.title_en, f"Missing title_en for {dataset_id}"
+        assert not contains_japanese(paper.title_en), f"title_en contains Japanese in {dataset_id}: '{paper.title_en}'"
+
+        # English summary
+        assert paper.summary_en, f"Missing summary_en for {dataset_id}"
+        assert not contains_japanese(paper.summary_en), f"summary_en contains Japanese in {dataset_id}: '{paper.summary_en}'"
+        assert len(paper.summary_en) > 100, f"summary_en is too short in {dataset_id}"
+
+        # English keywords
+        assert len(paper.keywords_en) >= 3, f"Insufficient keywords_en in {dataset_id}"
+        for kw in paper.keywords_en:
+            assert not contains_japanese(kw), f"keywords_en '{kw}' contains Japanese in {dataset_id}"
+            assert kw == kw.upper(), f"keywords_en '{kw}' is not uppercase in {dataset_id}"
+
+
+def test_english_summary_ascii_typography():
+    """Validates that English Summary and Keywords do not contain Japanese full-width punctuation."""
+    catalog = DatasetCatalog()
+    analyzer = EduDataAnalyzer()
+    paper_gen = AcademicPaperGenerator()
+
+    fullwidth_chars = ["，", "．", "％", "（", "）", "［", "］", "｛", "｝", "：", "；", "“", "”", "‘", "’", "〜", "ー", "・", "　"]
+
+    for dataset_id in DATASET_ACADEMIC_CONTEXTS.keys():
+        dataset = catalog.get_by_id(dataset_id)
+        analysis = analyzer.analyze(dataset)
+        paper = paper_gen.generate_paper(dataset, analysis)
+
+        for ch in fullwidth_chars:
+            assert ch not in paper.title_en, f"title_en contains full-width '{ch}' in {dataset_id}"
+            assert ch not in paper.summary_en, f"summary_en contains full-width '{ch}' in {dataset_id}"
+            for kw in paper.keywords_en:
+                assert ch not in kw, f"keywords_en contains full-width '{ch}' in {dataset_id}"
+
+
+def test_all_eight_datasets_pdf_four_pages_strict(tmp_path):
+    """Validates that all 8 datasets generate academic PDFs with strictly 4 pages."""
+    import re
+    from src.visualizer import EduDataVisualizer
+
+    catalog = DatasetCatalog()
+    analyzer = EduDataAnalyzer()
+    paper_gen = AcademicPaperGenerator()
+    pdf_gen = EduPaperPdfGenerator()
+    viz = EduDataVisualizer(output_dir=tmp_path)
+
+    for dataset_id in DATASET_ACADEMIC_CONTEXTS.keys():
+        dataset = catalog.get_by_id(dataset_id)
+        analysis = analyzer.analyze(dataset)
+        paper = paper_gen.generate_paper(dataset, analysis)
+
+        chart_path = viz.generate_chart(dataset, analysis)
+        sec_chart_path = viz.generate_secondary_chart(dataset, analysis)
+        out_pdf = tmp_path / f"{dataset_id}_4pages.pdf"
+
+        pdf_gen.generate_pdf(paper, dataset, analysis, chart_path, out_pdf, secondary_chart_path=sec_chart_path)
+        assert out_pdf.exists()
+
+        pdf_data = out_pdf.read_bytes()
+        page_count = len(re.findall(rb"/Type\s*/Page\b", pdf_data))
+        assert page_count == 4, f"{dataset_id} produced {page_count} pages (expected strictly 4 pages)"
 
 
 

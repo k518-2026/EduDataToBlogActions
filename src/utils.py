@@ -103,9 +103,9 @@ def clean_text_spaces(text: str) -> str:
     text = re.sub(r"(\d+(?:\.\d+)?)\s*(点|%|％|人|校|年|度)", r"\1\2", text)
 
     # Normalize half-width commas and colons in Japanese text context to full-width
-    text = re.sub(r"([一-龥ぁ-んァ-ヶ%％点人校度年)）\]｝」』])\s*,\s*", r"\1，", text)
-    text = re.sub(r"\s*,\s*([一-龥ぁ-んァ-ヶ(（\[［｛「『])", r"，\1", text)
-    text = re.sub(r"\s+,", "，", text)
+    text = re.sub(r"([一-龥ぁ-んァ-ヶ％点人校度年）\]｝」』])\s*,\s*", r"\1，", text)
+    text = re.sub(r"\s*,\s*([一-龥ぁ-んァ-ヶ（［｛「『])", r"，\1", text)
+    text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+,", r"\1，", text)
 
     # Remove spaces between Japanese characters: '漢字　ひらがな' -> '漢字ひらがな'
     text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+([一-龥ぁ-んァ-ヶ])", r"\1\2", text)
@@ -117,6 +117,72 @@ def clean_text_spaces(text: str) -> str:
     text = re.sub(r"\s+([，．、。（）「」『』)\]｝}〕〉》】!?！？:：;；])", r"\1", text)
     text = re.sub(r"([（「『(\[{｛〔〈《【])\s+", r"\1", text)
     text = re.sub(r"\s+([）」』)\]｝}〕〉》】])", r"\1", text)
+    return text
+
+
+def contains_japanese(text: str) -> bool:
+    """Returns True if the text contains any Japanese characters (Kanji, Hiragana, Katakana)."""
+    if not text:
+        return False
+    return bool(re.search(r"[\u3040-\u309f\u30a0-\u30ff\u3400-\u4dbf\u4e00-\u9fff]", text))
+
+
+def clean_english_text(text: str) -> str:
+    """
+    Standardizes English text to ensure strict ASCII punctuation and clean typography.
+    - Converts full-width punctuation (，．％：（）など) to standard ASCII (, . % : () etc.).
+    - Ensures a single space after punctuation (commas, periods, colons) when followed by a word.
+    - Prevents orphan spaces before punctuation.
+    - Collapses multiple whitespace characters to single spaces.
+    """
+    if not text:
+        return ""
+
+    # Replace HTML line breaks or newlines with spaces
+    text = re.sub(r"<br\s*/?>", " ", text)
+    text = text.replace("\n", " ").replace("\r", " ")
+
+    # Normalize full-width punctuation and brackets to ASCII
+    replacements = {
+        "，": ", ",
+        "．": ". ",
+        "％": "%",
+        "：": ": ",
+        "；": "; ",
+        "（": " (",
+        "）": ") ",
+        "［": " [",
+        "］": "] ",
+        "｛": " {",
+        "｝": "} ",
+        "“": '"',
+        "”": '"',
+        "‘": "'",
+        "’": "'",
+        "－": "-",
+        "ー": "-",
+        "〜": "~",
+        "・": " / ",
+        "　": " ",
+    }
+    for orig, rep in replacements.items():
+        text = text.replace(orig, rep)
+
+    # Standardize formula notations
+    text = re.sub(r"\bBF\s*10\b", "BF10", text)
+    text = re.sub(r"\bR\s*2\b", "R2", text)
+
+    # Clean whitespace around punctuation
+    text = re.sub(r"\s+([,.:;!?)\]}%])", r"\1", text)
+    text = re.sub(r"([(])\s+", r"\1", text)
+
+    # Ensure space after punctuation (commas, colons, semicolons) if followed by an alphanumeric character
+    text = re.sub(r"([,;:!?])([A-Za-z0-9])", r"\1 \2", text)
+    # Ensure space after periods if followed by an uppercase letter (sentence boundary)
+    text = re.sub(r"(\.)([A-Z])", r"\1 \2", text)
+
+    # Normalize multiple spaces
+    text = re.sub(r"\s{2,}", " ", text).strip()
     return text
 
 

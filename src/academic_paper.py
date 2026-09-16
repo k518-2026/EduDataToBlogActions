@@ -21,7 +21,14 @@ from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS, get_academic_contex
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import clean_text_spaces, format_bayes_factor, resolve_anthropic_model, resolve_metric_unit
+from src.utils import (
+    clean_english_text,
+    clean_text_spaces,
+    contains_japanese,
+    format_bayes_factor,
+    resolve_anthropic_model,
+    resolve_metric_unit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -599,6 +606,79 @@ def synchronize_citations_and_references(
     return paper
 
 
+def sanitize_academic_paper(paper: "AcademicPaper", dataset_id: str) -> "AcademicPaper":
+    """
+    Guarantees that title_en, summary_en, and keywords_en are 100% fluent academic English,
+    strictly free of any Japanese characters (Kanji, Hiragana, Katakana) or full-width punctuation.
+    """
+    ctx = get_academic_context(dataset_id)
+
+    # 1. Sanitize title_en
+    paper.title_en = clean_english_text(paper.title_en)
+    if not paper.title_en or contains_japanese(paper.title_en):
+        paper.title_en = ctx.title_en or "Quantitative Empirical Analysis of Educational Open Data"
+
+    # 2. Sanitize authors_en
+    paper.authors_en = clean_english_text(paper.authors_en)
+    if not paper.authors_en or contains_japanese(paper.authors_en):
+        paper.authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
+
+    # 3. Sanitize summary_en
+    summary = clean_english_text(paper.summary_en)
+
+    # Replace known Japanese proper nouns and institution names
+    proper_noun_replacements = {
+        "世界銀行": ctx.source_en or "The World Bank",
+        "World Bank": ctx.source_en or "The World Bank",
+        "文部科学省": "Ministry of Education, Culture, Sports, Science and Technology (MEXT)",
+        "国立教育政策研究所": "National Institute for Educational Policy Research (NIER)",
+        "経済協力開発機構": "Organisation for Economic Co-operation and Development (OECD)",
+        "OECD": "OECD",
+        "ユネスコ": "UNESCO Institute for Statistics (UIS)",
+        "UNESCO": "UNESCO",
+        "国際教育到達度評価学会": "International Association for the Evaluation of Educational Achievement (IEA)",
+        "IEA": "IEA",
+    }
+    for jp_noun, en_noun in proper_noun_replacements.items():
+        summary = summary.replace(jp_noun, en_noun)
+
+    # Replace known Japanese metrics with their English counterparts
+    if ctx.metrics_en:
+        for jp_m, en_m in ctx.metrics_en.items():
+            summary = summary.replace(jp_m, en_m)
+
+    # If Japanese characters still remain or summary is too short, fallback to certified English summary
+    if contains_japanese(summary) or len(summary) < 60:
+        if ctx.fallback_summary_en:
+            logger.warning(
+                f"Japanese characters detected in summary_en for '{dataset_id}'. "
+                "Falling back to certified 100% English academic summary."
+            )
+            summary = ctx.fallback_summary_en
+
+    paper.summary_en = clean_english_text(summary)
+
+    # 4. Sanitize keywords_en
+    cleaned_keywords = []
+    for kw in paper.keywords_en:
+        k_clean = clean_english_text(kw).upper()
+        if k_clean and not contains_japanese(k_clean):
+            cleaned_keywords.append(k_clean)
+
+    if not cleaned_keywords or len(cleaned_keywords) < 3:
+        paper.keywords_en = ctx.fallback_keywords_en or [
+            "EDUCATIONAL STATISTICS",
+            "QUANTITATIVE ANALYSIS",
+            "DESCRIPTIVE STATISTICS",
+            "CONFIDENCE INTERVALS",
+            "PEDAGOGICAL IMPLICATIONS",
+        ]
+    else:
+        paper.keywords_en = cleaned_keywords
+
+    return paper
+
+
 @dataclass
 class AcademicPaper:
     """Represents a full JSET-compliant academic paper."""
@@ -695,6 +775,9 @@ class AcademicPaperGenerator:
         insights_lines = "\n".join([f"- {ins}" for ins in analysis.key_insights])
         curated_ref_lines = "\n".join([f"    * {r}" for r in ctx.curated_references])
 
+        metrics_en_lines = [f"      * '{m}' -> '{en}'" for m, en in ctx.metrics_en.items()]
+        metrics_en_str = "\n".join(metrics_en_lines) if metrics_en_lines else "      * N/A"
+
         return f"""あなたは教育工学、教育統計学、およびSTEM/理数・情報教育を専門とする大学教授・主任研究員です。
 日本の教育工学・情報教育系学術論文誌の投稿規程および執筆の手引（ショートレター／学術論文）の体裁に厳格に準拠した、極めて学術性の高い本格的な学術論文を執筆してください。
 ※重要：特定の学会名（「日本教育工学会」等）は、本文・抄録・見出し等の中に一切掲載しないでください（学術論文の体裁・構成・文体・組版ルールのみを利用します）。
@@ -775,10 +858,19 @@ class AcademicPaperGenerator:
      2. 【著者名表記】外国人著者の苗字（姓）はすべて大文字（ALL CAPS、例: MULLIS, I. V. S.、WING, J. M.、GODA, Y.）とし、共著者間の接続は「and」を用いること（「&」は不可）。
      3. 【雑誌・書誌書式】著者名 (西暦年) 題目. 雑誌名, <b>巻数</b> (号数) ：始め-終わりページ. （※巻数は太字<b> </b>、ページ範囲の前は全角コロン「：」とすること）。
      4. ※特定の学会名（「日本教育工学会」等）は含めないこと。各文献の先頭に「[1]」「1.」「・」等の番号・記号は付けないこと。
-   - **title_en**: 英語論文タイトル。
-   - **authors_en**: 英語著者所属（例: Taro NIHON*1 and Jiro KYOUIKU*2 : Faculty of Education...）。
-   - **summary_en**: 英文抄録（Summary）。和文抄録の正確な英語翻訳（100〜150語）。
-   - **keywords_en**: 英語キーワード（5〜6語、すべて大文字表記、例: ["MATHEMATICS EDUCATION", "EVALUATION", "STATISTICAL ANALYSIS"]）。
+    - **title_en**: 英語論文タイトル（日本語・全角文字一切禁止）。推奨英文題目: "{ctx.title_en}"
+    - **authors_en**: 英語著者所属（例: "EduData Research Group*1 and Educational Data Science Team*2"）。
+    - **summary_en**: 英文抄録（Summary，100〜150語）。
+      ★【絶対厳守ルール：完全な学術英語のみで記述・日本語混入の完全禁止】
+      1. 日本語の文字（漢字・ひらがな・カタカナ）を【1文字たりとも含めてはならない】。
+      2. 固有名詞・組織名・調査名・指標名もすべて完全な英語表記に翻訳すること。
+         - データセット/調査英名: "{ctx.title_en}"
+         - 発行組織英名: "{ctx.source_en}"
+         - 指標名英名対応:
+{metrics_en_str}
+      3. 句読点・記号はすべて半角ASCII（", ", ". ", "%", "'", '"'）を使用し、全角記号（"，", "．", "％", "（）"）は一切使用しないこと。
+      4. 和文抄録に基づき、背景、手法、数値結果（記述統計・相関・ベイズ推論）、および教育工学的示唆を流暢な学術英語で記述すること。
+    - **keywords_en**: 英語キーワード（5〜6語、すべて大文字の半角英語表記、日本語・全角文字一切禁止。例: {ctx.fallback_keywords_en}）。
 """
 
     def _generate_with_gemini(
@@ -863,7 +955,8 @@ class AcademicPaperGenerator:
             summary_en=data.get("summary_en", ""),
             keywords_en=keywords_en,
         )
-        return synchronize_citations_and_references(paper, dataset.id)
+        paper = synchronize_citations_and_references(paper, dataset.id)
+        return sanitize_academic_paper(paper, dataset.id)
 
     def _generate_with_claude(
         self, dataset: EducationDataset, analysis: AnalysisResult
@@ -944,7 +1037,8 @@ class AcademicPaperGenerator:
             summary_en=data.get("summary_en", ""),
             keywords_en=keywords_en,
         )
-        return synchronize_citations_and_references(paper, dataset.id)
+        paper = synchronize_citations_and_references(paper, dataset.id)
+        return sanitize_academic_paper(paper, dataset.id)
 
     def _generate_template_fallback(
         self, dataset: EducationDataset, analysis: AnalysisResult
@@ -1026,14 +1120,20 @@ class AcademicPaperGenerator:
         discussion = ctx.fallback_discussion
         references = sort_jset_references(ctx.curated_references)
 
-        title_en = f"Quantitative Empirical Analysis of {clean_title_core} in Educational Statistics"
+        title_en = ctx.title_en if ctx.title_en else "Quantitative Empirical Analysis of Educational Indicators"
         authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
-        summary_en = (
-            f"This study conducts an empirical quantitative analysis of educational open data ({clean_title_core}) published by {clean_source}. "
-            f"The descriptive statistics for '{first_metric}' revealed a mean of {avg_str}, median of {med_str}, and standard deviation of {std_str}. "
+        summary_en = ctx.fallback_summary_en if ctx.fallback_summary_en else (
+            f"This study conducts an empirical quantitative analysis of educational open data published by {ctx.source_en or clean_source}. "
+            f"Descriptive statistics, regression models, and Bayesian inference were evaluated. "
             f"Based on these empirical findings with 95% confidence intervals, pedagogical implications and theoretical considerations are discussed."
         )
-        keywords_en = ["EDUCATIONAL STATISTICS", "QUANTITATIVE ANALYSIS", "DESCRIPTIVE STATISTICS", "CONFIDENCE INTERVALS", "PEDAGOGICAL IMPLICATIONS"]
+        keywords_en = ctx.fallback_keywords_en if ctx.fallback_keywords_en else [
+            "EDUCATIONAL STATISTICS",
+            "QUANTITATIVE ANALYSIS",
+            "DESCRIPTIVE STATISTICS",
+            "CONFIDENCE INTERVALS",
+            "PEDAGOGICAL IMPLICATIONS",
+        ]
 
         references = sort_jset_references(references)
 
@@ -1053,5 +1153,6 @@ class AcademicPaperGenerator:
             summary_en=summary_en,
             keywords_en=keywords_en,
         )
-        return synchronize_citations_and_references(paper, dataset.id)
+        paper = synchronize_citations_and_references(paper, dataset.id)
+        return sanitize_academic_paper(paper, dataset.id)
 

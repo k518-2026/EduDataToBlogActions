@@ -18,6 +18,7 @@ from typing import List, Optional, Tuple
 from unicodedata import category
 
 from src.utils import (
+    clean_english_text,
     clean_text_spaces,
     format_bayes_factor,
     format_title_two_lines,
@@ -534,6 +535,10 @@ class EduPaperPdfGenerator:
         """Constructs a Paragraph after standardizing text spaces, numbers, and formulas."""
         return Paragraph(clean_text_spaces(text), style)
 
+    def _para_en(self, text: str, style: ParagraphStyle) -> Paragraph:
+        """Constructs a Paragraph for English text with standard ASCII typography."""
+        return Paragraph(clean_english_text(text), style)
+
     def _build_descriptive_stats_table(
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> Table:
@@ -984,17 +989,17 @@ class EduPaperPdfGenerator:
         story.append(FrameBreak())
         if paper.summary_en:
             summary_elements = [
-                self._para("Summary", self.styles["SummaryHeading"]),
-                self._para(paper.summary_en, self.styles["SummaryBody"]),
+                self._para_en("Summary", self.styles["SummaryHeading"]),
+                self._para_en(paper.summary_en, self.styles["SummaryBody"]),
             ]
             if paper.keywords_en:
-                kw_en_str = "， ".join(paper.keywords_en)
+                kw_en_str = ", ".join(paper.keywords_en)
                 summary_elements.append(
-                    self._para(f"KEYWORDS: {kw_en_str}", self.styles["SummaryKeywords"])
+                    self._para_en(f"KEYWORDS: {kw_en_str}", self.styles["SummaryKeywords"])
                 )
             summary_elements.append(
-                self._para(
-                    f"({get_jst_now().strftime('%B %d， %Y')})",
+                self._para_en(
+                    f"({get_jst_now().strftime('%B %d, %Y')})",
                     self.styles["SummaryDate"],
                 )
             )

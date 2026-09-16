@@ -29,6 +29,11 @@ class DatasetAcademicContext:
     fallback_major_revisions: List[str]
     fallback_minor_revisions: List[str]
     fallback_questions_to_authors: List[str]
+    title_en: str = ""
+    source_en: str = ""
+    metrics_en: Dict[str, str] = field(default_factory=dict)
+    fallback_keywords_en: List[str] = field(default_factory=list)
+    fallback_summary_en: str = ""
 
 
 # Registry of scholarly contexts for each dataset
@@ -136,6 +141,25 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 2019年・2023年調査にかけて中学校数学の好意度が微増している要因として、GIGAスクール端末の導入等の学習環境の変化がどの程度寄与しているとお考えか。",
             "2. 「得意である肯定率」の低迷が、単なる苦手意識ではなく、高度な目標基準設定（メタ認知的自己評価の厳格さ）に起因する可能性について著者の見解を伺いたい。",
         ],
+        title_en="The TIMSS Paradox in Mathematics Education: Empirical Analysis of the Asymmetry Between Academic Achievement and Affective Attitudes",
+        source_en="International Association for the Evaluation of Educational Achievement (IEA) and National Institute for Educational Policy Research (NIER)",
+        metrics_en={
+            "小4算数平均得点": "Grade 4 Mathematics Average Score",
+            "中2数学平均得点": "Grade 8 Mathematics Average Score",
+            "小4算数楽しい": "Grade 4 Mathematics Enjoyment Rate",
+            "中2数学楽しい": "Grade 8 Mathematics Enjoyment Rate",
+        },
+        fallback_keywords_en=["TIMSS PARADOX", "MATHEMATICS EDUCATION", "SELF-EFFICACY", "AFFECTIVE DOMAIN", "LONGITUDINAL ANALYSIS"],
+        fallback_summary_en=(
+            "This study investigates the longitudinal empirical trends of the 'TIMSS Paradox' in Japanese mathematics education, "
+            "focusing on the structural asymmetry between cognitive achievement and affective self-efficacy. Utilizing official open data "
+            "from the Trends in International Mathematics and Science Study (TIMSS) published by the International Association for the "
+            "Evaluation of Educational Achievement (IEA) and NIER, descriptive statistics, regression trends, and Bayesian factor analyses "
+            "were conducted across fourth-grade and eighth-grade cohorts. The results demonstrate that while cognitive mathematics achievement "
+            "remains consistently at the top global tier, affective engagement exhibits a statistically significant structural decline across "
+            "the primary-to-secondary educational transition. Based on Bandura's self-efficacy theory and Pekrun's control-value theory, "
+            "pedagogical implications for integrated cognitive and emotional instructional design are discussed."
+        ),
     ),
 
     # 2. High School Informatics: Informatics I Reform & Common Test
@@ -245,6 +269,23 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 共通テスト本試験の実施後において、知識問題対策に特化した指導への揺り戻しが起きる懸念について、著者はどのようなモニタリング体制が必要とお考えか。",
             "2. 生成AIツールの急速な普及が、高等学校情報科におけるコーディング指導のあり方にどのような影響を与えるか、著者の教育工学的展望を伺いたい。",
         ],
+        title_en="Empirical Analysis of Informatics I Implementation in Senior High Schools: Curricular Alignment, Programming Education, and Teacher Qualifications",
+        source_en="Ministry of Education, Culture, Sports, Science and Technology (MEXT)",
+        metrics_en={
+            "プログラミング指導実施校割合": "Programming Instruction Implementation Rate",
+            "情報免許保有教員比率": "Certified Computer Science Teacher Rate",
+            "共通テスト「情報」選択意向": "University Entrance Examination Informatics Selection Intent Rate",
+        },
+        fallback_keywords_en=["INFORMATICS EDUCATION", "PROGRAMMING PEDAGOGY", "TEACHER CERTIFICATION", "CURRICULAR REFORM", "BAYESIAN EVALUATION"],
+        fallback_summary_en=(
+            "This study conducts an empirical investigation into the implementation status of the compulsory senior high school subject 'Informatics I' "
+            "following Japan's national curriculum revision. Using official survey data published by the Ministry of Education, Culture, Sports, "
+            "Science and Technology (MEXT), we quantitatively analyze the structural interrelationships among programming instruction adoption rates, "
+            "certified computer science teacher assignment ratios, and student intent regarding the Common Test for University Admissions. "
+            "Descriptive statistics and Bayesian correlation analyses reveal substantial regional disparities in professional teacher allocation "
+            "despite high overall curricular compliance. Drawing upon pedagogical content knowledge (PCK) frameworks, we discuss institutional "
+            "and instructional requirements to achieve equitable and substantive computational thinking education across secondary schools."
+        ),
     ),
 
     # 3. National Assessment Math: Elementary-Junior High Gap & Formative Problem Solving
@@ -356,6 +397,23 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 端末活用率が80%を超えた近年において、学力正答率の伸びが横ばい傾向にある要因として、教育現場における「端末活用の形式化」が関与している可能性について著者はどうお考えか。",
             "2. 中学校数学における「勉強が好き肯定率」の著しい低さを改善するために、具体的にどのような単元や指導法において1人1台端末を効果的に活用すべきか、著者の教育工学的提言を伺いたい。",
         ],
+        title_en="Longitudinal Structure of Mathematics Competency and Affective Engagement: Empirical Evidence from the National Assessment of Academic Ability",
+        source_en="Ministry of Education, Culture, Sports, Science and Technology (MEXT) and National Institute for Educational Policy Research (NIER)",
+        metrics_en={
+            "正答率": "Average Correct Answer Rate",
+            "活用率": "Mathematical Application Competency Rate",
+            "算数・数学が好き": "Mathematics Enjoyment Rate",
+        },
+        fallback_keywords_en=["NATIONAL ASSESSMENT", "MATHEMATICS EDUCATION", "COGNITIVE APPLICATION", "AFFECTIVE DOMAIN", "EBPM"],
+        fallback_summary_en=(
+            "This study performs a quantitative empirical analysis of longitudinal trends in mathematics achievement and affective disposition "
+            "based on the National Assessment of Academic Ability published by MEXT and NIER. Analyzing extensive municipal and cohort-level records, "
+            "descriptive statistics, regression slopes, and Bayesian correlation models were evaluated across fundamental calculation skills, "
+            "mathematical application competency, and subject affinity. The findings indicate a pronounced divergence between procedural calculation "
+            "performance and mathematical problem-solving application, coupled with an affective decline during the transition from elementary "
+            "to junior high school. In light of cognitive load theory and self-determination theory, strategic pedagogical interventions for "
+            "inquiry-based mathematical reasoning and data-driven educational policymaking are proposed."
+        ),
     ),
 
     # 4. Japan MEXT ICT Informatization: GIGA Phase 2 & Hardware vs Utilization Disconnect
@@ -465,6 +523,24 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 端末更新期（GIGA第2期）を迎えるにあたり、自治体ごとの端末更新予算の確保状況が今後の利用率格差にどのような影響を与えると推察されるか。",
             "2. 生成AIパイロット校等における先端的な活用事例と、本稿で示された全国平均マクロデータとの乖離を埋めるために、どのような研修モデルが有効とお考えか。",
         ],
+        title_en="Quantitative Evaluation of the GIGA School Initiative: Digital Infrastructure Deployment, Teacher ICT Competency, and Classroom Utilization",
+        source_en="Ministry of Education, Culture, Sports, Science and Technology (MEXT)",
+        metrics_en={
+            "教育用コンピュータ1台当たり児童生徒数": "Students Per Educational Computer Ratio",
+            "指導者用端末整備率": "Teacher Device Deployment Rate",
+            "普通教室の無線LAN整備率": "Regular Classroom Wireless LAN Coverage Rate",
+            "ICTを活用した指導力": "Teacher ICT Instructional Competency Rate",
+        },
+        fallback_keywords_en=["GIGA SCHOOL INITIATIVE", "EDUCATIONAL ICT INFRASTRUCTURE", "TEACHER DIGITAL COMPETENCY", "CLASSROOM TRANSFORMATION", "STATISTICAL MODELLING"],
+        fallback_summary_en=(
+            "This paper quantitatively evaluates the systemic deployment and pedagogical integration of the GIGA School Initiative "
+            "using official longitudinal data from the Survey on Information and Communication Technology in School Education published by MEXT. "
+            "Applying descriptive statistical modelling and Bayesian trend estimations to municipal indicators—including student-to-device ratios, "
+            "wireless network coverage, and teacher digital instructional competencies—we elucidate the transition from hardware provision to "
+            "daily instructional practice. While hardware deployment has approached universal saturation, notable variance remains in "
+            "sophisticated instructional utilization and cross-curricular digital pedagogy. We examine key professional development frameworks "
+            "necessary to translate digital school infrastructure into enhanced student-centered collaborative learning environments."
+        ),
     ),
 
     # 5. OECD PISA Math & ICT: Inverted-U Hypothesis & Screen Time
@@ -568,6 +644,23 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. エストニア等で男女得点差が小さい要因として、初等中等教育段階でのどのような教育的介入が機能していると著者は推察されるか。",
             "2. デジタル端末の利用が「認知的負荷の過大化」を招く臨界時間（Threshold）について、日本の教育現場への具体的提言をどう展開されるか伺いたい。",
         ],
+        title_en="Digital Utilization and Mathematics Literacy in Secondary Education: International Comparative Evidence from OECD PISA",
+        source_en="Organisation for Economic Co-operation and Development (OECD)",
+        metrics_en={
+            "数学的リテラシー平均得点": "Mathematical Literacy Average Score",
+            "学校でのICT利用時間": "School ICT Utilization Time (Hours/Week)",
+            "ICTリソースの質": "Quality Index of Educational ICT Resources",
+        },
+        fallback_keywords_en=["OECD PISA", "MATHEMATICAL LITERACY", "ICT UTILIZATION", "EDUCATIONAL TECHNOLOGY", "NONLINEAR REGRESSION"],
+        fallback_summary_en=(
+            "This study investigates the international relationship between school-based digital technology utilization and adolescent mathematical "
+            "literacy based on the Programme for International Student Assessment (PISA) database published by the OECD. Through robust descriptive "
+            "analysis, cross-national correlations, and Bayesian inference models across participating educational systems, we scrutinize whether "
+            "increased ICT exposure directly translates into heightened cognitive proficiency. The empirical findings substantiate an inverted U-shaped "
+            "non-linear association, demonstrating that moderate, pedagogically guided digital engagement enhances mathematical competency, whereas "
+            "excessive or unstructured screen time correlates with performance attenuation. Policy implications regarding structured digital integration "
+            "and balanced educational technology adoption are discussed."
+        ),
     ),
 
     # 6. UNESCO World ICT Skills: SDG 4.4 & Global Digital Divide
@@ -672,6 +765,23 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 生成AI（コード生成AI）の急速な普及により、従来の「プログラミング言語を書く」というスキルの定義自体が変容する可能性について著者はどうお考えか。",
             "2. 初等中等教育段階でのビジュアルプログラミング（Scratch等）の経験が、成人層におけるテキストプログラミング保有率へと結実するための接続条件をどう展望されるか。",
         ],
+        title_en="Global Digital Inequality and Computational Skill Acquisition: Empirical Insights from UNESCO World Educational Indicators",
+        source_en="UNESCO Institute for Statistics (UIS)",
+        metrics_en={
+            "プログラミングスキル保持率": "Programming Skill Acquisition Rate",
+            "ICT基本スキル達成率": "Basic ICT Competency Achievement Rate",
+            "情報格差指数": "Digital Divide Inequality Index",
+        },
+        fallback_keywords_en=["UNESCO UIS", "DIGITAL DIVIDE", "PROGRAMMING SKILLS", "GLOBAL EDUCATION", "SUSTAINABLE DEVELOPMENT GOALS"],
+        fallback_summary_en=(
+            "This paper examines global disparities in foundational digital competencies and advanced programming skills using international open "
+            "data published by the UNESCO Institute for Statistics (UIS). Aligned with Sustainable Development Goal 4 (SDG 4.4.1), we conduct "
+            "comprehensive descriptive profiling and Bayesian correlation analyses across diverse national socio-economic groupings. The empirical "
+            "results demonstrate that while fundamental operational digital skills show accelerating international adoption, advanced computational "
+            "thinking and programming capabilities exhibit severe cross-national stratification strongly tied to economic resources and national "
+            "educational infrastructure. We formulate actionable policy recommendations for international cooperation and curriculum "
+            "institutionalization to mitigate the emerging digital divide."
+        ),
     ),
 
     # 7. Japan STEM CS Enrollment: Gender Gap & Pipeline Leak
@@ -775,6 +885,23 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 近年拡大している総合型選抜や学校推薦型選抜が、一般選抜と比較して女子生徒の情報系進学を促進しているか否かについて著者の見解を伺いたい。",
             "2. 工学系の中でも「情報科学」はバイオ系と並んで女子比率が比較的高い分野とされるが、機械・電気系との構造的差異についてどうお考えか。",
         ],
+        title_en="Structural Shifts and Gender Disparities in Higher Education STEM Disciplines: Empirical Analysis of Japanese University Enrollment",
+        source_en="Ministry of Education, Culture, Sports, Science and Technology (MEXT)",
+        metrics_en={
+            "情報系学部入学者数": "Computer Science Undergraduate Enrollment",
+            "STEM系入学者女子比率": "Female Student Percentage in STEM",
+            "工学系進学率": "Engineering Faculty Enrollment Rate",
+        },
+        fallback_keywords_en=["STEM EDUCATION", "COMPUTER SCIENCE", "GENDER DIVERSITY", "HIGHER EDUCATION", "TIME SERIES MODEL"],
+        fallback_summary_en=(
+            "This research investigates long-term structural shifts, demographic trends, and persistent gender disparities in Japanese higher education "
+            "STEM and computer science faculties using official School Basic Survey data published by MEXT. Employing descriptive time-series analysis, "
+            "compound annual growth rate calculations, and Bayesian regression modeling, we evaluate enrollment trajectories across engineering, "
+            "informatics, and scientific disciplines over the past decade. While computer science admissions demonstrate marked growth driven by "
+            "digital societal transformation, the proportion of female matriculants remains disproportionately subdued in comparison with OECD benchmarks. "
+            "We examine socio-cultural and institutional pipeline factors, offering evidence-based strategic initiatives to foster equitable gender "
+            "inclusion and specialized human capital development."
+        ),
     ),
 
     # 8. World Bank Education Indicators: Public Expenditure & Production Function
@@ -883,6 +1010,23 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 教育支出の「量」から「質」への転換において、教員給与、施設設備費、ICT環境整備費の配分比率が習熟度にどう影響するとお考えか。",
             "2. デジタル接続（インターネット利用率）が数学習熟度と正の相関を示したメカニズムとして、家庭環境（SES）の代理変数となっている可能性について著者の見解を伺いたい。",
         ],
+        title_en="Public Educational Expenditure and Minimum Mathematics Proficiency: A Cross-National Education Production Function Analysis",
+        source_en="The World Bank",
+        metrics_en={
+            "数学最低習熟度達成率": "Minimum Mathematics Proficiency Rate",
+            "教育支出対GDP比": "Government Expenditure on Education (% of GDP)",
+            "インターネット利用率": "Internet Usage Rate",
+        },
+        fallback_keywords_en=["EDUCATIONAL ECONOMICS", "EDUCATION PRODUCTION FUNCTION", "THE WORLD BANK", "MATHEMATICS PROFICIENCY", "PUBLIC EXPENDITURE"],
+        fallback_summary_en=(
+            "This study conducts an empirical cross-national analysis of public educational expenditure and secondary mathematics proficiency "
+            "utilizing open data from The World Bank EdStats database. Grounded in Hanushek's educational production function framework and "
+            "human capital theory, descriptive statistics, regression trends, and Bayesian factor estimations (BF10) were evaluated across global "
+            "economies. The empirical evidence indicates that higher public expenditure as a percentage of GDP does not demonstrate a simplistic "
+            "linear correlation with national mathematics proficiency, highlighting substantial cross-national variations in institutional "
+            "resource allocation efficiency and educational governance. We discuss structural fiscal implications and evidence-based policy priorities "
+            "for transitioning from quantitative financial expansion to qualitative resource efficacy."
+        ),
     ),
 }
 
