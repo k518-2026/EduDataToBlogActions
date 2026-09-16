@@ -922,8 +922,8 @@ class EduPaperPdfGenerator:
                 clean_fig_title = dataset.title
                 if "】" in clean_fig_title:
                     clean_fig_title = clean_fig_title.split("】", 1)[1].strip()
-                if len(clean_fig_title) > 20:
-                    clean_fig_title = clean_fig_title[:18] + "…"
+                if len(clean_fig_title) > 28:
+                    clean_fig_title = clean_fig_title[:26] + "…"
 
                 figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
@@ -948,8 +948,8 @@ class EduPaperPdfGenerator:
                 clean_fig_title2 = dataset.title
                 if "】" in clean_fig_title2:
                     clean_fig_title2 = clean_fig_title2.split("】", 1)[1].strip()
-                if len(clean_fig_title2) > 20:
-                    clean_fig_title2 = clean_fig_title2[:18] + "…"
+                if len(clean_fig_title2) > 28:
+                    clean_fig_title2 = clean_fig_title2[:26] + "…"
 
                 figure2_elements = [
                     Image(str(secondary_chart_path), width=target_w, height=target_h),
