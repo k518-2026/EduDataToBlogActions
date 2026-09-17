@@ -618,5 +618,23 @@
     "platform": "wordpress_mail",
     "posted_at": "2026-09-17T22:16:51.163564+09:00",
     "date": "2026-09-17"
+  },
+  {
+    "dataset_id": "japan_timss_math_science",
+    "title": "【TIMSS】小・中学生の算数・数学到達度と学習意欲の推移：データが暴く意外な教育実態と授業改善への示唆 (2026年09月17日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "算数数学"
+    ],
+    "platform": "wordpress_mail",
+    "posted_at": "2026-09-17T23:36:23.359845+09:00",
+    "date": "2026-09-17"
   }
 ]
