@@ -29,6 +29,11 @@ on:
           - math
           - info
         default: all
+      dataset:
+        description: 'Specific dataset ID to analyze (e.g. japan_timss_math_science)'
+        type: string
+        required: false
+        default: ''
       publisher:
         description: 'Publishing target (wordpress_mail / wordpress_rest / markdown_only)'
         type: choice
@@ -120,6 +125,7 @@ jobs:
           INPUT_FORCE: ${{ inputs.force }}
           INPUT_TOPIC: ${{ inputs.topic }}
           INPUT_PUBLISHER: ${{ inputs.publisher }}
+          INPUT_DATASET: ${{ inputs.dataset }}
         run: |
           ARGS=""
           if [ "$INPUT_DRY_RUN" = "true" ] || [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
@@ -133,6 +139,9 @@ jobs:
           fi
           if [ -n "$INPUT_PUBLISHER" ]; then
             ARGS="$ARGS --publisher $INPUT_PUBLISHER"
+          fi
+          if [ -n "$INPUT_DATASET" ]; then
+            ARGS="$ARGS --dataset $INPUT_DATASET"
           fi
           echo "Executing: python -m src.main $ARGS"
           python -m src.main $ARGS
