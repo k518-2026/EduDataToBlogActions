@@ -51,7 +51,7 @@ class Config:
     # WordPress REST API settings
     WP_SITE_URL: str = os.getenv("WP_SITE_URL", "").strip().rstrip("/")
     WP_USER: str = os.getenv("WP_USER", "").strip()
-    WP_APP_PASSWORD: str = os.getenv("WP_APP_PASSWORD", "").strip()
+    WP_APP_PASSWORD: str = os.getenv("WP_APP_PASSWORD", "").replace(" ", "").strip()
 
     # e-Stat Government Statistics API
     ESTAT_APP_ID: str = os.getenv("ESTAT_APP_ID", "").strip()

@@ -35,13 +35,13 @@ on:
         required: false
         default: ''
       publisher:
-        description: 'Publishing target (wordpress_mail / wordpress_rest / markdown_only)'
+        description: 'Publishing target (wordpress_rest / wordpress_mail / markdown_only)'
         type: choice
         options:
-          - wordpress_mail
           - wordpress_rest
+          - wordpress_mail
           - markdown_only
-        default: wordpress_mail
+        default: wordpress_rest
 
 permissions:
   contents: write
@@ -108,7 +108,7 @@ jobs:
           GEMINI_TEXT_MODEL: ${{ vars.GEMINI_TEXT_MODEL || 'gemini-3.6-flash' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL || 'claude-sonnet-5' }}
-          BLOG_PUBLISHER_TYPE: ${{ inputs.publisher || vars.BLOG_PUBLISHER_TYPE || 'wordpress_mail' }}
+          BLOG_PUBLISHER_TYPE: ${{ inputs.publisher || vars.BLOG_PUBLISHER_TYPE || 'wordpress_rest' }}
           WP_POST_EMAIL: ${{ secrets.WP_POST_EMAIL }}
           WP_POST_STATUS: ${{ vars.WP_POST_STATUS || 'publish' }}
           SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}

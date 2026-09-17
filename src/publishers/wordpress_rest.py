@@ -23,9 +23,9 @@ class WordPressRestPublisher(BasePublisher):
         username: Optional[str] = None,
         app_password: Optional[str] = None,
     ):
-        self.site_url = (site_url or Config.WP_SITE_URL).rstrip("/")
-        self.username = username or Config.WP_USER
-        self.app_password = app_password or Config.WP_APP_PASSWORD
+        self.site_url = (site_url or Config.WP_SITE_URL).strip().rstrip("/")
+        self.username = (username or Config.WP_USER).strip()
+        self.app_password = (app_password or Config.WP_APP_PASSWORD).replace(" ", "").strip()
 
     def _get_auth_header(self) -> dict:
         creds = f"{self.username}:{self.app_password}"
@@ -64,10 +64,15 @@ class WordPressRestPublisher(BasePublisher):
         headers = self._get_auth_header()
         headers["Content-Type"] = "application/json"
 
+        # Clean email-specific shortcodes from HTML content for web display
+        content = report.html_content
+        if "<!-- WordPress Post by Email Shortcodes" in content:
+            content = content.split("<!-- WordPress Post by Email Shortcodes")[0].rstrip()
+
         status = Config.WP_POST_STATUS or "publish"
         payload = {
             "title": report.title,
-            "content": report.html_content,
+            "content": content,
             "status": status,
         }
         if featured_media_id:
