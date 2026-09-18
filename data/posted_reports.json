@@ -673,5 +673,23 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-18T05:10:37.339705+09:00",
     "date": "2026-09-18"
+  },
+  {
+    "dataset_id": "japan_national_assessment_math",
+    "title": "【全国学力調査】小・中学校における算数・数学の平均正答率と意識推移：データが暴く意外な教育実態と授業改善への示唆 (2026年09月18日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-18T22:13:50.841781+09:00",
+    "date": "2026-09-18"
   }
 ]
