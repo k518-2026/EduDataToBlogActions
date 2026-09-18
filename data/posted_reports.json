@@ -691,5 +691,24 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-18T22:13:50.841781+09:00",
     "date": "2026-09-18"
+  },
+  {
+    "dataset_id": "unesco_world_ict_skills",
+    "title": "【UNESCO/ITU】各国のプログラミング・デジタルスキル比較：データが暴く意外な教育実態と授業改善への示唆 (2026年09月19日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-19T05:10:31.620334+09:00",
+    "date": "2026-09-19"
   }
 ]
