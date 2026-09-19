@@ -473,16 +473,16 @@ plt.show()
             return "", ""
 
         md_rows = [
-            "| 分析指標ペア (X × Y) | 相関係数 (r) | 有意確率 (p値) | ベイズファクター (BF₁₀) | 相関の強さ・判定 |",
-            "| :--- | :---: | :---: | :---: | :--- |",
+            "| 分析指標ペア (X × Y) | 相関係数 (r) | 有意確率 (p値) | 相関の強さ | ベイズファクター (BF₁₀) | BF証拠判定 |",
+            "| :--- | :---: | :---: | :--- | :---: | :--- |",
         ]
         html_rows = []
         for i, cr in enumerate(analysis.correlations):
             bf_disp = format_bayes_factor(getattr(cr, "bf10", None))
             bf_val_str = bf_disp if getattr(cr, "bf10", None) is not None else "-"
-            bf_interp_str = f" [{cr.bf_interpretation}]" if getattr(cr, "bf_interpretation", None) else ""
+            bf_interp_str = cr.bf_interpretation or "-"
             md_rows.append(
-                f"| **{cr.metric_x}** × **{cr.metric_y}** | {cr.pearson_r:+.3f} | {cr.p_value:.4f} | {bf_val_str} | {cr.interpretation}{bf_interp_str} |"
+                f"| **{cr.metric_x}** × **{cr.metric_y}** | {cr.pearson_r:+.3f} | {cr.p_value:.4f} | {cr.interpretation} | {bf_val_str} | {bf_interp_str} |"
             )
 
             # Correlation badge
@@ -505,14 +505,14 @@ plt.show()
                 bf_badge = '<span style="color:#94a3b8;">-</span>'
 
             bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
-            bf_detail = f'<br><span style="color:#64748b; font-size:11px;">{cr.bf_interpretation}</span>' if getattr(cr, "bf_interpretation", None) else ""
             html_rows.append(
                 f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
                   <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{cr.metric_x} <span style="color:#94a3b8; font-weight:normal;">×</span> {cr.metric_y}</td>
                   <td style="padding:10px 14px; text-align:center; font-family:Consolas, monospace;">{r_badge}</td>
                   <td style="padding:10px 14px; text-align:center; color:#64748b; font-family:Consolas, monospace;">{cr.p_value:.4f}</td>
+                  <td style="padding:10px 14px; text-align:center; color:#334155;"><span style="background-color:#f1f5f9; padding:2px 8px; border-radius:6px; font-size:12px;">{cr.interpretation}</span></td>
                   <td style="padding:10px 14px; text-align:center; font-family:Consolas, monospace;">{bf_badge}</td>
-                  <td style="padding:10px 14px; color:#334155;"><span style="background-color:#f1f5f9; padding:2px 8px; border-radius:6px; font-size:12px;">{cr.interpretation}</span>{bf_detail}</td>
+                  <td style="padding:10px 14px; color:#475569; font-size:12px;">{bf_interp_str}</td>
                 </tr>"""
             )
 
@@ -531,8 +531,9 @@ plt.show()
                   <th style="padding:10px 14px; text-align:left;">分析指標ペア (X × Y)</th>
                   <th style="padding:10px 14px; text-align:center;">相関係数 (r)</th>
                   <th style="padding:10px 14px; text-align:center;">有意確率 (p値)</th>
+                  <th style="padding:10px 14px; text-align:center;">相関の強さ</th>
                   <th style="padding:10px 14px; text-align:center;">ベイズファクター (BF₁₀)</th>
-                  <th style="padding:10px 14px; text-align:left;">判定・解釈</th>
+                  <th style="padding:10px 14px; text-align:left;">BF証拠判定</th>
                 </tr>
               </thead>
               <tbody>

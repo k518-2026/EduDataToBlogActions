@@ -299,14 +299,16 @@ class EduDataAnalyzer:
     def _interpret_correlation(self, r: float) -> str:
         abs_r = abs(r)
         direction = "正の相関" if r > 0 else "負の相関"
-        if abs_r >= 0.7:
+        if abs_r >= 0.9:
             strength = "極めて強い"
-        elif abs_r >= 0.5:
+        elif abs_r >= 0.7:
             strength = "強い"
-        elif abs_r >= 0.3:
+        elif abs_r >= 0.4:
             strength = "中程度の"
+        elif abs_r >= 0.2:
+            strength = "弱い"
         else:
-            strength = "弱い（相関ほぼなし）"
+            strength = "相関ほぼなし"
         return f"{strength}{direction} (r = {round(r, 2)})"
 
     def _generate_key_insights(

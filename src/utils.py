@@ -38,6 +38,36 @@ def format_bayes_factor(val: Optional[float]) -> str:
         return f"{val:.2f}"
 
 
+def format_bayes_factor_short_interpretation(val: Optional[float]) -> str:
+    """
+    Returns a concise academic label (4-6 chars) for Bayes Factor (BF10)
+    to fit compactly into academic paper tables.
+    Follows Jeffreys (1961) / Lee & Wagenmakers (2013) classification.
+    """
+    if val is None:
+        return "-"
+    if not isinstance(val, (int, float)):
+        return "-"
+    if val >= 100.0:
+        return "極めて強い"
+    elif val >= 30.0:
+        return "非常に強い"
+    elif val >= 10.0:
+        return "強い証拠"
+    elif val >= 3.0:
+        return "中程度"
+    elif val >= 1.0:
+        return "弱い証拠"
+    elif val >= 1.0 / 3.0:
+        return "弱い(H0)"
+    elif val >= 1.0 / 10.0:
+        return "中程度(H0)"
+    elif val >= 1.0 / 30.0:
+        return "強い(H0)"
+    else:
+        return "極強(H0)"
+
+
 def resolve_metric_unit(metric: str, dataset_unit: str = "%") -> str:
     """
     Returns a clean singular unit for a given metric name.

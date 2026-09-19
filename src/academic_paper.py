@@ -1153,11 +1153,11 @@ class AcademicPaperGenerator:
         corr_desc = ""
         if analysis.correlations:
             cr = analysis.correlations[0]
-            bf_cr_str = f"，ベイズファクター<i>BF</i><sub>10</sub>={format_bayes_factor(cr.bf10)} [{cr.bf_interpretation}]" if getattr(cr, "bf10", None) is not None else ""
+            bf_cr_str = f"，JZSベイズファクター<i>BF</i><sub>10</sub>={format_bayes_factor(cr.bf10)}（{cr.bf_interpretation}）" if getattr(cr, "bf10", None) is not None else ""
             p_val_fmt = "<.001" if cr.p_value < 0.001 else f"={cr.p_value:.4f}"
             corr_desc = (
-                f"{cr.metric_x}と{cr.metric_y}の間に対象データ全域において相関係数<i>r</i>={cr.pearson_r:.3f}"
-                f"（<i>p</i>値{p_val_fmt}{bf_cr_str}）の統計的有意な関連（{cr.interpretation}）が確認された．"
+                f"{cr.metric_x}と{cr.metric_y}の間に対象データ全域において相関係数<i>r</i>={cr.pearson_r:+.3f}"
+                f"（<i>p</i>値{p_val_fmt}{bf_cr_str}）が算出され，効果量として{cr.interpretation}が確認された．"
             )
 
         clean_source = clean_text_spaces(dataset.source_name)

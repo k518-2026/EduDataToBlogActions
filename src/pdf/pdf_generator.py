@@ -21,6 +21,7 @@ from src.utils import (
     clean_english_text,
     clean_text_spaces,
     format_bayes_factor,
+    format_bayes_factor_short_interpretation,
     format_title_two_lines,
     get_jst_now,
     resolve_metric_unit,
@@ -631,28 +632,30 @@ class EduPaperPdfGenerator:
                 Paragraph("相関<i>r</i>", self.styles["TableHeader"]),
                 Paragraph("<i>p</i>値", self.styles["TableHeader"]),
                 Paragraph("<i>BF</i><sub>10</sub>", self.styles["TableHeader"]),
-                Paragraph("判定", self.styles["TableHeader"]),
+                Paragraph("BF証拠判定", self.styles["TableHeader"]),
             ]
             data = [headers]
             for cr in analysis.correlations[:5]:
                 x_name = str(cr.metric_x)[:6] + "…" if len(str(cr.metric_x)) > 7 else str(cr.metric_x)
                 y_name = str(cr.metric_y)[:6] + "…" if len(str(cr.metric_y)) > 7 else str(cr.metric_y)
                 p_text = "<.001" if cr.p_value < 0.001 else f"{cr.p_value:.3f}"
-                bf_text = format_bayes_factor(getattr(cr, "bf10", None))
+                bf_val = getattr(cr, "bf10", None)
+                bf_text = format_bayes_factor(bf_val)
+                bf_interp_short = format_bayes_factor_short_interpretation(bf_val)
 
                 row = [
                     Paragraph(x_name, self.styles["TableCellLeft"]),
                     Paragraph(y_name, self.styles["TableCellLeft"]),
-                    Paragraph(f"{cr.pearson_r:.2f}", self.styles["TableCell"]),
+                    Paragraph(f"{cr.pearson_r:+.2f}", self.styles["TableCell"]),
                     Paragraph(p_text, self.styles["TableCell"]),
                     Paragraph(bf_text, self.styles["TableCell"]),
-                    Paragraph(cr.interpretation[:5], self.styles["TableCell"]),
+                    Paragraph(bf_interp_short, self.styles["TableCell"]),
                 ]
                 data.append(row)
 
-            col_widths = [48, 48, 27, 27, 27, 27]  # Sum = 204 pt
+            col_widths = [45, 45, 27, 27, 27, 33]  # Sum = 204 pt
             caption = "表２　主要指標間における相関・有意確率・ベイズファクター一覧"
-            note = "注）rはピアソン積率相関係数，p値は両側検定有意確率，BF₁₀はJZSベイズファクター（対立仮説H1の支持度）．"
+            note = "注）rはピアソン積率相関係数，p値は両側検定有意確率，BF₁₀はJZSベイズファクター（BF判定はH1対立仮説支持強度: >100で極めて強い，>3で中程度，1-3は弱い証拠/逸話的）．"
 
         else:
             headers = [

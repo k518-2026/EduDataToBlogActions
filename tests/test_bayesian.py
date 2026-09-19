@@ -260,3 +260,80 @@ def test_pdf_secondary_table_includes_bayes_factor():
     caption_c, table_c, note_c = generator._build_secondary_table(dataset, analysis_corr)
     assert "ベイズファクター" in caption_c
     assert "BF₁₀" in note_c
+
+
+def test_format_bayes_factor_short_interpretation():
+    """Verifies that short BF interpretations match standard Bayesian evidence categories."""
+    from src.utils import format_bayes_factor_short_interpretation
+
+    assert format_bayes_factor_short_interpretation(154.46) == "極めて強い"
+    assert format_bayes_factor_short_interpretation(45.0) == "非常に強い"
+    assert format_bayes_factor_short_interpretation(12.0) == "強い証拠"
+    assert format_bayes_factor_short_interpretation(5.0) == "中程度"
+    assert format_bayes_factor_short_interpretation(2.12) == "弱い証拠"
+    assert format_bayes_factor_short_interpretation(2.08) == "弱い証拠"
+    assert format_bayes_factor_short_interpretation(0.2) == "中程度(H0)"
+    assert format_bayes_factor_short_interpretation(0.05) == "強い(H0)"
+    assert format_bayes_factor_short_interpretation(0.01) == "極強(H0)"
+    assert format_bayes_factor_short_interpretation(None) == "-"
+
+
+def test_pdf_correlation_table_correct_bf_column():
+    """Verifies that PDF Table 2 header is 'BF証拠判定' and maps 2.12 to '弱い証拠'."""
+    generator = EduPaperPdfGenerator()
+    cr1 = CorrelationResult(
+        metric_x="ICT活用指導肯定率",
+        metric_y="批判的思考促進自己効力感",
+        pearson_r=0.724,
+        p_value=0.0422,
+        interpretation="強い正の相関",
+        bf10=2.12,
+        bf_interpretation="弱い証拠（H1支持: 逸話的）",
+    )
+    cr2 = CorrelationResult(
+        metric_x="批判的思考促進自己効力感",
+        metric_y="教員間協働指導実施率",
+        pearson_r=0.952,
+        p_value=0.0003,
+        interpretation="極めて強い正の相関",
+        bf10=154.46,
+        bf_interpretation="極めて強い証拠（H1支持）",
+    )
+    analysis = AnalysisResult(
+        dataset_id="test_ds",
+        dataset_title="テストデータ",
+        unit="%",
+        sample_size=8,
+        descriptive_stats={},
+        trends=[],
+        correlations=[cr1, cr2],
+        rankings={},
+        key_insights=[],
+        raw_df=pd.DataFrame(),
+    )
+    dataset = EducationDataset(
+        id="test_ds",
+        title="テストデータ",
+        category="math",
+        df=pd.DataFrame(),
+        source_name="OECD",
+        source_url="https://example.com",
+        time_col="year",
+        metrics=["m1"],
+        unit="%",
+        region="global",
+        description="テスト",
+    )
+    caption, table, note = generator._build_secondary_table(dataset, analysis)
+    headers = [p.text for p in table._cellvalues[0]]
+    assert "BF証拠判定" in headers
+    assert "<i>BF</i><sub>10</sub>" in headers
+
+    row1 = [p.text for p in table._cellvalues[1]]
+    assert row1[4] == "2.12"
+    assert row1[5] == "弱い証拠"  # NOT "極めて強い"!
+
+    row2 = [p.text for p in table._cellvalues[2]]
+    assert row2[4] == "154.46"
+    assert row2[5] == "極めて強い"
+
