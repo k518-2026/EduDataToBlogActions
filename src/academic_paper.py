@@ -17,7 +17,12 @@ from typing import List, Optional, Tuple
 from google import genai
 from google.genai import types
 
-from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS, get_academic_context
+from src.academic_contexts import (
+    DATASET_ACADEMIC_CONTEXTS,
+    DATASET_RESEARCH_ANGLES,
+    get_academic_context,
+    get_all_angles_for_dataset,
+)
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
@@ -73,9 +78,20 @@ JAPANESE_NAME_ROMAJI: dict[str, str] = {
     "一般社団法人": "IPPANSHADANHOJIN",
     "公益社団法人": "KOEKISHADANHOJIN",
     "教育政策研究所": "KYOIKUSEISAKUKENKYUSHO",
+    "中央教育審議会": "CHUO_KYOIKU_SHINGIKAI",
+    "国立特別支援教育総合研究所": "KOKURITSU_TOKUBETSUSHIKEN",
+    "こども家庭庁": "KODOMO_KATEICHO",
 
     # Education / EdTech / CS / Math Researchers & Common Surnames
+    "妹尾": "SENO",
+    "油布": "YUFU",
+    "柘植": "TSUGE",
+    "保坂": "HOSAKA",
+    "秋田": "AKITA",
     "堀田": "HORITA",
+    "水野": "MIZUNO",
+    "朝倉": "ASAKURA",
+    "浅田": "ASADA",
     "黒上": "KUROKAMI",
     "小柳": "OYANAGI",
     "清水": "SHIMIZU",
@@ -529,15 +545,25 @@ def extract_in_text_citations(text: str) -> List[Tuple[str, str]]:
 
 
 def resolve_missing_reference(
-    author_str: str, year: str, dataset_id: str = ""
+    author_str: str, year: str, dataset_id: str = "", selected_angle: Optional[Any] = None
 ) -> Optional[str]:
     """
     Resolves a full JSET-formatted reference string given an author string and year,
-    searching prioritized across the current dataset's curated references and all academic contexts.
+    searching prioritized across selected angle, dataset's research angles, and all academic contexts.
     """
     candidate_refs: List[str] = []
-    if dataset_id and dataset_id in DATASET_ACADEMIC_CONTEXTS:
-        candidate_refs.extend(DATASET_ACADEMIC_CONTEXTS[dataset_id].curated_references)
+    if selected_angle and getattr(selected_angle, "curated_references", None):
+        candidate_refs.extend(selected_angle.curated_references)
+    if dataset_id:
+        for ang in get_all_angles_for_dataset(dataset_id):
+            for r in ang.curated_references:
+                if r not in candidate_refs:
+                    candidate_refs.append(r)
+    for ang_list in DATASET_RESEARCH_ANGLES.values():
+        for ang in ang_list:
+            for r in ang.curated_references:
+                if r not in candidate_refs:
+                    candidate_refs.append(r)
     for ctx in DATASET_ACADEMIC_CONTEXTS.values():
         for r in ctx.curated_references:
             if r not in candidate_refs:
@@ -558,7 +584,7 @@ def resolve_missing_reference(
 
 
 def synchronize_citations_and_references(
-    paper: "AcademicPaper", dataset_id: str = ""
+    paper: "AcademicPaper", dataset_id: str = "", selected_angle: Optional[Any] = None
 ) -> "AcademicPaper":
     """
     Guarantees 100% parity between in-text citations in background & discussion
@@ -588,7 +614,9 @@ def synchronize_citations_and_references(
                     matched = True
                     break
         if not matched:
-            resolved = resolve_missing_reference(author_str, year, dataset_id)
+            resolved = resolve_missing_reference(
+                author_str, year, dataset_id, selected_angle=selected_angle
+            )
             if resolved:
                 logger.info(
                     f"Automatically synchronized missing reference: '{author_str} ({year})' -> '{resolved[:50]}...'"
@@ -606,12 +634,14 @@ def synchronize_citations_and_references(
     return paper
 
 
-def sanitize_academic_paper(paper: "AcademicPaper", dataset_id: str) -> "AcademicPaper":
+def sanitize_academic_paper(
+    paper: "AcademicPaper", dataset_id: str, selected_angle: Optional[Any] = None
+) -> "AcademicPaper":
     """
     Guarantees that title_en, summary_en, and keywords_en are 100% fluent academic English,
     strictly free of any Japanese characters (Kanji, Hiragana, Katakana) or full-width punctuation.
     """
-    ctx = get_academic_context(dataset_id)
+    ctx = selected_angle or get_academic_context(dataset_id)
 
     # 1. Sanitize title_en
     paper.title_en = clean_english_text(paper.title_en)
@@ -721,14 +751,20 @@ class AcademicPaperGenerator:
                 logger.warning(f"Failed to initialize Gemini Client for AcademicPaperGenerator: {e}")
 
     def generate_paper(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> AcademicPaper:
         """Generates academic thesis content grounded in dataset and statistical analysis."""
         # 1. Prefer Claude if ANTHROPIC_API_KEY is configured
         if self.anthropic_api_key:
             try:
                 logger.info(f"Generating academic paper with Anthropic Claude ({self.anthropic_model})...")
-                return self._generate_with_claude(dataset, analysis)
+                return self._generate_with_claude(
+                    dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+                )
             except Exception as e:
                 logger.warning(f"Claude academic paper generation failed: {e}. Trying Gemini...")
 
@@ -736,18 +772,24 @@ class AcademicPaperGenerator:
         if self.gemini_client:
             try:
                 logger.info(f"Generating academic paper with Google Gemini ({self.gemini_model})...")
-                return self._generate_with_gemini(dataset, analysis)
+                return self._generate_with_gemini(
+                    dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+                )
             except Exception as e:
                 logger.warning(f"Gemini academic paper generation failed: {e}. Falling back to template.")
 
         # 3. Fallback to domain-specific academic template
         logger.info("Using domain-specific academic template fallback for paper generation.")
-        return self._generate_template_fallback(dataset, analysis)
+        return self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
 
     def _build_academic_prompt(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> str:
-        ctx = get_academic_context(dataset.id, dataset.category)
+        ctx = selected_angle or get_academic_context(dataset.id, dataset.category)
 
         stats_lines = []
         for m, s in analysis.descriptive_stats.items():
@@ -778,6 +820,22 @@ class AcademicPaperGenerator:
         metrics_en_lines = [f"      * '{m}' -> '{en}'" for m, en in ctx.metrics_en.items()]
         metrics_en_str = "\n".join(metrics_en_lines) if metrics_en_lines else "      * N/A"
 
+        dedup_section = ""
+        if past_topics:
+            past_titles = [
+                f"- {p.get('title', '')}（アングル: {p.get('angle_name', '一般')}）"
+                for p in past_topics
+                if p.get("title")
+            ]
+            if past_titles:
+                dedup_section = f"""
+### 【過去の研究内容との重複排除・新規性担保の厳格指示】
+本研究システムでは直近で以下の論文・レポートが既に発表されています：
+{chr(10).join(past_titles)}
+上記の内容と結論、問題意識、研究の切り口が重複・類似することを【厳格に禁止】します。
+今回は【研究アングル: {getattr(selected_angle, 'angle_name', '') or ctx.academic_topic}】に基づき、未開拓の視点・独自の先行研究・新しい教育的示唆を展開してください。
+"""
+
         return f"""あなたは教育工学、教育統計学、およびSTEM/理数・情報教育を専門とする大学教授・主任研究員です。
 日本の教育工学・情報教育系学術論文誌の投稿規程および執筆の手引（ショートレター／学術論文）の体裁に厳格に準拠した、極めて学術性の高い本格的な学術論文を執筆してください。
 ※重要：特定の学会名（「日本教育工学会」等）は、本文・抄録・見出し等の中に一切掲載しないでください（学術論文の体裁・構成・文体・組版ルールのみを利用します）。
@@ -789,9 +847,13 @@ class AcademicPaperGenerator:
 - 単位: {dataset.unit}
 - データ概要: {dataset.description}
 - 本研究の学術主題: {ctx.academic_topic}
+- 本研究の研究アングル: {getattr(ctx, 'angle_name', '') or ctx.academic_topic}
+- 推奨タイトルテーマ構想: {getattr(ctx, 'title_theme', '') or ctx.fallback_title}
+- 重点指標: {', '.join(getattr(ctx, 'focus_metrics', [])) if getattr(ctx, 'focus_metrics', None) else '全指標'}
 - 適用すべき理論的枠組み: {ctx.theoretical_framework}
 - 中核的学術課題・対立点: {ctx.core_research_problems}
 - 研究背景の執筆指針: {ctx.specific_prompt_guidance}
+{dedup_section}
 
 ### 【実測統計解析データ（本文中の論拠として必ず数値を引用すること）】
 記述統計量:
@@ -874,10 +936,16 @@ class AcademicPaperGenerator:
 """
 
     def _generate_with_gemini(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> AcademicPaper:
         import json
-        prompt = self._build_academic_prompt(dataset, analysis)
+        prompt = self._build_academic_prompt(
+            dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+        )
 
         candidate_models = [self.gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
         seen = set()
@@ -955,17 +1023,25 @@ class AcademicPaperGenerator:
             summary_en=data.get("summary_en", ""),
             keywords_en=keywords_en,
         )
-        paper = synchronize_citations_and_references(paper, dataset.id)
-        return sanitize_academic_paper(paper, dataset.id)
+        paper = synchronize_citations_and_references(
+            paper, dataset.id, selected_angle=selected_angle
+        )
+        return sanitize_academic_paper(paper, dataset.id, selected_angle=selected_angle)
 
     def _generate_with_claude(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> AcademicPaper:
         import json
         import re
         import urllib.request
 
-        prompt = self._build_academic_prompt(dataset, analysis)
+        prompt = self._build_academic_prompt(
+            dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+        )
         prompt += "\n\n必ず上記全フィールド（title, subtitle, abstract, keywords, background, objectives, methodology, results_text, discussion, references, title_en, authors_en, summary_en, keywords_en）を含む有効な単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
 
         resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
@@ -1037,11 +1113,16 @@ class AcademicPaperGenerator:
             summary_en=data.get("summary_en", ""),
             keywords_en=keywords_en,
         )
-        paper = synchronize_citations_and_references(paper, dataset.id)
-        return sanitize_academic_paper(paper, dataset.id)
+        paper = synchronize_citations_and_references(
+            paper, dataset.id, selected_angle=selected_angle
+        )
+        return sanitize_academic_paper(paper, dataset.id, selected_angle=selected_angle)
 
     def _generate_template_fallback(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> AcademicPaper:
         """High-grade academic template fallback with rigorous educational statistics conforming to JSET standards."""
         is_math = dataset.category == "math"
@@ -1081,7 +1162,7 @@ class AcademicPaperGenerator:
         clean_title_core = re.sub(r"^【.*?】\s*", "", dataset.title).strip()
         clean_title_core = clean_text_spaces(clean_title_core)
 
-        ctx = get_academic_context(dataset.id, dataset.category)
+        ctx = selected_angle or get_academic_context(dataset.id, dataset.category)
 
         title = ctx.fallback_title
         subtitle = ctx.fallback_subtitle
@@ -1153,6 +1234,8 @@ class AcademicPaperGenerator:
             summary_en=summary_en,
             keywords_en=keywords_en,
         )
-        paper = synchronize_citations_and_references(paper, dataset.id)
-        return sanitize_academic_paper(paper, dataset.id)
+        paper = synchronize_citations_and_references(
+            paper, dataset.id, selected_angle=selected_angle
+        )
+        return sanitize_academic_paper(paper, dataset.id, selected_angle=selected_angle)
 

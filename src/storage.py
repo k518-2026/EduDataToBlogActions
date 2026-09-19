@@ -41,11 +41,49 @@ class ReportStorage:
         history = self.load_history()
         return [entry["dataset_id"] for entry in history if "dataset_id" in entry]
 
+    def get_past_angles_for_dataset(self, dataset_id: str) -> List[str]:
+        """Returns list of past angle_ids used for a specific dataset, newest first."""
+        history = self.load_history()
+        angles = []
+        for entry in reversed(history):
+            if entry.get("dataset_id") == dataset_id:
+                a_id = entry.get("angle_id")
+                if a_id and a_id not in angles:
+                    angles.append(a_id)
+        return angles
+
+    def get_recent_research_topics(
+        self, dataset_id: Optional[str] = None, limit: int = 5
+    ) -> List[Dict[str, str]]:
+        """
+        Retrieves recent post topics and angles to prevent thematic duplication.
+        If dataset_id is provided, filters for that dataset; otherwise returns globally recent posts.
+        """
+        history = self.load_history()
+        results = []
+        for entry in reversed(history):
+            if dataset_id and entry.get("dataset_id") != dataset_id:
+                continue
+            item = {
+                "dataset_id": entry.get("dataset_id", ""),
+                "angle_id": entry.get("angle_id", ""),
+                "angle_name": entry.get("angle_name", ""),
+                "title": entry.get("title", ""),
+                "date": entry.get("date", ""),
+            }
+            if item not in results:
+                results.append(item)
+            if len(results) >= limit:
+                break
+        return results
+
     def record_post(self, report: GeneratedReport, platform: str):
         history = self.load_history()
 
         entry = {
             "dataset_id": report.dataset_id,
+            "angle_id": getattr(report, "angle_id", "") or "",
+            "angle_name": getattr(report, "angle_name", "") or "",
             "title": report.title,
             "categories": report.categories,
             "tags": report.tags,

@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.fetchers.base import EducationDataset
 from src.fetchers.japan_edu_data import JapanEduDataFetcher
@@ -36,6 +36,14 @@ class DatasetCatalog:
             self.japan_fetcher.get_timss_math(),
             # 8. Japan High School Informatics I
             self.japan_fetcher.get_high_school_informatics(),
+            # 9. Japan Teacher Workload (Info/DX)
+            self.japan_fetcher.get_teacher_workload(),
+            # 10. Japan Special Needs Education (Info/Support)
+            self.japan_fetcher.get_special_needs_education(),
+            # 11. Japan School Absenteeism & Remote ICT (Info/ICT)
+            self.japan_fetcher.get_school_absenteeism(),
+            # 12. OECD TALIS Teacher Survey (Math/STEM)
+            self.oecd_unesco_fetcher.get_talis_teacher_survey(),
         ]
         return [ds for ds in datasets if ds is not None]
 
@@ -124,4 +132,67 @@ class DatasetCatalog:
             f"(last posted index: {get_last_posted_index(candidates[0])})"
         )
         return candidates[0]
+
+    def select_dataset_and_angle(
+        self,
+        topic: str = "all",
+        posted_history: Optional[List[Dict[str, Any]]] = None,
+        force: bool = False,
+        dataset_id: Optional[str] = None,
+    ) -> Tuple[EducationDataset, Any]:
+        """
+        Intelligently selects both a dataset and an unrepeated scholarly research angle.
+        1. Selects the dataset using category-alternating least-recently-posted rotation.
+        2. Retrieves all registered research angles for that dataset.
+        3. Prioritizes angles that have never been posted for this dataset.
+        4. If all angles have been posted, selects the least recently posted angle.
+        """
+        from src.academic_contexts import get_academic_context, get_all_angles_for_dataset
+
+        history = posted_history or []
+        posted_ids = [e.get("dataset_id") for e in history if e.get("dataset_id")]
+
+        # 1. Select Dataset
+        if dataset_id:
+            dataset = self.get_by_id(dataset_id)
+            if not dataset:
+                logger.warning(f"Requested dataset '{dataset_id}' not found. Rotating.")
+                dataset = self.select_dataset(topic=topic, posted_history_ids=posted_ids, force=force)
+        else:
+            dataset = self.select_dataset(topic=topic, posted_history_ids=posted_ids, force=force)
+
+        # 2. Select Research Angle for this dataset
+        available_angles = get_all_angles_for_dataset(dataset.id)
+        if not available_angles:
+            default_ctx = get_academic_context(dataset.id, dataset.category)
+            return dataset, default_ctx
+
+        # Helper to find the most recent index where this angle was posted for this dataset
+        def get_last_angle_index(angle: Any) -> int:
+            target_a_id = getattr(angle, "angle_id", "")
+            for idx in range(len(history) - 1, -1, -1):
+                entry = history[idx]
+                if entry.get("dataset_id") == dataset.id:
+                    if entry.get("angle_id") == target_a_id:
+                        return idx
+            return -1
+
+        # Candidates not yet posted for this dataset
+        unposted_angles = [a for a in available_angles if get_last_angle_index(a) == -1]
+        if unposted_angles:
+            selected_angle = unposted_angles[0]
+            logger.info(
+                f"Selected unposted research angle for '{dataset.id}': "
+                f"{getattr(selected_angle, 'angle_name', '')} ({getattr(selected_angle, 'angle_id', '')})"
+            )
+            return dataset, selected_angle
+
+        # If all angles have been used, rotate to least recently used angle
+        sorted_angles = sorted(available_angles, key=get_last_angle_index)
+        selected_angle = sorted_angles[0]
+        logger.info(
+            f"All angles posted. Rotating to least recently used research angle for '{dataset.id}': "
+            f"{getattr(selected_angle, 'angle_name', '')} ({getattr(selected_angle, 'angle_id', '')})"
+        )
+        return dataset, selected_angle
 

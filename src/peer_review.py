@@ -76,13 +76,16 @@ class PeerReviewGenerator:
         paper: AcademicPaper,
         dataset: EducationDataset,
         analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> PeerReviewReport:
         """Generates a rigorous peer review report."""
         # 1. Prefer Claude if ANTHROPIC_API_KEY is configured
         if self.anthropic_api_key:
             try:
                 logger.info(f"Generating academic peer review with Anthropic Claude ({self.anthropic_model})...")
-                return self._generate_with_claude(paper, dataset, analysis)
+                return self._generate_with_claude(
+                    paper, dataset, analysis, selected_angle=selected_angle
+                )
             except Exception as e:
                 logger.warning(f"Claude peer review generation failed: {e}. Trying Gemini...")
 
@@ -90,21 +93,26 @@ class PeerReviewGenerator:
         if self.gemini_client:
             try:
                 logger.info(f"Generating academic peer review with Gemini ({self.gemini_model})...")
-                return self._generate_with_gemini(paper, dataset, analysis)
+                return self._generate_with_gemini(
+                    paper, dataset, analysis, selected_angle=selected_angle
+                )
             except Exception as e:
                 logger.warning(f"Gemini peer review generation failed: {e}. Falling back to domain template.")
 
         # 3. Fallback to domain-specific peer review template
         logger.info("Using domain-specific academic peer review template fallback.")
-        return self._generate_template_fallback(paper, dataset, analysis)
+        return self._generate_template_fallback(
+            paper, dataset, analysis, selected_angle=selected_angle
+        )
 
     def _build_review_prompt(
         self,
         paper: AcademicPaper,
         dataset: EducationDataset,
         analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> str:
-        ctx = get_academic_context(dataset.id, dataset.category)
+        ctx = selected_angle or get_academic_context(dataset.id, dataset.category)
 
         return f"""あなたは教育工学・情報教育・教育統計学を専門とする学術論文誌の「シニア査読委員（非常に厳格で学術的妥当性に妥協のないベテラン査読者）」です。
 以下の学術論文（ショートレター）原稿を厳正かつ批判的に審査し、学会公式の「査読結果通知書・査読報告書（Peer Review Report）」を作成してください。
@@ -166,8 +174,11 @@ class PeerReviewGenerator:
         paper: AcademicPaper,
         dataset: EducationDataset,
         analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> PeerReviewReport:
-        prompt = self._build_review_prompt(paper, dataset, analysis)
+        prompt = self._build_review_prompt(
+            paper, dataset, analysis, selected_angle=selected_angle
+        )
 
         candidate_models = [self.gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
         seen = set()
@@ -236,8 +247,11 @@ class PeerReviewGenerator:
         paper: AcademicPaper,
         dataset: EducationDataset,
         analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> PeerReviewReport:
-        prompt = self._build_review_prompt(paper, dataset, analysis)
+        prompt = self._build_review_prompt(
+            paper, dataset, analysis, selected_angle=selected_angle
+        )
         resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
         logger.info(f"Targeting Anthropic Claude model for peer review: '{resolved_model}' (requested: '{self.anthropic_model}')")
 
@@ -301,9 +315,10 @@ class PeerReviewGenerator:
         paper: AcademicPaper,
         dataset: EducationDataset,
         analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> PeerReviewReport:
         """Domain-specific academic peer review fallback with rigorous scholarly critique tailored to dataset."""
-        ctx = get_academic_context(dataset.id, dataset.category)
+        ctx = selected_angle or get_academic_context(dataset.id, dataset.category)
 
         scores = {
             "独創性・新規性": (

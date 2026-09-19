@@ -122,7 +122,7 @@ class JapanEduDataFetcher:
         return EducationDataset(
             id="japan_stem_cs_enrollment",
             title="【学校基本調査】情報系学科入学者数と女子比率の推移",
-            category="info",
+            category="math",
             region="japan",
             source_name="文部科学省",
             source_url="https://www.mext.go.jp/",
@@ -190,6 +190,18 @@ class JapanEduDataFetcher:
             recommended_chart="trend_line",
             unit="%",
         )
+
+    def get_teacher_workload(self) -> Optional[EducationDataset]:
+        """Loads Teacher Workload Survey dataset."""
+        return self._load_json_dataset("japan_teacher_workload_survey.json")
+
+    def get_special_needs_education(self) -> Optional[EducationDataset]:
+        """Loads Special Needs Education Survey dataset."""
+        return self._load_json_dataset("japan_special_needs_education.json")
+
+    def get_school_absenteeism(self) -> Optional[EducationDataset]:
+        """Loads School Absenteeism and Student Guidance Survey dataset."""
+        return self._load_json_dataset("japan_school_absenteeism_bullying.json")
 
     def query_estat_api(self, stats_data_id: str) -> Optional[dict]:
         """Optional query to e-Stat API if appId is set."""

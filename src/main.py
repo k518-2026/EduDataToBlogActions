@@ -94,21 +94,19 @@ def main():
     topic = (args.topic or Config.DEFAULT_TOPIC or "all").strip().strip("'\"").lower()
     publisher_type = (args.publisher or Config.BLOG_PUBLISHER_TYPE or "wordpress_mail").strip().strip("'\"").lower()
 
-    # 2. Select dataset
-    posted_ids = storage.get_posted_dataset_ids()
-    if args.dataset:
-        dataset = catalog.get_by_id(args.dataset)
-        if not dataset:
-            logger.error(f"Specified dataset '{args.dataset}' not found in catalog.")
-            sys.exit(1)
-        logger.info(f"Selected explicit dataset: {dataset.title} ({dataset.id})")
-    else:
-        dataset = catalog.select_dataset(
-            topic=topic,
-            posted_history_ids=posted_ids,
-            force=args.force,
-        )
-        logger.info(f"Selected dataset for analysis: {dataset.title} ({dataset.id})")
+    # 2. Select dataset and scholarly research angle
+    history = storage.load_history()
+    dataset, selected_angle = catalog.select_dataset_and_angle(
+        topic=topic,
+        posted_history=history,
+        force=args.force,
+        dataset_id=args.dataset,
+    )
+    logger.info(
+        f"Selected dataset: {dataset.title} ({dataset.id}) | "
+        f"Angle: {getattr(selected_angle, 'angle_name', '一般')}"
+    )
+    past_topics = storage.get_recent_research_topics(limit=5)
 
     logger.info(f"Dataset category: {dataset.category}, Region: {dataset.region}, Rows: {len(dataset.df)}")
 
@@ -129,12 +127,16 @@ def main():
 
     # 5. Generate pedagogical insights
     logger.info("💡 Generating educational pedagogical insights...")
-    insights = insight_gen.generate_insights(dataset, analysis)
+    insights = insight_gen.generate_insights(
+        dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+    )
 
     # 6. Generate undergraduate thesis-level academic paper and PDF
     logger.info("🎓 Generating undergraduate thesis-level academic paper...")
     paper_gen = AcademicPaperGenerator()
-    academic_paper = paper_gen.generate_paper(dataset, analysis)
+    academic_paper = paper_gen.generate_paper(
+        dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+    )
 
     logger.info("📑 Compiling academic thesis PDF document...")
     pdf_gen = EduPaperPdfGenerator()
@@ -160,7 +162,9 @@ def main():
     # 7. Generate rigorous academic peer review report and PDF
     logger.info("📋 Generating rigorous academic peer review report...")
     review_gen = PeerReviewGenerator()
-    peer_review = review_gen.generate_review(academic_paper, dataset, analysis)
+    peer_review = review_gen.generate_review(
+        academic_paper, dataset, analysis, selected_angle=selected_angle
+    )
 
     logger.info("📑 Compiling academic peer review PDF report...")
     review_pdf_gen = PeerReviewPdfGenerator()
@@ -201,6 +205,7 @@ def main():
         peer_review_pdf_url=review_pdf_download_url,
         py_script_path=local_py_path,
         py_script_url=py_github_url,
+        selected_angle=selected_angle,
     )
 
 

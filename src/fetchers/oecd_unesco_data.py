@@ -102,3 +102,7 @@ class OECDUnescoFetcher:
             recommended_chart="ranking_bar",
             unit="%",
         )
+
+    def get_talis_teacher_survey(self) -> Optional[EducationDataset]:
+        """Loads OECD TALIS Teacher Survey dataset."""
+        return self._load_json_dataset("oecd_talis_teacher_survey.json")

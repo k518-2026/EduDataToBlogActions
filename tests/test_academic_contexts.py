@@ -16,7 +16,7 @@ def test_academic_contexts_completeness_for_all_datasets():
     """Verifies that all 8 datasets in catalog have distinct, rigorous academic contexts."""
     catalog = DatasetCatalog()
     datasets = catalog.get_all_datasets()
-    assert len(datasets) == 8
+    assert len(datasets) == 12
 
     seen_topics = set()
     seen_frameworks = set()

@@ -40,6 +40,8 @@ class GeneratedReport:
     py_script_path: Optional[Path] = None
     py_script_url: Optional[str] = None
     python_code: Optional[str] = None
+    angle_id: Optional[str] = None
+    angle_name: Optional[str] = None
 
 
 class EduReportBuilder:
@@ -552,12 +554,16 @@ plt.show()
         py_script_url: Optional[str] = None,
         peer_review_pdf_path: Optional[Path] = None,
         peer_review_pdf_url: Optional[str] = None,
+        selected_angle: Optional[Any] = None,
     ) -> GeneratedReport:
         today_str = get_jst_now().strftime("%Y年%m月%d日")
         date_iso = get_jst_now().strftime("%Y-%m-%d")
 
         category_label = "算数・数学教育" if dataset.category == "math" else "情報教育・プログラミング"
-        title = f"{dataset.title}：データが暴く意外な教育実態と授業改善への示唆 ({today_str})"
+        if selected_angle and getattr(selected_angle, "title_theme", None):
+            title = f"{dataset.title}：{selected_angle.title_theme} ({today_str})"
+        else:
+            title = f"{dataset.title}：データが暴く意外な教育実態と授業改善への示唆 ({today_str})"
 
         categories = ["教育データ分析"]
         if dataset.category == "math":
@@ -883,4 +889,6 @@ plt.show()
             py_script_path=py_script_path,
             py_script_url=py_url,
             python_code=python_code,
+            angle_id=getattr(selected_angle, "angle_id", "") if selected_angle else "",
+            angle_name=getattr(selected_angle, "angle_name", "") if selected_angle else "",
         )

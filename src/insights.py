@@ -118,14 +118,20 @@ class GeminiInsightGenerator:
                 logger.warning(f"Failed to initialize Gemini Client: {e}")
 
     def generate_insights(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> EducationalInsights:
         """Generates educational insights from statistical analysis results."""
         # 1. Prefer Claude if configured
         if self.anthropic_api_key:
             try:
                 logger.info(f"Generating insights with Anthropic Claude ({self.anthropic_model})...")
-                return self._generate_with_claude(dataset, analysis)
+                return self._generate_with_claude(
+                    dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+                )
             except Exception as e:
                 logger.warning(f"Claude insight generation failed: {e}. Trying Gemini...")
 
@@ -133,16 +139,22 @@ class GeminiInsightGenerator:
         if self.gemini_client:
             try:
                 logger.info(f"Generating insights with Google Gemini ({self.gemini_model})...")
-                return self._generate_with_gemini(dataset, analysis)
+                return self._generate_with_gemini(
+                    dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+                )
             except Exception as e:
                 logger.warning(f"Gemini API call failed, falling back to template engine: {e}")
 
         # 3. Fallback to template engine
         logger.info("Using domain-specific educational insight template fallback.")
-        return self._generate_template_fallback(dataset, analysis)
+        return self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
 
     def _build_insight_prompt(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> str:
         stats_summary = []
         for m, s in analysis.descriptive_stats.items():
@@ -161,6 +173,37 @@ class GeminiInsightGenerator:
 
         insights_text = "\n".join(analysis.key_insights)
 
+        angle_section = ""
+        if selected_angle:
+            a_name = getattr(selected_angle, "angle_name", "")
+            a_fw = getattr(selected_angle, "theoretical_framework", "")
+            a_probs = getattr(selected_angle, "core_research_problems", "")
+            a_fmetrics = getattr(selected_angle, "focus_metrics", [])
+            f_str = ", ".join(a_fmetrics) if a_fmetrics else "全般"
+            angle_section = f"""
+### 【本レポート固有の研究アングル・焦点（最重要）】
+- 今回の分析アングル: {a_name}
+- 適用する理論的枠組み: {a_fw}
+- 固有の課題意識・対立点: {a_probs}
+- 重点分析対象指標: {f_str}
+必ず上記のアングル・理論的枠組み・重点指標を主軸に据えて分析・論述を行ってください。
+"""
+
+        dedup_section = ""
+        if past_topics:
+            past_titles = [
+                f"- {p.get('title', '')}（アングル: {p.get('angle_name', '一般')}）"
+                for p in past_topics if p.get('title')
+            ]
+            if past_titles:
+                dedup_section = f"""
+### 【過去の投稿内容との重複排除・新規性担保の厳格指示】
+本システムでは直近で以下のレポート・論文が既に公開されています：
+{chr(10).join(past_titles)}
+読者にとって単調で重複した印象を与えないよう、上記過去レポートと同一の論点・結論・改善提案を繰り返すことを【厳格に禁止】します。
+今回の固有アングル（{getattr(selected_angle, 'angle_name', '') or '新規視点'}）に立脚した、全く新しい切り口からインサイトを導出してください。
+"""
+
         return f"""あなたは算数・数学教育および情報教育（プログラミング教育・STEAM教育）の世界的専門家・教育統計アナリストです。
 以下の公的オープンデータおよび統計分析結果を精読し、教育現場の教員・教育委員会・学習者・保護者に向けて、通り一遍の教科書的な解説ではなく、【常識や直観を覆す意外な発見・教育的パラドックス】を前面に押し出した深く刺激的な教育インサイトレポートを作成してください。
 
@@ -169,7 +212,8 @@ class GeminiInsightGenerator:
 - 対象分野: {'算数・数学教育' if dataset.category == 'math' else '情報教育・プログラミング教育'} ({dataset.region})
 - 出典: {dataset.source_name} ({dataset.source_url})
 - 概要: {dataset.description}
-
+{angle_section}
+{dedup_section}
 ### 【統計分析結果の要約】
 主要指標の記述統計:
 {chr(10).join(stats_summary)}
@@ -202,9 +246,15 @@ class GeminiInsightGenerator:
 """
 
     def _generate_with_gemini(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> EducationalInsights:
-        prompt = self._build_insight_prompt(dataset, analysis)
+        prompt = self._build_insight_prompt(
+            dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+        )
 
         candidate_models = [self.gemini_model, "gemini-3.6-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
         seen = set()
@@ -238,7 +288,7 @@ class GeminiInsightGenerator:
 
         raw_text = response.text.strip()
         parsed = parse_insights_json(raw_text)
-        fallback = self._generate_template_fallback(dataset, analysis)
+        fallback = self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
 
         exec_summary = parsed.get("executive_summary") or fallback.executive_summary
         paradox = parsed.get("counter_intuitive_finding") or fallback.counter_intuitive_finding
@@ -257,9 +307,15 @@ class GeminiInsightGenerator:
         )
 
     def _generate_with_claude(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+        past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> EducationalInsights:
-        prompt = self._build_insight_prompt(dataset, analysis)
+        prompt = self._build_insight_prompt(
+            dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+        )
         prompt += (
             "\n\n【重要】出力は必ず有効なJSON形式のみとしてください。"
             "キーは 'executive_summary', 'counter_intuitive_finding', 'pedagogical_implications', 'future_challenges_and_policy' の4つです。"
@@ -295,7 +351,7 @@ class GeminiInsightGenerator:
 
         raw_text = res_data["content"][0]["text"].strip()
         parsed = parse_insights_json(raw_text)
-        fallback = self._generate_template_fallback(dataset, analysis)
+        fallback = self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
 
         exec_summary = parsed.get("executive_summary") or fallback.executive_summary
         paradox = parsed.get("counter_intuitive_finding") or fallback.counter_intuitive_finding
@@ -315,14 +371,18 @@ class GeminiInsightGenerator:
         )
 
     def _generate_template_fallback(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> EducationalInsights:
         """Generates rich, statistics-grounded insights when Gemini is unavailable."""
         insights_bullets = "、".join(analysis.key_insights[:2])
+        angle_note = f"（研究視点: {selected_angle.angle_name}）" if selected_angle and getattr(selected_angle, "angle_name", None) else ""
 
         if dataset.category == "math":
             exec_summary = (
-                f"本分析では、{dataset.source_name}の公的統計に基づき、算数・数学教育における学力到達度と情意指標の推移動態を精緻に検証しました。"
+                f"本分析では{angle_note}、{dataset.source_name}の公的統計に基づき、算数・数学教育における学力到達度と情意指標の推移動態を精緻に検証しました。"
                 f"データからは、{insights_bullets}という顕著な傾向が示されています。"
                 f"一見すると高学力が維持されているように映るものの、単なる計算手順の習熟と、数学的探究心や自己効力感との間には深刻な乖離が生じている実態が浮き彫りとなりました。"
             )
