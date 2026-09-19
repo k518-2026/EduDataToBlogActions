@@ -750,5 +750,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-19T22:37:51.720087+09:00",
     "date": "2026-09-19"
+  },
+  {
+    "dataset_id": "japan_teacher_workload_survey",
+    "angle_id": "workload_dx_time_squeeze",
+    "angle_name": "学校DX推進下における教員の在校等時間と授業準備時間圧迫のパラドックス",
+    "title": "【教員勤務実態調査】小・中学校教員の在校等時間と授業準備・持ち帰り仕事の推移：学校DXと教員多忙化のパラドックス：ICT導入がなぜ授業準備時間を圧迫するのか (2026年09月20日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-20T05:09:47.630714+09:00",
+    "date": "2026-09-20"
   }
 ]
