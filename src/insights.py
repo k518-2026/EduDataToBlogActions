@@ -3,11 +3,13 @@ Educational Commentary and Insights Generator using Google Gemini AI.
 Provides expert pedagogical analysis and actionable classroom/policy takeaways.
 Includes intelligent template fallback when Gemini API key is not configured.
 """
+from __future__ import annotations
+
 from dataclasses import dataclass
 import json
 import logging
 import re
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 import urllib.request
 
 from google import genai

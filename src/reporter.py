@@ -4,6 +4,8 @@ Combines statistical tables, visualization charts, pedagogical insights, and
 reproducible Python analysis code (with interactive copy button) into
 polished HTML (with Base64 embedded charts for WordPress) and Markdown.
 """
+from __future__ import annotations
+
 import base64
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,7 +13,7 @@ import html
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from src.analyzer import AnalysisResult
 from src.config import Config

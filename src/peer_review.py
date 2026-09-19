@@ -3,12 +3,14 @@ Strict Academic Peer Review Report Generator.
 Acts as a senior peer reviewer / editorial committee member of an educational technology / informatics
 academic journal, providing rigorous, constructive, and uncompromising scholarly critiques.
 """
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import logging
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import urllib.request
 
 from google import genai

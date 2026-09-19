@@ -9,10 +9,12 @@ Generates undergraduate thesis-level (学部の卒論水準) academic articles w
 - 5. Discussion (考察・教育的示唆・限界)
 - 6. References (引用・参考文献)
 """
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 import logging
 import re
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from google import genai
 from google.genai import types
