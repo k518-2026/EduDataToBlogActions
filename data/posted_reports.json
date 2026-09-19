@@ -730,5 +730,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-19T22:19:21.613178+09:00",
     "date": "2026-09-19"
+  },
+  {
+    "dataset_id": "oecd_talis_teacher_survey",
+    "angle_id": "talis_critical_thinking_instruction",
+    "angle_name": "批判的思考を促す授業実践と教員の自己効力感の国際連動性",
+    "title": "【OECD TALIS】中学校教員の指導自己効力感とICT・理数探究実践の国際比較：正解を教える授業から問いを生む授業へ：TALISデータが示す日本の批判的思考指導の国際的課題 (2026年09月19日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-19T22:37:51.720087+09:00",
+    "date": "2026-09-19"
   }
 ]
