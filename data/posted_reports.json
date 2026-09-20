@@ -792,5 +792,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-20T22:12:55.149225+09:00",
     "date": "2026-09-20"
+  },
+  {
+    "dataset_id": "japan_school_absenteeism_bullying",
+    "angle_id": "absenteeism_ict_safetynet",
+    "angle_name": "不登校児童生徒数の急増と自宅等におけるICT学習出席扱い制度の変容",
+    "title": "【児童生徒指導要録調査】小・中学校における不登校児童生徒数とICT学習支援の推移：不登校30万人時代の学びの保障：自宅等ICT学習の出席扱い制度が拓く新しいセーフティネット (2026年09月21日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-21T05:09:42.722026+09:00",
+    "date": "2026-09-21"
   }
 ]
