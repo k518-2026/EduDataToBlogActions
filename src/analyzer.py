@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Statistical Analysis Engine for Educational Datasets.
 Performs descriptive statistics, trend estimation, correlations, and comparative rankings.

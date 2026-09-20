@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 """
 Visualization Engine for Educational Open Data.
 Generates publication-quality charts using Matplotlib and Seaborn with robust Japanese font support.
 """
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import matplotlib
 matplotlib.use("Agg")  # Non-interactive backend for headless execution
 import matplotlib.pyplot as plt

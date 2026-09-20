@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import base64
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional, Tuple
 import requests
 
 from src.config import Config
