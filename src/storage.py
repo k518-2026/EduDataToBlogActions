@@ -92,8 +92,17 @@ class ReportStorage:
             "date": report.created_at,
         }
 
-        # Append new entry
-        history.append(entry)
+        # If an entry for the same dataset and date already exists, replace it in-place
+        replaced = False
+        for i, h in enumerate(history):
+            if h.get("dataset_id") == report.dataset_id and h.get("date") == report.created_at:
+                history[i] = entry
+                replaced = True
+                logger.info(f"Replaced existing history record for {report.dataset_id} on {report.created_at} in-place.")
+                break
+
+        if not replaced:
+            history.append(entry)
 
         # Save JSON
         with open(self.json_path, "w", encoding="utf-8") as f:

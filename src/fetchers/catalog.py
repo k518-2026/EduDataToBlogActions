@@ -139,6 +139,7 @@ class DatasetCatalog:
         posted_history: Optional[List[Dict[str, Any]]] = None,
         force: bool = False,
         dataset_id: Optional[str] = None,
+        angle_id: Optional[str] = None,
     ) -> Tuple[EducationDataset, Any]:
         """
         Intelligently selects both a dataset and an unrepeated scholarly research angle.
@@ -166,6 +167,17 @@ class DatasetCatalog:
         if not available_angles:
             default_ctx = get_academic_context(dataset.id, dataset.category)
             return dataset, default_ctx
+
+        # If angle_id is explicitly requested, look it up
+        if angle_id:
+            for a in available_angles:
+                if getattr(a, "angle_id", "") == angle_id:
+                    logger.info(
+                        f"Using explicitly requested research angle for '{dataset.id}': "
+                        f"{getattr(a, 'angle_name', '')} ({angle_id})"
+                    )
+                    return dataset, a
+            logger.warning(f"Requested angle '{angle_id}' not found for '{dataset.id}'. Falling back to automatic selection.")
 
         # Helper to find the most recent index where this angle was posted for this dataset
         def get_last_angle_index(angle: Any) -> int:

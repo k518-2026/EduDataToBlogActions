@@ -66,6 +66,12 @@ def parse_args():
         help="Target specific dataset ID (e.g. 'japan_national_assessment_math').",
     )
     parser.add_argument(
+        "--angle",
+        type=str,
+        default="",
+        help="Target specific research angle ID (e.g. 'absenteeism_ict_safetynet').",
+    )
+    parser.add_argument(
         "--publisher",
         type=str,
         default="",
@@ -101,6 +107,7 @@ def main():
         posted_history=history,
         force=args.force,
         dataset_id=args.dataset,
+        angle_id=args.angle,
     )
     logger.info(
         f"Selected dataset: {dataset.title} ({dataset.id}) | "

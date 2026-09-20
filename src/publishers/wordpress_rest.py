@@ -53,6 +53,46 @@ class WordPressRestPublisher(BasePublisher):
             logger.warning(f"Error uploading media to WordPress: {e}")
         return None
 
+    def _find_existing_post(self, report: GeneratedReport) -> Optional[int]:
+        """
+        Searches for an existing WordPress post matching the report dataset and date
+        to allow in-place replacement instead of creating a duplicate post.
+        """
+        if not self.site_url or not self.username or not self.app_password:
+            return None
+        try:
+            import re
+            headers = self._get_auth_header()
+            list_url = f"{self.site_url}/wp-json/wp/v2/posts?per_page=20&status=publish,draft,future,private"
+            resp = requests.get(list_url, headers=headers, timeout=20)
+            if resp.status_code == 200:
+                posts = resp.json()
+                today_iso = report.created_at  # e.g., "2026-09-21"
+                today_jp = today_iso.replace("-", "年", 1).replace("-", "月", 1) + "日"
+
+                # Extract identifier keywords from current report title (e.g. "児童生徒指導要録調査")
+                match = re.search(r"【(.*?)】", report.title)
+                main_tag = match.group(1) if match else ""
+
+                for p in posts:
+                    p_id = p.get("id")
+                    p_date = str(p.get("date", ""))
+                    p_title_obj = p.get("title", {})
+                    p_title = p_title_obj.get("rendered", "") if isinstance(p_title_obj, dict) else str(p_title_obj)
+
+                    date_matches = p_date.startswith(today_iso) or today_iso in p_title or today_jp in p_title
+                    if date_matches:
+                        # If tag matches or dataset keywords match, it is the same post to replace
+                        if main_tag and main_tag in p_title:
+                            logger.info(f"Found existing post on WordPress for {today_iso} matching '{main_tag}' (ID: {p_id}). Will update/replace it.")
+                            return p_id
+                        elif not main_tag and report.dataset_id in p.get("slug", ""):
+                            logger.info(f"Found existing post on WordPress for {today_iso} matching dataset ID (ID: {p_id}). Will update/replace it.")
+                            return p_id
+        except Exception as e:
+            logger.warning(f"Error checking existing WordPress posts: {e}")
+        return None
+
     def publish(self, report: GeneratedReport) -> bool:
         if not self.site_url or not self.username or not self.app_password:
             raise ValueError("WordPress REST credentials (WP_SITE_URL, WP_USER, WP_APP_PASSWORD) not configured.")
@@ -60,7 +100,6 @@ class WordPressRestPublisher(BasePublisher):
         # Upload chart image first
         featured_media_id = self._upload_media(report.chart_path)
 
-        post_url = f"{self.site_url}/wp-json/wp/v2/posts"
         headers = self._get_auth_header()
         headers["Content-Type"] = "application/json"
 
@@ -78,12 +117,21 @@ class WordPressRestPublisher(BasePublisher):
         if featured_media_id:
             payload["featured_media"] = featured_media_id
 
-        logger.info(f"Posting to WordPress REST API: {post_url} (status: {status})")
+        # Check if an existing post for today/dataset can be updated/replaced in-place
+        existing_post_id = self._find_existing_post(report)
+        if existing_post_id:
+            post_url = f"{self.site_url}/wp-json/wp/v2/posts/{existing_post_id}"
+            logger.info(f"Updating/replacing existing WordPress post (ID: {existing_post_id}) via REST API: {post_url}")
+        else:
+            post_url = f"{self.site_url}/wp-json/wp/v2/posts"
+            logger.info(f"Posting new article to WordPress REST API: {post_url} (status: {status})")
+
         resp = requests.post(post_url, headers=headers, json=payload, timeout=30)
         if resp.status_code in (200, 201):
             post_id = resp.json().get("id")
             post_link = resp.json().get("link")
-            logger.info(f"Successfully published post via REST API! Post ID: {post_id}, URL: {post_link}")
+            action_desc = "updated/replaced" if existing_post_id else "published"
+            logger.info(f"Successfully {action_desc} post via REST API! Post ID: {post_id}, URL: {post_link}")
             return True
         else:
             logger.error(f"Failed to post via REST API: {resp.status_code} - {resp.text}")

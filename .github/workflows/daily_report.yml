@@ -34,6 +34,11 @@ on:
         type: string
         required: false
         default: ''
+      angle:
+        description: 'Specific research angle ID to analyze (e.g. absenteeism_ict_safetynet)'
+        type: string
+        required: false
+        default: ''
       publisher:
         description: 'Publishing target (wordpress_rest / wordpress_mail / markdown_only)'
         type: choice
@@ -126,6 +131,7 @@ jobs:
           INPUT_TOPIC: ${{ inputs.topic }}
           INPUT_PUBLISHER: ${{ inputs.publisher }}
           INPUT_DATASET: ${{ inputs.dataset }}
+          INPUT_ANGLE: ${{ inputs.angle }}
         run: |
           ARGS=""
           if [ "$INPUT_DRY_RUN" = "true" ] || [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
@@ -142,6 +148,9 @@ jobs:
           fi
           if [ -n "$INPUT_DATASET" ]; then
             ARGS="$ARGS --dataset $INPUT_DATASET"
+          fi
+          if [ -n "$INPUT_ANGLE" ]; then
+            ARGS="$ARGS --angle $INPUT_ANGLE"
           fi
           echo "Executing: python -m src.main $ARGS"
           python -m src.main $ARGS
