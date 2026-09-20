@@ -10,7 +10,11 @@
   "time_col": "年",
   "group_col": "国名",
   "recommended_chart": "correlation_scatter",
-  "metrics": ["数学最低習熟度達成率", "教育支出対GDP比", "インターネット利用率"],
+  "metrics": [
+    "数学最低習熟度達成率",
+    "教育支出対GDP比",
+    "インターネット利用率"
+  ],
   "data": [
     {
       "年": 2023,
@@ -96,5 +100,8 @@
       "教育支出対GDP比": 4.1,
       "インターネット利用率": 78.6
     }
-  ]
+  ],
+  "observation_unit": "世界銀行EdStats主要10か国の国家集計データ（計10か国）",
+  "sample_population_note": "国連・世界銀行加盟国の公式国家教育統計に基づくマクロ経済・教育指標",
+  "sample_population_size": "主要10か国の国民人口・学齢人口"
 }

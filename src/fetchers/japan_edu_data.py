@@ -44,6 +44,9 @@ class JapanEduDataFetcher:
                 group_col=raw.get("group_col"),
                 recommended_chart=raw.get("recommended_chart", "trend_line"),
                 unit=raw.get("unit", "%"),
+                observation_unit=raw.get("observation_unit", ""),
+                sample_population_note=raw.get("sample_population_note", ""),
+                sample_population_size=raw.get("sample_population_size", ""),
             )
         except Exception as e:
             logger.error(f"Error loading {filename}: {e}")

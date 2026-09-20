@@ -797,7 +797,7 @@ class AcademicPaperGenerator:
         for m, s in analysis.descriptive_stats.items():
             m_unit = resolve_metric_unit(m, dataset.unit)
             stats_lines.append(
-                f"- {m}: サンプル数N={s.count}， 平均={s.mean:.2f}{m_unit}， 中央値={s.median:.2f}{m_unit}， 標準偏差={s.std:.2f}， 最小={s.min_val:.2f}， 最大={s.max_val:.2f}， IQR={s.iqr:.2f}"
+                f"- {m}: 観測系列数K={s.count}系列， 平均={s.mean:.2f}{m_unit}， 中央値={s.median:.2f}{m_unit}， 標準偏差={s.std:.2f}， 最小={s.min_val:.2f}， 最大={s.max_val:.2f}， IQR={s.iqr:.2f}"
             )
 
         trends_lines = []
@@ -838,6 +838,9 @@ class AcademicPaperGenerator:
 今回は【研究アングル: {getattr(selected_angle, 'angle_name', '') or ctx.academic_topic}】に基づき、未開拓の視点・独自の先行研究・新しい教育的示唆を展開してください。
 """
 
+        obs_unit_text = analysis.observation_unit or f"{analysis.sample_size}系列"
+        pop_note_text = analysis.sample_population_note or "全国公的調査全数・代表標本"
+
         return f"""あなたは教育工学、教育統計学、およびSTEM/理数・情報教育を専門とする大学教授・主任研究員です。
 日本の教育工学・情報教育系学術論文誌の投稿規程および執筆の手引（ショートレター／学術論文）の体裁に厳格に準拠した、極めて学術性の高い本格的な学術論文を執筆してください。
 ※重要：特定の学会名（「日本教育工学会」等）は、本文・抄録・見出し等の中に一切掲載しないでください（学術論文の体裁・構成・文体・組版ルールのみを利用します）。
@@ -848,6 +851,8 @@ class AcademicPaperGenerator:
 - 出典機関: {clean_text_spaces(dataset.source_name)} ({dataset.source_url})
 - 単位: {dataset.unit}
 - データ概要: {dataset.description}
+- 観測データ系列数: {analysis.sample_size} 系列 ({obs_unit_text})
+- 調査対象母集団・実標本規模: {pop_note_text}
 - 本研究の学術主題: {ctx.academic_topic}
 - 本研究の研究アングル: {getattr(ctx, 'angle_name', '') or ctx.academic_topic}
 - 推奨タイトルテーマ構想: {getattr(ctx, 'title_theme', '') or ctx.fallback_title}
@@ -885,6 +890,12 @@ class AcademicPaperGenerator:
    - ※重要【単位の正確な記述】: 数値に付す単位において「点 / %」や「人 / %」のような合成スラッシュ記号は絶対に記述しないこと。必ず各指標固有の単一の単位（得点なら「点」、割合・比率なら「%」、人数なら「人」など）のみを使用すること。
    - ※特定の学会名（「日本教育工学会」等）は本文・抄録・見出し等に一切記述しないこと。
    - ★【定型句・クリシェの完全禁止】: 「近年のSociety 5.0の進展に伴い…」「近年の知識基盤社会の深化およびSociety 5.0の進展に伴い…」「現代社会において急速に進展するDXに伴い…」「情報化社会の急速な進展に伴い…」などの紋切り型の一般論から書き始めることを【厳格に禁止】します。必ず上記「本研究の学術主題」および「研究背景の執筆指針」に即し、本データセット固有の理論的対立点・学術的アポリアからダイレクトに書き始めてください。
+   - ★【標本規模・観測単位の厳格な学術的区別（極めて重要）】:
+     本分析におけるデータ数（K=10系列等）は、時系列・校種別のマクロ集計データポイント（系列数 K）であり、個々の児童生徒の標本数ではありません。
+     調査対象母集団・実標本規模は「{pop_note_text}」です。
+     本文中（第2節「調査対象および分析方法」等）で、必ず全国の児童生徒・教員を対象とした公的調査であることを明記し、
+     『10人の児童生徒を調査した』『標本数N=10』のような誤解を招く平坦・不正確な記述を【厳格に禁止】します。
+     時系列データポイントを言及する際は「10系列の時系列集計データ」「10観測系列」と正確に表現してください。
    - ★【論文の単調さの完全打破と「意外性・学術的緊張」の徹底（極めて重要）】:
      本研究を、単に「平均値が増加した」「相関があった」を機械的になぞるだけの退屈で単調な報告書にしてはならない。
      データが突きつける【常識や直観を覆す意外な発見・パラドックス・通説の死角】を学術的にえぐり出す構成とすること。
@@ -902,7 +913,7 @@ class AcademicPaperGenerator:
      必ず以下の学術的緊張・意外性を持った問いを設定してください：
      - `・RQ1: ` 表面的・形式的な普及や学力達成の背後で、なぜ〇〇という直観に反する停滞・情意低下・格差（パラドックス）が生じているのか（水準と不均衡の検証）。
      - `・RQ2: ` その予期せぬ乖離や逆説的現象の深層には、いかなる指標間のトレードオフや構造的連動性が存在し、従来の通説的因果モデルをどのように再考させるか。
-   - **methodology**: 600〜800文字。標本特性、指標の操作的定義、適用した統計解析手法。また，各平均値・推定値の標本誤差および信頼性を視覚化するため，グラフ描画（折れ線グラフおよび棒グラフ）において95%信頼区間（95% CI）を算出し，誤差棒および信頼区間帯として明示している旨，ならびに頻度論的検定（p値）に加えてJZSベイズファクター（<i>BF</i><sub>10</sub>）を算出し，Jeffreysの判定基準に基づく仮説支持の証拠強度を評価している旨を方法論に明記すること。
+   - **methodology**: 600〜800文字。調査対象母集団（{pop_note_text}）、分析対象とした時系列・区分別集計データ系列（{obs_unit_text}）、指標の操作的定義、適用した統計解析手法。また，各平均値・推定値の標本誤差および信頼性を視覚化するため，グラフ描画（折れ線グラフおよび棒グラフ）において95%信頼区間（95% CI）を算出し，誤差棒および信頼区間帯として明示している旨，ならびに頻度論的検定（p値）に加えてJZSベイズファクター（<i>BF</i><sub>10</sub>）を算出し，Jeffreysの判定基準に基づく仮説支持の証拠強度を評価している旨を方法論に明記すること。
    - **results_text**: 800〜1100文字。★【必須】必ず【RQ1に関する結果】→【RQ2に関する結果】の順で記述すること。「表１」（記述統計・分布特性）、「表２」（回帰・相関・ベイズ分析）、「図１」（推移トレンド・95%信頼区間併記）、「図２」（相関・格差・95%信頼区間併記）の図表を参照しながら実測数値を網羅して客観的に記述すること。
      単に数値を読み上げるだけでなく、「直観的には正の相関が予想されるのに対し、実際には相関が微弱にとどまった点」「特定群での急変や分散（IQR・標準偏差）の拡大による二極化の兆候」など、データが突きつける意外な数値的証拠を対比させて客観的に記述すること。また、相関やトレンドの検証においては、有意確率（<i>p</i>値）とともにベイズファクター（<i>BF</i><sub>10</sub>）による対立仮説支持の証拠強度（強い証拠、逸話的証拠など）を併記して報告すること。
    - **discussion**: 1000〜1400文字。★【必須】必ず【RQ1に関する考察】→【RQ2に関する考察】の順で記述すること。
@@ -1165,6 +1176,10 @@ class AcademicPaperGenerator:
         clean_title_core = clean_text_spaces(clean_title_core)
 
         ctx = selected_angle or get_academic_context(dataset.id, dataset.category)
+        obs_unit = getattr(analysis, "observation_unit", "") or getattr(dataset, "observation_unit", "系列")
+        pop_note = getattr(analysis, "sample_population_note", "") or getattr(dataset, "sample_population_note", "")
+        pop_size = getattr(analysis, "sample_population_size", "") or getattr(dataset, "sample_population_size", "")
+        pop_info_str = f"，母集団規模: {pop_size}" if pop_size else ""
 
         title = ctx.fallback_title
         subtitle = ctx.fallback_subtitle
@@ -1172,7 +1187,7 @@ class AcademicPaperGenerator:
         abstract = (
             f"本研究は，{clean_source}の公的オープンデータ（{clean_title_core}）に基づき，"
             f"{ctx.academic_topic}を計量的に解明することを目的とした実証分析である．"
-            f"対象標本（N={count_str}）における主要指標「{first_metric}」の記述統計量を求めたところ，"
+            f"観測データ系列（K={count_str}{obs_unit}{pop_info_str}）における主要指標「{first_metric}」の記述統計量を求めたところ，"
             f"平均値は{avg_str}，中央値は{med_str}，標準偏差は{std_str}，四分位範囲(IQR)は{iqr_str}を示した．"
             f"{trend_desc}得られた知見に基づき，学校教育の指導改善および政策展開に向けた教育学的示唆を論じる．"
         )
@@ -1180,8 +1195,9 @@ class AcademicPaperGenerator:
         objectives = ctx.fallback_objectives
         methodology = (
             f"本研究のデータソースには，{clean_source}により調査・公開された「{clean_title_core}」の公式データセットを採用した．"
-            f"本データは{dataset.region}を対象とし，信頼性の高い公的サンプリング手法に基づき集計されたものである．\n\n"
-            f"分析対象とした指標群は，{', '.join(dataset.metrics)}であり，欠損値処理および型変換を施した上で以下の統計解析手法を適用した．\n"
+            f"本データは{dataset.region}を対象とし，信頼性の高い公的サンプリング手法に基づき集計されたものである．"
+            + (f"（実標本・調査母集団規模: {pop_note}）\n\n" if pop_note else "\n\n")
+            + f"分析対象とした指標群は，{', '.join(dataset.metrics)}であり，観測データ系列数 K={count_str}（{obs_unit}）に対し，欠損値処理および型変換を施した上で以下の統計解析手法を適用した．\n"
             "1. 記述統計分析: 平均値，中央値，不偏標準偏差（ddof=1），最小値・最大値，ならびに第1四分位数・第3四分位数から四分位範囲（IQR）を算出し，データの対称性とばらつきを評価した．\n"
             "2. 経年変化分析: 複数時点の時系列データに対し，変化量，変化率（%），幾何平均年間成長率（CAGR）を算定するとともに，最小二乗法による単回帰分析を行い決定係数（<i>R</i><sup>2</sup>）および回帰直線の傾きを導出した．\n"
             "3. 相関分析: 量的変数間においてピアソン積率相関係数（<i>r</i>）および両側検定による<i>p</i>値を算出し，指標間の共分散関係を検証した．\n"
@@ -1191,9 +1207,9 @@ class AcademicPaperGenerator:
         results_text = (
             "本データセットの計量分析結果を，リサーチクエスチョンに沿って順に報告する．\n\n"
             "【RQ1に関する分析結果：主要指標の現状水準と分布構造（表１参照）】\n"
-            f"主要指標「{first_metric}」について基本記述統計量を算出したところ，標本数 N={count_str}，平均値 {avg_str}，中央値 {med_str}，"
+            f"主要指標「{first_metric}」について基本記述統計量を算出したところ，データ系列数 K={count_str}（{obs_unit}{pop_info_str}），平均値 {avg_str}，中央値 {med_str}，"
             f"不偏標準偏差 {std_str} であった．最小値は {min_str}，最大値は {max_str} であり，全変動レンジならびに"
-            f"四分位範囲 IQR={iqr_str} から，対象標本内において一定の散布度が確認された．表１に示す通り，各指標の中心傾向とばらつきの双方が明確に定量化された．\n\n"
+            f"四分位範囲 IQR={iqr_str} から，対象系列内において一定の散布度が確認された．表１に示す通り，各指標の中心傾向とばらつきの双方が明確に定量化された．\n\n"
             "【RQ2に関する分析結果：時系列推移トレンドおよび指標間相関構造（表２・図１・図２参照）】\n"
             f"{trend_desc if trend_desc else '時系列データに基づく推移分析を実施したところ，各属性区分において明瞭な推移傾向が観察された．'}"
             " 表２に示す通り，時系列回帰モデルの推定により回帰勾配および決定係数が算出され，図１の推移チャート（95%信頼区間併記）からも経年的な変化の方向性が視覚的に裏付けられた．\n"
@@ -1205,8 +1221,10 @@ class AcademicPaperGenerator:
 
         title_en = ctx.title_en if ctx.title_en else "Quantitative Empirical Analysis of Educational Indicators"
         authors_en = "EduData Research Group*1 and Educational Data Science Team*2"
+        pop_en_str = f"; population: {pop_size}" if pop_size else ""
         summary_en = ctx.fallback_summary_en if ctx.fallback_summary_en else (
-            f"This study conducts an empirical quantitative analysis of educational open data published by {ctx.source_en or clean_source}. "
+            f"This study conducts an empirical quantitative analysis of educational open data published by {ctx.source_en or clean_source} "
+            f"(K={count_str} macro observation series{pop_en_str}). "
             f"Descriptive statistics, regression models, and Bayesian inference were evaluated. "
             f"Based on these empirical findings with 95% confidence intervals, pedagogical implications and theoretical considerations are discussed."
         )

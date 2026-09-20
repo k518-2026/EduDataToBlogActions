@@ -120,3 +120,41 @@ def test_compute_trend_ci_errors():
     assert ci_err[2] <= ci_err[4]
 
 
+def test_visualizer_rq_aligned_charts(tmp_path):
+    from src.academic_contexts import get_academic_context
+
+    df = pd.DataFrame({
+        "年度": [2019, 2020, 2021, 2022, 2023],
+        "不登校児童生徒数": [181272, 196127, 244940, 299048, 346482],
+        "千人あたり不登校率": [18.8, 20.5, 25.7, 31.7, 37.1],
+        "ICT出席扱い生徒数": [3956, 5214, 10103, 10409, 14000],
+    })
+    dataset = EducationDataset(
+        id="japan_school_absenteeism_bullying",
+        title="児童生徒の問題行動・不登校等生徒指導上の諸課題に関する調査",
+        category="support",
+        region="japan",
+        source_name="文部科学省",
+        source_url="https://example.com",
+        description="不登校データ",
+        df=df,
+        metrics=["不登校児童生徒数", "千人あたり不登校率", "ICT出席扱い生徒数"],
+        time_col="年度",
+        recommended_chart="trend_line",
+        unit="人",
+    )
+
+    angle = get_academic_context("japan_school_absenteeism_bullying", angle_id="absenteeism_ict_safetynet")
+
+    analyzer = EduDataAnalyzer()
+    analysis = analyzer.analyze(dataset, selected_angle=angle)
+
+    vis = EduDataVisualizer(output_dir=tmp_path)
+    sec_chart = vis.generate_secondary_chart(dataset, analysis, selected_angle=angle)
+
+    assert sec_chart is not None
+    assert sec_chart.exists()
+    assert sec_chart.stat().st_size > 1000
+
+
+

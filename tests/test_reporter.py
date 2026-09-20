@@ -52,6 +52,8 @@ def test_reporter_builds_valid_documents(tmp_path):
     assert f"# {dataset.title}" in report.markdown_content
     assert "テストサマリーです。" in report.markdown_content
     assert "正答率" in report.markdown_content
+    assert "データ系列数 (K)" in report.markdown_content
+    assert "分析データ規模:" in report.markdown_content
     assert "💻 統計処理に利用した Python スクリプト" in report.markdown_content
     assert "import pandas as pd" in report.python_code
 

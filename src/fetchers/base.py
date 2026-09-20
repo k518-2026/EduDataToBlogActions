@@ -23,6 +23,9 @@ class EducationDataset:
     group_col: Optional[str] = None
     recommended_chart: str = "trend_line"  # 'trend_line', 'ranking_bar', 'correlation_scatter'
     unit: str = "%"
+    observation_unit: str = ""
+    sample_population_note: str = ""
+    sample_population_size: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def summary_info(self) -> Dict[str, Any]:

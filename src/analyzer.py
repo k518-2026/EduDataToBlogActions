@@ -128,12 +128,61 @@ class AnalysisResult:
     rankings: Dict[str, List[Tuple[str, float]]]
     key_insights: List[str]
     raw_df: pd.DataFrame
+    observation_unit: str = ""
+    sample_population_note: str = ""
+    sample_population_size: str = ""
+    rq_correlations: List[CorrelationResult] = field(default_factory=list)
+
+
+def is_collinear_or_redundant_pair(col_x: str, col_y: str) -> bool:
+    """
+    Determines if two metrics represent mathematically or conceptually redundant / collinear variables
+    (e.g., headcount vs rate per 1,000 of the same metric, or derived sub-components).
+    """
+    if col_x == col_y:
+        return True
+
+    # Strip common prefixes/suffixes to find core root
+    def extract_root(col: str) -> str:
+        s = col
+        for prefix in ["千人あたり", "在籍千人あたり", "全国", "公立", "1人1台"]:
+            if s.startswith(prefix):
+                s = s[len(prefix):]
+        for suffix in ["児童生徒数", "生徒数", "児童数", "教員数", "入学者数", "人数", "総数", "数",
+                       "率", "比率", "割合", "得点", "スコア", "平均正答率", "正答率", "肯定率"]:
+            if s.endswith(suffix) and len(s) > len(suffix):
+                s = s[:-len(suffix)]
+                break
+        return s.strip()
+
+    root_x = extract_root(col_x)
+    root_y = extract_root(col_y)
+
+    # If roots match (e.g. "不登校" and "不登校", or "女性" and "女性")
+    if root_x and root_y and (root_x == root_y or root_x in root_y or root_y in root_x):
+        is_count_x = any(w in col_x for w in ["数", "人数", "総数"]) and not any(w in col_x for w in ["率", "比率", "割合", "千人"])
+        is_rate_x = any(w in col_x for w in ["率", "比率", "割合", "千人あたり"])
+        is_count_y = any(w in col_y for w in ["数", "人数", "総数"]) and not any(w in col_y for w in ["率", "比率", "割合", "千人"])
+        is_rate_y = any(w in col_y for w in ["率", "比率", "割合", "千人あたり"])
+
+        if (is_count_x and is_rate_y) or (is_rate_x and is_count_y):
+            return True
+
+    # Check for direct derivations (e.g. difference derived from components)
+    if "得点差" in col_x and ("男子" in col_y or "女子" in col_y):
+        return True
+    if "得点差" in col_y and ("男子" in col_x or "女子" in col_x):
+        return True
+
+    return False
 
 
 class EduDataAnalyzer:
     """Statistical analyzer for education datasets."""
 
-    def analyze(self, dataset: EducationDataset) -> AnalysisResult:
+    def analyze(
+        self, dataset: EducationDataset, selected_angle: Optional[Any] = None
+    ) -> AnalysisResult:
         df = dataset.df.copy()
         metrics = dataset.metrics
         time_col = dataset.time_col
@@ -198,6 +247,11 @@ class EduDataAnalyzer:
             for i in range(len(num_cols)):
                 for j in range(i + 1, len(num_cols)):
                     col_x, col_y = num_cols[i], num_cols[j]
+                    if is_collinear_or_redundant_pair(col_x, col_y):
+                        logger.info(
+                            f"Excluding collinear/redundant pair from correlation analysis: {col_x} vs {col_y}"
+                        )
+                        continue
                     sub = df[[col_x, col_y]].dropna()
                     if len(sub) >= 4:
                         r, p_val = stats.pearsonr(sub[col_x], sub[col_y])
@@ -214,6 +268,43 @@ class EduDataAnalyzer:
                                 bf_interpretation=bf_interp,
                             )
                         )
+
+        # Prioritize the RQ target scatter pair if defined by selected_angle
+        target_x = getattr(selected_angle, "scatter_x_metric", None)
+        target_y = getattr(selected_angle, "scatter_y_metric", None)
+        if target_x and target_y:
+            has_target = any(
+                (cr.metric_x == target_x and cr.metric_y == target_y)
+                or (cr.metric_x == target_y and cr.metric_y == target_x)
+                for cr in correlations
+            )
+            if not has_target and target_x in df.columns and target_y in df.columns:
+                sub = df[[target_x, target_y]].dropna()
+                if len(sub) >= 4:
+                    r, p_val = stats.pearsonr(sub[target_x], sub[target_y])
+                    interp = self._interpret_correlation(r)
+                    bf10, bf_interp = compute_bayes_factor_correlation(float(r), len(sub))
+                    correlations.insert(
+                        0,
+                        CorrelationResult(
+                            metric_x=target_x,
+                            metric_y=target_y,
+                            pearson_r=round(float(r), 3),
+                            p_value=round(float(p_val), 4),
+                            interpretation=interp,
+                            bf10=bf10,
+                            bf_interpretation=bf_interp,
+                        ),
+                    )
+            else:
+                correlations.sort(
+                    key=lambda cr: 0
+                    if (
+                        (cr.metric_x == target_x and cr.metric_y == target_y)
+                        or (cr.metric_x == target_y and cr.metric_y == target_x)
+                    )
+                    else 1
+                )
 
         # 4. Comparative rankings
         rankings: Dict[str, List[Tuple[str, float]]] = {}
@@ -236,6 +327,15 @@ class EduDataAnalyzer:
         # 5. Extract automated key insights
         insights = self._generate_key_insights(dataset, desc_stats, trends, correlations, rankings)
 
+        rq_corrs = []
+        if target_x and target_y:
+            rq_corrs = [
+                cr
+                for cr in correlations
+                if (cr.metric_x == target_x and cr.metric_y == target_y)
+                or (cr.metric_x == target_y and cr.metric_y == target_x)
+            ]
+
         return AnalysisResult(
             dataset_id=dataset.id,
             dataset_title=dataset.title,
@@ -247,6 +347,10 @@ class EduDataAnalyzer:
             rankings=rankings,
             key_insights=insights,
             raw_df=df,
+            observation_unit=getattr(dataset, "observation_unit", ""),
+            sample_population_note=getattr(dataset, "sample_population_note", ""),
+            sample_population_size=getattr(dataset, "sample_population_size", ""),
+            rq_correlations=rq_corrs,
         )
 
     def _compute_trend(

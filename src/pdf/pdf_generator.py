@@ -546,7 +546,7 @@ class EduPaperPdfGenerator:
         """Constructs a JSET-standard three-line table (三本線表) for descriptive statistics."""
         headers = [
             Paragraph("指標名", self.styles["TableHeader"]),
-            Paragraph("N", self.styles["TableHeader"]),
+            Paragraph("<i>K</i>", self.styles["TableHeader"]),
             Paragraph("平均", self.styles["TableHeader"]),
             Paragraph("SD", self.styles["TableHeader"]),
             Paragraph("中央値", self.styles["TableHeader"]),
@@ -897,10 +897,12 @@ class EduPaperPdfGenerator:
         # Table 1: Caption ABOVE the table
         first_m = dataset.metrics[0] if dataset.metrics else ""
         unit_note = resolve_metric_unit(first_m, dataset.unit)
+        pop_info = getattr(analysis, "sample_population_size", "") or getattr(dataset, "sample_population_size", "")
+        pop_str = f"（母集団規模: {pop_info}）" if pop_info else ""
         table1_elements = [
             self._para("表１　主要指標における基本記述統計量一覧", self.styles["TableCaption"]),
             self._build_descriptive_stats_table(dataset, analysis),
-            self._para(f"注）単位は {unit_note}．Nは有効標本数，SDは不偏標準偏差．", self.styles["TableNote"]),
+            self._para(f"注）単位は {unit_note}．<i>K</i>はデータ系列数{pop_str}，SDは不偏標準偏差．", self.styles["TableNote"]),
         ]
         story.append(KeepTogether(table1_elements))
         story.append(Spacer(1, 4))

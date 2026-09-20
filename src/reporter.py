@@ -303,8 +303,10 @@ plt.show()
     ) -> tuple[str, str]:
         """Constructs modern, polished Markdown and HTML descriptive statistics tables."""
         unit_str = f" ({dataset.unit})" if dataset.unit else ""
+        pop_note = f"\n*※「データ系列数 (K)」は時系列・区分別の集計観測データポイント数を示す（調査母集団・実標本規模: {analysis.sample_population_note}）。*\n" if analysis.sample_population_note else ""
+
         md_rows = [
-            f"| 指標名 | 標本数 (N) | 平均値{unit_str} | 中央値{unit_str} | 標準偏差 (σ) | 最小値{unit_str} | 最大値{unit_str} | 四分位範囲 (IQR) |",
+            f"| 指標名 | データ系列数 (K) | 平均値{unit_str} | 中央値{unit_str} | 標準偏差 (σ) | 最小値{unit_str} | 最大値{unit_str} | 四分位範囲 (IQR) |",
             "| :--- | :---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
         html_rows = []
@@ -326,7 +328,13 @@ plt.show()
                 </tr>"""
             )
 
-        md_table = "\n".join(md_rows) + "\n"
+        md_table = "\n".join(md_rows) + pop_note + "\n"
+        html_pop_div = (
+            f'<div style="font-size:12px; color:#64748b; padding:8px 18px; border-top:1px solid #f1f5f9; background-color:#fafafa;">'
+            f'※「データ系列数 (K)」は時系列・区分別の集計データポイント数です。調査母集団・実標本規模: {analysis.sample_population_note}</div>'
+            if analysis.sample_population_note
+            else ""
+        )
         html_table = f"""
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
           <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -342,7 +350,7 @@ plt.show()
               <thead>
                 <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; letter-spacing:0.3px; border-bottom:2px solid #cbd5e1;">
                   <th style="padding:10px 14px; text-align:left;">指標名</th>
-                  <th style="padding:10px 12px; text-align:center;">標本数 (N)</th>
+                  <th style="padding:10px 12px; text-align:center;">データ系列数 (K)</th>
                   <th style="padding:10px 14px; text-align:right;">平均値</th>
                   <th style="padding:10px 14px; text-align:right;">中央値</th>
                   <th style="padding:10px 14px; text-align:right;">標準偏差 (σ)</th>
@@ -356,6 +364,7 @@ plt.show()
               </tbody>
             </table>
           </div>
+          {html_pop_div}
         </div>
         """
         return md_table, html_table
@@ -708,7 +717,8 @@ plt.show()
 - **データセット名:** {dataset.title}
 - **情報提供元:** [{dataset.source_name}]({dataset.source_url})
 - **調査対象・内容:** {dataset.description}
-- **分析標本数 (行数):** {analysis.sample_size} 件
+- **分析データ規模:** 観測データ系列数: {analysis.sample_size} 系列{f'（{analysis.observation_unit}）' if analysis.observation_unit else ''}
+- **調査対象母集団・実標本規模:** {analysis.sample_population_note if analysis.sample_population_note else '公的統計調査対象全数・代表標本'}
 
 ---
 

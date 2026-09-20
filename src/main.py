@@ -112,15 +112,15 @@ def main():
 
     # 3. Perform statistical analysis
     logger.info("📊 Running statistical analysis engine...")
-    analysis = analyzer.analyze(dataset)
+    analysis = analyzer.analyze(dataset, selected_angle=selected_angle)
     logger.info(f"Calculated statistics for {len(analysis.descriptive_stats)} metrics.")
     for ins in analysis.key_insights:
         logger.info(f"  Insight: {ins}")
 
     # 4. Generate visualization charts
     logger.info("🎨 Generating publication-quality charts...")
-    chart_path = visualizer.generate_chart(dataset, analysis)
-    secondary_chart_path = visualizer.generate_secondary_chart(dataset, analysis)
+    chart_path = visualizer.generate_chart(dataset, analysis, selected_angle=selected_angle)
+    secondary_chart_path = visualizer.generate_secondary_chart(dataset, analysis, selected_angle=selected_angle)
     logger.info(f"Primary chart generated: {chart_path}")
     if secondary_chart_path:
         logger.info(f"Secondary chart generated: {secondary_chart_path}")

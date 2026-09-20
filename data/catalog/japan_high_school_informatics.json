@@ -10,7 +10,12 @@
   "time_col": "年度",
   "group_col": "学校区分",
   "recommended_chart": "trend_line",
-  "metrics": ["Python活用率", "JavaScript活用率", "共通テスト情報対策実施率", "探究演習導入率"],
+  "metrics": [
+    "Python活用率",
+    "JavaScript活用率",
+    "共通テスト情報対策実施率",
+    "探究演習導入率"
+  ],
   "data": [
     {
       "年度": 2021,
@@ -92,5 +97,8 @@
       "共通テスト情報対策実施率": 98.4,
       "探究演習導入率": 94.1
     }
-  ]
+  ],
+  "observation_unit": "集計年度・学科別の時系列データ系列（5年度分×2学科＝計10系列）",
+  "sample_population_note": "全国の国公私立高等学校（約4,800校、情報科担当教員約5,000名）を対象とした指導実態調査",
+  "sample_population_size": "全国約4,800校（高校情報科担当教員約5,000名）"
 }

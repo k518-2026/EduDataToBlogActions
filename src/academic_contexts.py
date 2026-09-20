@@ -38,6 +38,12 @@ class DatasetAcademicContext:
     angle_name: str = ""
     title_theme: str = ""
     focus_metrics: List[str] = field(default_factory=list)
+    rq1: str = ""
+    rq2: str = ""
+    scatter_x_metric: Optional[str] = None
+    scatter_y_metric: Optional[str] = None
+    group_comparison_metric: Optional[str] = None
+    secondary_chart_type: Optional[str] = None
 
 
 # Registry of scholarly contexts for each dataset
@@ -167,7 +173,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="timss_affective_paradox",
         angle_name="TIMSSパラドックス（認知的学力到達度と自己効力感の非対称性）",
         title_theme="「数学が得意」なのに「嫌い」な子どもたち：TIMSSパラドックスが暴く学力と自己効力感の乖離",
-        focus_metrics=["小4算数楽しい", "中2数学楽しい", "小4算数平均得点", "中2数学平均得点"],
+        focus_metrics=['平均得点', '勉強が楽しい肯定率', '得意である肯定率'],
+        rq1='TIMSS調査における小学校4年算数および中学校2年数学の平均得点と情意指標（楽しい・得意肯定率）はどのように推移しているか。',
+        rq2='認知的学力到達度（平均得点）と情意面（自己効力感・好意度）の間にはどのような共変連動性（または乖離）が認められるか。',
+        scatter_x_metric='平均得点',
+        scatter_y_metric='勉強が楽しい肯定率',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 2. High School Informatics: Informatics I Reform & Common Test
@@ -297,7 +308,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="hs_info_curriculum_implementation",
         angle_name="高等学校「情報I」必履修化とプログラミング指導体制の地域・学校間格差",
         title_theme="「情報I」必履修化の現場摩擦：プログラミング探究指導と大学入試対策の二律背反",
-        focus_metrics=["Python利用率", "共通テスト「情報」選択意向", "情報免許保有教員比率"],
+        focus_metrics=['Python活用率', '共通テスト情報対策実施率', '探究演習導入率'],
+        rq1='高等学校におけるプログラミング指導言語（Python・JavaScript等）の活用率および探究演習導入率の現状水準はどう推移しているか。',
+        rq2='大学入試共通テスト「情報」対策の実施比率とプログラミング言語活用率との間にはどのような構造的連動性が存在するか。',
+        scatter_x_metric='共通テスト情報対策実施率',
+        scatter_y_metric='Python活用率',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 3. National Assessment Math: Elementary-Junior High Gap & Formative Problem Solving
@@ -429,7 +445,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="national_math_conceptual_understanding",
         angle_name="全国学力・学習状況調査における知識・技能と数学的な見方・考え方（活用）の乖離",
         title_theme="計算はできるが説明ができない子どもたち：全国学力調査が暴く「知識」と「数学的探究・表現」の断絶",
-        focus_metrics=["小学校算数平均正答率", "中学校数学平均正答率", "算数数学好き肯定率"],
+        focus_metrics=['平均正答率', '端末活用率', '勉強が好き肯定率'],
+        rq1='小学校算数および中学校数学における平均正答率・学習意欲・端末日常活用率の水準推移はどう推移しているか。',
+        rq2='1人1台端末の日常的活用率と学力平均正答率との間にはどのような相関・連動性が認められるか。',
+        scatter_x_metric='端末活用率',
+        scatter_y_metric='平均正答率',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 4. Japan MEXT ICT Informatization: GIGA Phase 2 & Hardware vs Utilization Disconnect
@@ -560,7 +581,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="mext_ict_infrastructure_vs_pedagogy",
         angle_name="GIGAスクール1人1台端末のハード整備と日常的探究活用の地域格差（セカンド・デジタルデバイド）",
         title_theme="端末配備100%の裏側で進む「第2のデジタルデバイド」：自治体格差と授業活用頻度の二極化構造",
-        focus_metrics=["教育用コンピュータ1台当たり児童生徒数", "教員のICT指導力", "無線LAN整備率"],
+        focus_metrics=['小学校', '中学校', '高等学校', '全国平均'],
+        rq1='初等中等教育の各校種（小・中・高）におけるICT端末日常利用率の現状水準と格差はどう推移しているか。',
+        rq2='校種間における普及速度の差異およびインフラ整備から日常探究への質的転換はどう連動しているか。',
+        group_comparison_metric='全国平均',
+        secondary_chart_type='group_comparison_bar',
     ),
 
     # 5. OECD PISA Math & ICT: Inverted-U Hypothesis & Screen Time
@@ -684,7 +709,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="pisa_math_resilience_and_ict",
         angle_name="PISA国際比較に見る数学的リテラシーとデジタル端末利用時間の非線形関係（デジタル・パラドックス）",
         title_theme="端末を長く使う生徒ほど数学スコアが下がる？：PISAデータが突きつける「デジタル学習時間の逆説」",
-        focus_metrics=["数学的リテラシー平均得点", "学校でのICT利用時間", "ICTリソースの質"],
+        focus_metrics=['数学得点', '男女得点差'],
+        rq1='PISA参加主要国における数学的リテラシー得点および男女得点差の分布特性にはどのような特徴があるか。',
+        rq2='数学的リテラシーの全体達成水準と男女得点差との間にはどのような国際的相関構造が認められるか。',
+        scatter_x_metric='数学得点',
+        scatter_y_metric='男女得点差',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 6. UNESCO World ICT Skills: SDG 4.4 & Global Digital Divide
@@ -809,7 +839,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="unesco_global_digital_skills_divide",
         angle_name="ユネスコ世界統計に見る高度ICTスキルと基礎的スキルの世界的階層化構造",
         title_theme="スマホ普及の影で広がる「プログラミング格差」：ユネスコデータに見るグローバルICTスキルの断絶",
-        focus_metrics=["プログラミングスキル保持率", "ICT基本スキル達成率", "情報格差指数"],
+        focus_metrics=['プログラミングスキル保有率', '表計算高度利用率', 'プレゼン作成スキル保有率'],
+        rq1='世界主要国における青少年のプログラミングスキルおよびオフィススキル保有率の現状水準はどう分布しているか。',
+        rq2='日常的表計算スキル（基礎ICT力）の普及度と高度プログラミングスキル保有率との間にはどのような国際的相関が存在するか。',
+        scatter_x_metric='表計算高度利用率',
+        scatter_y_metric='プログラミングスキル保有率',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 7. Japan STEM CS Enrollment: Gender Gap & Pipeline Leak
@@ -933,7 +968,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="stem_gender_gap_underrepresentation",
         angle_name="大学理数・情報系学部におけるジェンダーギャップと専攻選択の心理的障壁",
         title_theme="なぜ理数・情報系学部の女性比率は停滞し続けるのか：ステレオタイプ脅威と進路選択構造の計量分析",
-        focus_metrics=["情報系入学者数", "STEM系入学者女子比率", "工学系進学率"],
+        focus_metrics=['入学者総数', '女性比率'],
+        rq1='高等教育（大学学部）の理学・工学・情報系における入学者総数および女性比率の推移はどうなっているか。',
+        rq2='専攻分野の入学定員・入学者規模の拡大と女性比率の改善との間にはどのような相関構造が認められるか。',
+        scatter_x_metric='入学者総数',
+        scatter_y_metric='女性比率',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 8. World Bank Education Indicators: Public Expenditure & Production Function
@@ -1062,7 +1102,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="wb_education_expenditure_efficiency",
         angle_name="世界銀行データに見る教育公支出GDP比と学習到達度の非線形費用対効果（教育投資効率の罠）",
         title_theme="教育予算を増やせば学力は向上するか？：世界銀行データが示す公教育投資と学習到達度の収穫逓減",
-        focus_metrics=["数学最低習熟度達成率", "教育支出対GDP比", "インターネット利用率"],
+        focus_metrics=['教育支出対GDP比', '数学最低習熟度達成率', 'インターネット利用率'],
+        rq1='世界各国における公的教育支出（対GDP比）と数学最低習熟度達成率の分布水準はどう分布しているか。',
+        rq2='国家の教育公財政支出の規模と学習到達度（基礎習熟度達成）との間にはどのような費用対効果相関が認められるか。',
+        scatter_x_metric='教育支出対GDP比',
+        scatter_y_metric='数学最低習熟度達成率',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 9. Japan Teacher Workload Survey (MEXT)
@@ -1182,7 +1227,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="workload_dx_time_squeeze",
         angle_name="学校DX推進下における教員の在校等時間と授業準備時間圧迫のパラドックス",
         title_theme="学校DXと教員多忙化のパラドックス：ICT導入がなぜ授業準備時間を圧迫するのか",
-        focus_metrics=["在校等時間", "授業準備時間", "持ち帰り仕事時間"],
+        focus_metrics=['在校等時間', '授業準備時間', '持ち帰り仕事時間'],
+        rq1='公立小・中学校教員の在校等時間および授業準備時間の実態水準はどう推移しているか。',
+        rq2='長時間勤務の持続と授業準備時間の圧迫との間にはどのような構造的トレードオフが存在するか。',
+        scatter_x_metric='在校等時間',
+        scatter_y_metric='授業準備時間',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 10. Japan Special Needs Education (MEXT)
@@ -1296,7 +1346,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="special_needs_assistive_tech",
         angle_name="通常学級における通級指導急増とICT支援ツールのアクセシビリティ効果",
         title_theme="通常学級における特別支援教育とICT支援：通級指導急増が問い直す包摂的学習環境",
-        focus_metrics=["通級指導児童生徒数", "特別支援教育支援員数", "端末支援活用率"],
+        focus_metrics=['通級指導児童生徒数', '特別支援教育支援員数', '端末支援活用率'],
+        rq1='小・中学校における通級指導児童生徒数とICT支援機器の活用率の経年推移はどう推移しているか。',
+        rq2='児童生徒の急増に対するICT支援端末の活用浸透度はどのように連動しているか。',
+        scatter_x_metric='端末支援活用率',
+        scatter_y_metric='通級指導児童生徒数',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 11. Japan School Absenteeism & Bullying (MEXT)
@@ -1410,7 +1465,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="absenteeism_ict_safetynet",
         angle_name="不登校児童生徒数の急増と自宅等におけるICT学習出席扱い制度の変容",
         title_theme="不登校30万人時代の学びの保障：自宅等ICT学習の出席扱い制度が拓く新しいセーフティネット",
-        focus_metrics=["不登校児童生徒数", "千人あたり不登校率", "ICT出席扱い生徒数"],
+        focus_metrics=['不登校児童生徒数', 'ICT出席扱い生徒数'],
+        rq1='公立小・中学校における不登校児童生徒数および自宅ICT学習出席扱い生徒数は2018年度から2022年度にかけてどのように推移したか。',
+        rq2='不登校児童生徒数の急激な増加に対し、自宅ICT学習出席扱い制度はどの程度追従・連動しているか（相関構造と制度的普及の課題）。',
+        scatter_x_metric='不登校児童生徒数',
+        scatter_y_metric='ICT出席扱い生徒数',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 12. OECD TALIS Teacher Survey
@@ -1527,7 +1587,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         angle_id="talis_collaboration_ict",
         angle_name="TALIS国際比較に見る日本の教員協働指導とICT活用指導力の乖離構造",
         title_theme="TALIS国際比較が暴く教員の「孤立した教室」：なぜ日本の教員は共同指導とICT活用に慎重なのか",
-        focus_metrics=["ICT活用指導割合", "批判的思考促進指導割合", "教員間協働指導割合"],
+        focus_metrics=['教員間協働指導実施率', 'ICT活用指導肯定率', '批判的思考促進自己効力感'],
+        rq1='OECD各国の教員におけるICT活用指導肯定率および教員間協働指導実施率の国際的水準はどう分布しているか。',
+        rq2='教員間の日常的共同指導（チームティーチング等）の実施度とICT活用指導力との間にはどのような国際的相関が存在するか。',
+        scatter_x_metric='教員間協働指導実施率',
+        scatter_y_metric='ICT活用指導肯定率',
+        secondary_chart_type='correlation_scatter',
     ),
 }
 
@@ -1572,7 +1637,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="timss_instrumental_utility",
             angle_name="実利主義的価値観と内発的動機づけの葛藤構造",
             title_theme="「役に立つから学ぶ」は学力を伸ばすか？：数学の実利主義的価値認識と内発的動機の対立構造",
-            focus_metrics=["小4算数楽しい", "中2数学楽しい", "小4算数平均得点", "中2数学平均得点"],
+            focus_metrics=['将来役立つ肯定率', '勉強が楽しい肯定率', '平均得点'],
+        rq1='算数・数学に対する実利主義的効用認識（将来役立つ）と内発的動機（楽しい）の推移にはどのような水準差が認められるか。',
+        rq2='「将来役立つ」という実利認識は内発的な学習好意度や学力得点とどのように連動しているか。',
+        scatter_x_metric='将来役立つ肯定率',
+        scatter_y_metric='勉強が楽しい肯定率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1608,7 +1678,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="hs_info_computational_thinking",
             angle_name="計算論的思考の育成と共通テスト型筆記演習の乖離",
             title_theme="ペーパーテスト化されるプログラミング：計算論的思考の育成と共通テスト対策の指導的ジレンマ",
-            focus_metrics=["情報免許保有率", "Python指導実施校割合", "共通テスト対策実施校割合"],
+            focus_metrics=['探究演習導入率', 'Python活用率', '共通テスト情報対策実施率'],
+        rq1='探究演習の導入率と共通テスト型筆記演習の普及速度にはどのような差異が認められるか。',
+        rq2='探究的プログラミング実習の実施割合と本格的言語（Python）の指導導入との間にはいかなる連動性が存在するか。',
+        scatter_x_metric='探究演習導入率',
+        scatter_y_metric='Python活用率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1644,7 +1719,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="national_math_reasoning_gap",
             angle_name="知識・計算処理と数学的思考力・表現力の二極化動態",
             title_theme="計算はできるが説明できない？：全国学力テストが暴く数学的表現力・論述力の構造的課題",
-            focus_metrics=["小6算数平均正答率", "中3数学平均正答率", "算数数学好き肯定率"],
+            focus_metrics=['平均正答率', '勉強が好き肯定率', '将来役立つ肯定率'],
+        rq1='小中学校間の移行における数学的正答率と「数学が好き」肯定率の落差構造はどう推移しているか。',
+        rq2='主観的な数学への好意度・有能感と客観的正答率との共変構造は学年進行によってどう変化するか。',
+        scatter_x_metric='勉強が好き肯定率',
+        scatter_y_metric='平均正答率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1680,7 +1760,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="mext_ict_cloud_utilization",
             angle_name="校務クラウド化と協働的学びの実現度",
             title_theme="校務DXと学習ログ活用の現在地：クラウド化がもたらす教員業務効率化と授業改善の相関",
-            focus_metrics=["端末整備率", "教員用端末普及率", "ICT指導力肯定率"],
+            focus_metrics=['小学校', '中学校', '高等学校', '全国平均'],
+        rq1='クラウド活用と端末利活用における校種別の進捗格差はどう推移しているか。',
+        rq2='校務・授業のデジタル化の浸透スピードと学校段階間の格差構造にはいかなる要因が存在するか。',
+        group_comparison_metric='全国平均',
+        secondary_chart_type='group_comparison_bar',
         ),
     ],
 
@@ -1716,7 +1800,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="pisa_socioeconomic_gradient",
             angle_name="社会経済的背景（ESCS）とデジタル学習機会の格差勾配",
             title_theme="デジタル時代の教育格差：PISAデータが示す家庭環境とデジタル学習レジリエンスの国際格差",
-            focus_metrics=["数学的リテラシー平均得点", "学校ICT利用指数", "学習用端末利用時間"],
+            focus_metrics=['数学得点', '男子得点', '女子得点'],
+        rq1='各国の男子得点と女子得点の国際的分布水準にはどのような格差パターンが存在するか。',
+        rq2='各国における男子の認知的達成と女子の認知的達成との共変関係はどうなっているか。',
+        scatter_x_metric='男子得点',
+        scatter_y_metric='女子得点',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1752,7 +1841,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="unesco_gender_disparity_in_skills",
             angle_name="世界主要国における女性のICTスキル習得動態",
             title_theme="デジタルスキルにおけるジェンダー平等の現在地：ユネスコデータに見る各国の女性ICT習熟度",
-            focus_metrics=["プログラミングスキル保有率", "表計算計算式利用率", "ファイル移動スキル保有率"],
+            focus_metrics=['プレゼン作成スキル保有率', 'プログラミングスキル保有率', '表計算高度利用率'],
+        rq1='プレゼンテーション作成等の表現系スキルとプログラミングスキルの世界的格差はどう分布しているか。',
+        rq2='表現系スキルの普及と構造化論理思考を要するコーディングスキルとの連動構造はどうなっているか。',
+        scatter_x_metric='プレゼン作成スキル保有率',
+        scatter_y_metric='プログラミングスキル保有率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1788,7 +1882,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="stem_capacity_and_workforce_demand",
             angle_name="IT人材需要の急拡大と大学情報系学部の定員受容容量",
             title_theme="IT立国を目指す日本の大学定員ジレンマ：情報系学部入学者増と理数教育基盤のキャパシティ制約",
-            focus_metrics=["入学者総数", "女性入学者数", "女性比率"],
+            focus_metrics=['入学者総数', '女性入学者数', '女性比率'],
+        rq1='情報・理工系学部における受入容量（総入学者数）と女性入学者実数の経年推移はどう推移しているか。',
+        rq2='全体の定員拡充が進む中で、女性比率の構造的停滞を打破する連動要因はいかに存在するか。',
+        scatter_x_metric='入学者総数',
+        scatter_y_metric='女性比率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1824,7 +1923,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="wb_internet_leapfrogging",
             angle_name="発展途上国におけるインターネット接続と教育成果の飛躍",
             title_theme="教育インフラのリープフロッグ：世界銀行データに見るデジタル接続が途上国の基礎学力を底上げする力",
-            focus_metrics=["インターネット利用率", "数学最低習熟度達成率", "教育支出対GDP比"],
+            focus_metrics=['インターネット利用率', '数学最低習熟度達成率', '教育支出対GDP比'],
+        rq1='インターネットインフラ普及率と教育成果水準の世界的な階層構造はどう分布しているか。',
+        rq2='デジタルインフラの接続進展が学習到達度（数学習熟度）の飛躍にどの程度寄与しているか。',
+        scatter_x_metric='インターネット利用率',
+        scatter_y_metric='数学最低習熟度達成率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1860,7 +1964,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="workload_extracurricular_burden",
             angle_name="中学校における部活動指導負担と持ち帰り仕事の日常化",
             title_theme="中学校教員を追い詰める部活動指導の呪縛：勤務実態調査データが語る地域移行の急務",
-            focus_metrics=["部活動指導時間", "持ち帰り仕事時間", "在校等時間"],
+            focus_metrics=['部活動指導時間', '持ち帰り仕事時間', '在校等時間'],
+        rq1='中学校における部活動指導時間と持ち帰り仕事時間の分布水準はどうなっているか。',
+        rq2='部活動指導負担の多寡が教員の持ち帰り仕事や総勤務時間の延長とどう連動しているか。',
+        scatter_x_metric='部活動指導時間',
+        scatter_y_metric='持ち帰り仕事時間',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1896,7 +2005,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="special_needs_support_staff_allocation",
             angle_name="特別支援教育支援員の配置格差と通常学級ユニバーサルデザイン",
             title_theme="インクルーシブ教育の最前線：支援員配置数とICT端末活用がもたらす通常学級の質的変容",
-            focus_metrics=["特別支援教育支援員数", "特別支援学級在籍数", "端末支援活用率"],
+            focus_metrics=['特別支援教育支援員数', '特別支援学級在籍数', '端末支援活用率'],
+        rq1='特別支援学級在籍生徒数の急伸長に対し、特別支援教育支援員の配置数はどう推移しているか。',
+        rq2='人的支援配置（支援員数）と生徒数の増大との間にはどのような需給相関構造が存在するか。',
+        scatter_x_metric='特別支援教育支援員数',
+        scatter_y_metric='特別支援学級在籍数',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1932,7 +2046,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="absenteeism_school_transition_gap",
             angle_name="小学校から中学校への学校種移行期（中1ギャップ）における不登校率急上昇",
             title_theme="なぜ中学校で不登校が3倍に跳ね上がるのか？：問題行動・不登校調査データが暴く中1ギャップの構造",
-            focus_metrics=["千人あたり不登校率", "不登校児童生徒数", "ICT出席扱い生徒数"],
+            focus_metrics=['千人あたり不登校率', '不登校児童生徒数'],
+        rq1='小学校と中学校の間における千人あたり不登校率の水準差および経年拡大傾向はどのように推移しているか。',
+        rq2='学校段階の移行（中1ギャップ）に伴う不登校率の急上昇構造に対し、学校種ごとの支援体制はどう連動しているか。',
+        group_comparison_metric='千人あたり不登校率',
+        secondary_chart_type='group_comparison_bar',
         ),
     ],
 
@@ -1968,7 +2086,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_id="talis_critical_thinking_instruction",
             angle_name="批判的思考を促す授業実践と教員の自己効力感の国際連動性",
             title_theme="正解を教える授業から問いを生む授業へ：TALISデータが示す日本の批判的思考指導の国際的課題",
-            focus_metrics=["批判的思考促進指導割合", "ICT活用指導割合", "教員間協働指導割合"],
+            focus_metrics=['批判的思考促進自己効力感', 'ICT活用指導肯定率', '教員間協働指導実施率'],
+        rq1='批判的思考を促す指導の自己効力感とICT活用指導力の各国の現状水準はどう分布しているか。',
+        rq2='高次思考を促す指導観と日常的ICTツール利活用との連動関係はどうなっているか。',
+        scatter_x_metric='批判的思考促進自己効力感',
+        scatter_y_metric='ICT活用指導肯定率',
+        secondary_chart_type='correlation_scatter',
         ),
     ],
 }

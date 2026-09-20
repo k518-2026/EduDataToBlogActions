@@ -13,7 +13,7 @@ import pandas as pd
 from scipy import stats
 import seaborn as sns
 
-from src.analyzer import AnalysisResult
+from src.analyzer import AnalysisResult, is_collinear_or_redundant_pair
 from src.config import TEMP_DIR
 from src.fetchers.base import EducationDataset
 from src.utils import format_bayes_factor, resolve_metric_unit
@@ -58,10 +58,15 @@ class EduDataVisualizer:
         plt.rcParams["xtick.labelsize"] = 10
         plt.rcParams["ytick.labelsize"] = 10
 
-    def generate_chart(self, dataset: EducationDataset, analysis: AnalysisResult) -> Path:
+    def generate_chart(
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+    ) -> Path:
         """
-        Selects and renders the best chart type for the dataset.
-        Returns the path to the saved PNG image.
+        Generates the primary visualization chart for a dataset.
+        Applies seaborn modern styling, confidence intervals, and high-resolution DPI.
         """
         chart_type = dataset.recommended_chart
         output_path = self.output_dir / f"chart_{dataset.id}.png"
@@ -74,7 +79,7 @@ class EduDataVisualizer:
             elif chart_type == "ranking_bar" and dataset.group_col:
                 self._plot_ranking_bar(fig, ax, dataset, analysis)
             elif chart_type == "correlation_scatter" and len(dataset.metrics) >= 2:
-                self._plot_correlation_scatter(fig, ax, dataset, analysis)
+                self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
             else:
                 # Default fallback
                 if dataset.time_col:
@@ -90,43 +95,50 @@ class EduDataVisualizer:
             plt.close(fig)
 
     def generate_secondary_chart(
-        self, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ) -> Optional[Path]:
         """
         Generates a complementary secondary chart (e.g. correlation scatter or group comparison)
         for academic publications requiring multiple visual figures.
+        Strictly aligns with the selected angle's Research Questions (RQ1/RQ2).
         """
-        chart_type = dataset.recommended_chart
         output_path = self.output_dir / f"chart_secondary_{dataset.id}.png"
+
+        target_chart_type = getattr(selected_angle, "secondary_chart_type", None)
+        if not target_chart_type:
+            chart_type = dataset.recommended_chart
+            if chart_type == "trend_line":
+                target_chart_type = "correlation_scatter" if len(dataset.metrics) >= 2 else "ranking_bar"
+            elif chart_type == "ranking_bar":
+                target_chart_type = "correlation_scatter" if len(dataset.metrics) >= 2 else "trend_line"
+            elif chart_type == "correlation_scatter":
+                target_chart_type = "trend_line" if dataset.time_col else "ranking_bar"
+            else:
+                target_chart_type = "correlation_scatter"
 
         fig, ax = plt.subplots(figsize=(10, 5.8))
         try:
             rendered = False
-            if chart_type == "trend_line":
-                if len(dataset.metrics) >= 2:
-                    self._plot_correlation_scatter(fig, ax, dataset, analysis)
-                    rendered = True
-                elif dataset.group_col:
-                    self._plot_ranking_bar(fig, ax, dataset, analysis)
-                    rendered = True
-            elif chart_type == "ranking_bar":
-                if len(dataset.metrics) >= 2:
-                    self._plot_correlation_scatter(fig, ax, dataset, analysis)
-                    rendered = True
-                elif dataset.time_col:
-                    self._plot_trend_lines(fig, ax, dataset, analysis)
-                    rendered = True
-            elif chart_type == "correlation_scatter":
-                if dataset.time_col:
-                    self._plot_trend_lines(fig, ax, dataset, analysis)
-                    rendered = True
-                elif dataset.group_col:
-                    self._plot_ranking_bar(fig, ax, dataset, analysis)
-                    rendered = True
+            if target_chart_type in ("ranking_bar", "group_comparison_bar") and dataset.group_col:
+                metric_target = getattr(selected_angle, "group_comparison_metric", None)
+                self._plot_ranking_bar(
+                    fig, ax, dataset, analysis, metric_override=metric_target, selected_angle=selected_angle
+                )
+                rendered = True
+            elif target_chart_type == "correlation_scatter":
+                self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                rendered = True
+            elif target_chart_type == "trend_line" and dataset.time_col:
+                self._plot_trend_lines(fig, ax, dataset, analysis)
+                rendered = True
 
             if not rendered:
+                # Fallback to standard non-collinear scatter or ranking bar
                 if len(dataset.metrics) >= 2:
-                    self._plot_correlation_scatter(fig, ax, dataset, analysis)
+                    self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
                     rendered = True
                 elif dataset.group_col:
                     self._plot_ranking_bar(fig, ax, dataset, analysis)
@@ -325,11 +337,21 @@ class EduDataVisualizer:
         )
 
     def _plot_ranking_bar(
-        self, fig: plt.Figure, ax: plt.Axes, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        fig: plt.Figure,
+        ax: plt.Axes,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        metric_override: Optional[str] = None,
+        selected_angle: Optional[Any] = None,
     ):
         df_full = dataset.df.copy()
         group_col = dataset.group_col
-        metric = dataset.metrics[0]
+        metric = (
+            metric_override
+            if metric_override and metric_override in df_full.columns
+            else dataset.metrics[0]
+        )
 
         df = df_full.copy()
         if dataset.time_col and dataset.time_col in df.columns:
@@ -410,7 +432,11 @@ class EduDataVisualizer:
                 zorder=4,
             )
 
-        ax.set_title(f"{dataset.title}\n【グループ比較と95%信頼区間】", fontsize=13, fontweight="bold", pad=12)
+        rq_label = "【グループ比較と95%信頼区間】"
+        if getattr(selected_angle, "group_comparison_metric", None) == metric:
+            rq_label = f"【RQ検証：{metric}のグループ・学校種間格差】"
+
+        ax.set_title(f"{dataset.title}\n{rq_label}", fontsize=13, fontweight="bold", pad=12)
         ax.set_xlabel(f"{metric} ({metric_unit})  [誤差棒: 95% 信頼区間 (95% CI)]", fontsize=11, labelpad=8)
         ax.set_ylabel("", fontsize=11)
         ax.grid(True, axis="x", linestyle="--", alpha=0.5)
@@ -432,11 +458,51 @@ class EduDataVisualizer:
         )
 
     def _plot_correlation_scatter(
-        self, fig: plt.Figure, ax: plt.Axes, dataset: EducationDataset, analysis: AnalysisResult
+        self,
+        fig: plt.Figure,
+        ax: plt.Axes,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
     ):
         df = dataset.df.copy()
-        col_x = dataset.metrics[1] if len(dataset.metrics) > 1 else dataset.metrics[0]
-        col_y = dataset.metrics[0]
+        target_x = getattr(selected_angle, "scatter_x_metric", None)
+        target_y = getattr(selected_angle, "scatter_y_metric", None)
+
+        col_x, col_y = None, None
+        if target_x and target_y and target_x in df.columns and target_y in df.columns:
+            if not is_collinear_or_redundant_pair(target_x, target_y):
+                col_x, col_y = target_x, target_y
+
+        # If not set or collinear, pick first non-collinear from analysis.correlations
+        if not col_x or not col_y:
+            for cr in analysis.correlations:
+                if cr.metric_x in df.columns and cr.metric_y in df.columns:
+                    if not is_collinear_or_redundant_pair(cr.metric_x, cr.metric_y):
+                        col_x, col_y = cr.metric_x, cr.metric_y
+                        break
+
+        # Fallback if still none found
+        if not col_x or not col_y:
+            num_cols = [
+                m
+                for m in dataset.metrics
+                if m in df.columns and pd.api.types.is_numeric_dtype(df[m])
+            ]
+            found = False
+            for i in range(len(num_cols)):
+                for j in range(i + 1, len(num_cols)):
+                    if not is_collinear_or_redundant_pair(num_cols[i], num_cols[j]):
+                        col_x, col_y = num_cols[i], num_cols[j]
+                        found = True
+                        break
+                if found:
+                    break
+            if not found and len(num_cols) >= 2:
+                col_x, col_y = num_cols[1], num_cols[0]
+            elif not found and len(num_cols) == 1:
+                col_x = col_y = num_cols[0]
+
         group_col = dataset.group_col
 
         sns.regplot(
@@ -468,18 +534,32 @@ class EduDataVisualizer:
             if (cr.metric_x == col_x and cr.metric_y == col_y) or (
                 cr.metric_x == col_y and cr.metric_y == col_x
             ):
-                bf_str = f", BF10 = {format_bayes_factor(cr.bf10)}" if getattr(cr, "bf10", None) is not None else ""
+                bf_str = (
+                    f", BF10 = {format_bayes_factor(cr.bf10)}"
+                    if getattr(cr, "bf10", None) is not None
+                    else ""
+                )
                 r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value}{bf_str})"
                 break
 
+        x_unit = resolve_metric_unit(col_x, dataset.unit)
         y_unit = resolve_metric_unit(col_y, dataset.unit)
+        rq_label = "【相関分析】"
+        if (
+            target_x
+            and target_y
+            and (col_x in (target_x, target_y))
+            and (col_y in (target_x, target_y))
+        ):
+            rq_label = f"【RQ2検証：{col_x}と{col_y}の連動構造】"
+
         ax.set_title(
-            f"{dataset.title}\n【相関分析】{col_x} vs {col_y}{r_info}（95%CI併記）",
+            f"{dataset.title}\n{rq_label}{col_x} vs {col_y}{r_info}（95%CI併記）",
             fontsize=12,
             fontweight="bold",
             pad=12,
         )
-        ax.set_xlabel(f"{col_x}", fontsize=11, labelpad=8)
+        ax.set_xlabel(f"{col_x} ({x_unit})", fontsize=11, labelpad=8)
         ax.set_ylabel(f"{col_y} ({y_unit})", fontsize=11, labelpad=8)
         ax.grid(True, linestyle="--", alpha=0.5)
 
