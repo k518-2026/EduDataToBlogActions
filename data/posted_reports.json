@@ -813,5 +813,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-21T07:56:35.069134+09:00",
     "date": "2026-09-21"
+  },
+  {
+    "dataset_id": "oecd_pisa_math_ict",
+    "angle_id": "pisa_math_resilience_and_ict",
+    "angle_name": "PISA国際比較に見る数学的リテラシーとデジタル端末利用時間の非線形関係（デジタル・パラドックス）",
+    "title": "【OECD PISA】主要国の数学的リテラシー得点とデジタル活用の比較：端末を長く使う生徒ほど数学スコアが下がる？：PISAデータが突きつける「デジタル学習時間の逆説」 (2026年09月21日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-21T22:14:41.055021+09:00",
+    "date": "2026-09-21"
   }
 ]
