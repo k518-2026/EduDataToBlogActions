@@ -833,5 +833,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-21T22:14:41.055021+09:00",
     "date": "2026-09-21"
+  },
+  {
+    "dataset_id": "japan_high_school_informatics",
+    "angle_id": "hs_info_curriculum_implementation",
+    "angle_name": "高等学校「情報I」必履修化とプログラミング指導体制の地域・学校間格差",
+    "title": "【高校情報教育実態調査】「情報I」プログラミング指導とICT環境の推移：「情報I」必履修化の現場摩擦：プログラミング探究指導と大学入試対策の二律背反 (2026年09月22日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-22T05:10:47.687681+09:00",
+    "date": "2026-09-22"
   }
 ]
