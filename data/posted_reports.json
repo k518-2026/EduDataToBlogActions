@@ -854,5 +854,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-22T05:10:47.687681+09:00",
     "date": "2026-09-22"
+  },
+  {
+    "dataset_id": "japan_stem_cs_enrollment",
+    "angle_id": "stem_gender_gap_underrepresentation",
+    "angle_name": "大学理数・情報系学部におけるジェンダーギャップと専攻選択の心理的障壁",
+    "title": "【学校基本調査】情報科学・工学系学科入学者数と女子比率の推移：なぜ理数・情報系学部の女性比率は停滞し続けるのか：ステレオタイプ脅威と進路選択構造の計量分析 (2026年09月22日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-22T22:15:15.435545+09:00",
+    "date": "2026-09-22"
   }
 ]
