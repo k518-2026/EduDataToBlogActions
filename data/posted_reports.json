@@ -874,5 +874,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-22T22:15:15.435545+09:00",
     "date": "2026-09-22"
+  },
+  {
+    "dataset_id": "japan_mext_ict_informatization",
+    "angle_id": "mext_ict_infrastructure_vs_pedagogy",
+    "angle_name": "GIGAスクール1人1台端末のハード整備と日常的探究活用の地域格差（セカンド・デジタルデバイド）",
+    "title": "【学校教育情報化実態調査】1人1台端末利活用率とICT指導力の推移：端末配備100%の裏側で進む「第2のデジタルデバイド」：自治体格差と授業活用頻度の二極化構造 (2026年09月23日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-23T05:10:17.305667+09:00",
+    "date": "2026-09-23"
   }
 ]
