@@ -915,5 +915,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-23T22:16:21.870580+09:00",
     "date": "2026-09-23"
+  },
+  {
+    "dataset_id": "unesco_world_ict_skills",
+    "angle_id": "unesco_global_digital_skills_divide",
+    "angle_name": "ユネスコ世界統計に見る高度ICTスキルと基礎的スキルの世界的階層化構造",
+    "title": "【UNESCO/ITU】各国のプログラミング・デジタルスキル比較：スマホ普及の影で広がる「プログラミング格差」：ユネスコデータに見るグローバルICTスキルの断絶 (2026年09月24日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-24T05:11:18.408869+09:00",
+    "date": "2026-09-24"
   }
 ]
