@@ -113,7 +113,25 @@ def main():
         f"Selected dataset: {dataset.title} ({dataset.id}) | "
         f"Angle: {getattr(selected_angle, 'angle_name', '一般')}"
     )
-    past_topics = storage.get_recent_research_topics(limit=5)
+    from src.theme_deduplicator import check_theme_duplication
+
+    # 2.1. Deduplication verification on candidate research angle
+    initial_check = check_theme_duplication(
+        candidate_title=dataset.title,
+        candidate_theme=getattr(selected_angle, "title_theme", ""),
+        candidate_angle_id=getattr(selected_angle, "angle_id", ""),
+        candidate_dataset_id=dataset.id,
+        history=history,
+        recent_n=14,
+    )
+    if initial_check.is_duplicate:
+        logger.warning(f"⚠️ [テーマ重複検知] {initial_check.details}")
+        if not args.force:
+            logger.info("重複排除フィルターを適用して進行します。")
+    else:
+        logger.info(f"✅ [テーマ重複チェック合格] {initial_check.details}")
+
+    past_topics = storage.get_recent_research_topics(limit=15)
 
     logger.info(f"Dataset category: {dataset.category}, Region: {dataset.region}, Rows: {len(dataset.df)}")
 
@@ -216,6 +234,25 @@ def main():
         secondary_chart_path=secondary_chart_path,
     )
 
+    # 9.1. Final theme duplication audit on assembled report
+    final_check = check_theme_duplication(
+        candidate_title=report.title,
+        candidate_theme=getattr(selected_angle, "title_theme", ""),
+        candidate_angle_id=getattr(selected_angle, "angle_id", ""),
+        candidate_dataset_id=dataset.id,
+        history=history,
+        recent_n=14,
+    )
+    if final_check.is_duplicate:
+        if args.force:
+            logger.warning(f"⚠️ [最終テーマ重複警告（--force指定のため継続）] {final_check.details}")
+        else:
+            logger.warning(f"⚠️ [最終テーマ重複警告] {final_check.details}")
+    else:
+        logger.info(
+            f"✅ [最終テーマ重複チェック合格] 直近{min(len(history), 14)}件の過去記事とテーマ重複なし "
+            f"（最大類似度: {final_check.similarity_score:.1%}）"
+        )
 
     # Save local previews
     preview_html_path = TEMP_DIR / "preview_post.html"

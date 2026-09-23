@@ -181,32 +181,14 @@ class DatasetCatalog:
                     return dataset, a
             logger.warning(f"Requested angle '{angle_id}' not found for '{dataset.id}'. Falling back to automatic selection.")
 
-        # Helper to find the most recent index where this angle was posted for this dataset
-        def get_last_angle_index(angle: Any) -> int:
-            target_a_id = getattr(angle, "angle_id", "")
-            for idx in range(len(history) - 1, -1, -1):
-                entry = history[idx]
-                if entry.get("dataset_id") == dataset.id:
-                    if entry.get("angle_id") == target_a_id:
-                        return idx
-            return -1
+        # Intelligently select the most diverse, non-overlapping angle against recent history
+        from src.theme_deduplicator import select_most_diverse_angle
 
-        # Candidates not yet posted for this dataset
-        unposted_angles = [a for a in available_angles if get_last_angle_index(a) == -1]
-        if unposted_angles:
-            selected_angle = unposted_angles[0]
-            logger.info(
-                f"Selected unposted research angle for '{dataset.id}': "
-                f"{getattr(selected_angle, 'angle_name', '')} ({getattr(selected_angle, 'angle_id', '')})"
-            )
-            return dataset, selected_angle
-
-        # If all angles have been used, rotate to least recently used angle
-        sorted_angles = sorted(available_angles, key=get_last_angle_index)
-        selected_angle = sorted_angles[0]
-        logger.info(
-            f"All angles posted. Rotating to least recently used research angle for '{dataset.id}': "
-            f"{getattr(selected_angle, 'angle_name', '')} ({getattr(selected_angle, 'angle_id', '')})"
+        selected_angle, check_res = select_most_diverse_angle(
+            available_angles=available_angles,
+            history=history,
+            dataset_id=dataset.id,
+            recent_n=14,
         )
         return dataset, selected_angle
 
