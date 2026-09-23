@@ -15,7 +15,12 @@ import pandas as pd
 from scipy import stats
 import seaborn as sns
 
-from src.analyzer import AnalysisResult, is_collinear_or_redundant_pair
+from src.analyzer import (
+    AnalysisResult,
+    format_apa_p,
+    format_apa_stat,
+    is_collinear_or_redundant_pair,
+)
 from src.config import TEMP_DIR
 from src.fetchers.base import EducationDataset
 from src.utils import format_bayes_factor, resolve_metric_unit
@@ -111,20 +116,36 @@ class EduDataVisualizer:
 
         target_chart_type = getattr(selected_angle, "secondary_chart_type", None)
         if not target_chart_type:
-            chart_type = dataset.recommended_chart
-            if chart_type == "trend_line":
-                target_chart_type = "correlation_scatter" if len(dataset.metrics) >= 2 else "ranking_bar"
-            elif chart_type == "ranking_bar":
-                target_chart_type = "correlation_scatter" if len(dataset.metrics) >= 2 else "trend_line"
-            elif chart_type == "correlation_scatter":
-                target_chart_type = "trend_line" if dataset.time_col else "ranking_bar"
+            if getattr(analysis, "primary_method", "") == "two_way_anova" and analysis.two_way_anova:
+                target_chart_type = "anova_interaction"
+            elif getattr(analysis, "primary_method", "") == "multiple_regression" and analysis.multiple_regression:
+                target_chart_type = "multiple_regression"
+            elif getattr(analysis, "primary_method", "") == "no_correlation" and analysis.no_correlations:
+                target_chart_type = "no_correlation_scatter"
             else:
-                target_chart_type = "correlation_scatter"
+                chart_type = dataset.recommended_chart
+                if chart_type == "trend_line":
+                    target_chart_type = "correlation_scatter" if len(dataset.metrics) >= 2 else "ranking_bar"
+                elif chart_type == "ranking_bar":
+                    target_chart_type = "correlation_scatter" if len(dataset.metrics) >= 2 else "trend_line"
+                elif chart_type == "correlation_scatter":
+                    target_chart_type = "trend_line" if dataset.time_col else "ranking_bar"
+                else:
+                    target_chart_type = "correlation_scatter"
 
         fig, ax = plt.subplots(figsize=(10, 5.8))
         try:
             rendered = False
-            if target_chart_type in ("ranking_bar", "group_comparison_bar") and dataset.group_col:
+            if target_chart_type == "anova_interaction" and analysis.two_way_anova:
+                self._plot_interaction_anova(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                rendered = True
+            elif target_chart_type == "multiple_regression" and analysis.multiple_regression:
+                self._plot_multiple_regression(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                rendered = True
+            elif target_chart_type == "no_correlation_scatter" and analysis.no_correlations:
+                self._plot_no_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                rendered = True
+            elif target_chart_type in ("ranking_bar", "group_comparison_bar") and dataset.group_col:
                 metric_target = getattr(selected_angle, "group_comparison_metric", None)
                 self._plot_ranking_bar(
                     fig, ax, dataset, analysis, metric_override=metric_target, selected_angle=selected_angle
@@ -138,8 +159,16 @@ class EduDataVisualizer:
                 rendered = True
 
             if not rendered:
-                # Fallback to standard non-collinear scatter or ranking bar
-                if len(dataset.metrics) >= 2:
+                if analysis.two_way_anova:
+                    self._plot_interaction_anova(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                    rendered = True
+                elif analysis.multiple_regression:
+                    self._plot_multiple_regression(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                    rendered = True
+                elif analysis.no_correlations:
+                    self._plot_no_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
+                    rendered = True
+                elif len(dataset.metrics) >= 2:
                     self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
                     rendered = True
                 elif dataset.group_col:
@@ -577,3 +606,310 @@ class EduDataVisualizer:
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85, edgecolor="#cbd5e1"),
             zorder=5,
         )
+
+    def _plot_interaction_anova(
+        self,
+        fig: plt.Figure,
+        ax: plt.Axes,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+    ):
+        """
+        Plots Factor A x Factor B Interaction Plot for Two-way ANOVA with 95% Confidence Intervals.
+        """
+        anova = analysis.two_way_anova
+        if not anova:
+            return self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle)
+
+        df = dataset.df.copy()
+        dv = anova.dv
+        fa = anova.factor_a
+        fb = anova.factor_b
+
+        # If Factor B was binned in anova
+        if anova.factor_b_is_binned:
+            unique_b = sorted(df[fb].unique())
+            mid = len(unique_b) // 2
+            first_half = set(unique_b[:mid])
+            df["_fb_plot"] = df[fb].apply(lambda x: "前期" if x in first_half else "後期")
+            fb_col = "_fb_plot"
+        else:
+            fb_col = fb
+
+        # Clean and group
+        df[dv] = pd.to_numeric(df[dv], errors="coerce")
+        df[fa] = df[fa].astype(str)
+        df[fb_col] = df[fb_col].astype(str)
+        sub = df[[dv, fa, fb_col]].dropna()
+
+        grouped = sub.groupby([fa, fb_col])[dv].agg(["mean", "std", "count"]).reset_index()
+        t_crit = 1.96
+        grouped["se"] = grouped["std"].fillna(1.0) / np.sqrt(np.maximum(grouped["count"], 1))
+        grouped["ci"] = np.maximum(grouped["se"] * t_crit, 0.4)
+
+        palette = ["#2b5c8f", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"]
+        markers = ["o", "s", "^", "D", "v", "P"]
+
+        unique_fa = sorted(grouped[fa].unique())
+        unique_fb = sorted(grouped[fb_col].unique())
+
+        x_coords = {val: i for i, val in enumerate(unique_fb)}
+
+        for idx, grp_a in enumerate(unique_fa):
+            grp_data = grouped[grouped[fa] == grp_a].sort_values(by=fb_col)
+            color = palette[idx % len(palette)]
+            marker = markers[idx % len(markers)]
+            xs = [x_coords[x] for x in grp_data[fb_col]]
+            ys = grp_data["mean"].values
+            yerr = grp_data["ci"].values
+
+            ax.errorbar(
+                xs,
+                ys,
+                yerr=yerr,
+                label=f"{grp_a}",
+                color=color,
+                marker=marker,
+                markersize=8,
+                linewidth=2.4,
+                capsize=5,
+                capthick=1.5,
+                alpha=0.9,
+                zorder=4,
+            )
+
+        ax.set_xticks(range(len(unique_fb)))
+        ax.set_xticklabels(unique_fb, fontsize=10.5, fontweight="bold")
+        unit_str = f" ({dataset.unit})" if dataset.unit else ""
+        ax.set_ylabel(f"{dv}{unit_str}", fontsize=11, fontweight="bold")
+        ax.set_xlabel(f"{fb}（要因B）", fontsize=11, fontweight="bold")
+        ax.set_title(f"二要因分散分析（Two-way ANOVA）交互作用プロット：{fa} × {fb}", fontsize=13, fontweight="bold", pad=12)
+        ax.legend(title=f"【{fa}（要因A）】", frameon=True, facecolor="white", edgecolor="#cbd5e1", loc="best")
+        ax.grid(True, linestyle="--", alpha=0.5)
+
+        # Stats text box (APA 7th format)
+        eff_a = anova.main_effect_a
+        eff_b = anova.main_effect_b
+        eff_int = anova.interaction
+        p_a = format_apa_p(eff_a.p_val)
+        p_b = format_apa_p(eff_b.p_val)
+        p_int = format_apa_p(eff_int.p_val)
+        eta_a = format_apa_stat(eff_a.eta_sq_p, bounded=True)
+        eta_b = format_apa_stat(eff_b.eta_sq_p, bounded=True)
+        eta_int = format_apa_stat(eff_int.eta_sq_p, bounded=True)
+        bf_a = format_bayes_factor(eff_a.bf10)
+        bf_b = format_bayes_factor(eff_b.bf10)
+        bf_int = format_bayes_factor(eff_int.bf10)
+
+        stats_box = (
+            f"【二要因分散分析 検定結果（APA 7th & ベイズ統計）】\n"
+            f"・主効果A（{fa}）: F({eff_a.df}, {anova.error_df}) = {eff_a.f_val:.2f}, p {p_a}, η_p² = {eta_a}, BF10 = {bf_a}\n"
+            f"・主効果B（{fb}）: F({eff_b.df}, {anova.error_df}) = {eff_b.f_val:.2f}, p {p_b}, η_p² = {eta_b}, BF10 = {bf_b}\n"
+            f"・交互作用（A×B）: F({eff_int.df}, {anova.error_df}) = {eff_int.f_val:.2f}, p {p_int}, η_p² = {eta_int}, BF10 = {bf_int}\n"
+            f"※誤差棒は各水準の 95% 信頼区間 (95% CI) を示す"
+        )
+        ax.text(
+            0.02,
+            0.04,
+            stats_box,
+            transform=ax.transAxes,
+            fontsize=8.5,
+            verticalalignment="bottom",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="#f8fafc", edgecolor="#94a3b8", alpha=0.92),
+            zorder=6,
+        )
+
+    def _plot_multiple_regression(
+        self,
+        fig: plt.Figure,
+        ax: plt.Axes,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+    ):
+        """
+        Plots Observed vs. Predicted Values for Multiple Linear Regression with 95% CI.
+        """
+        reg = analysis.multiple_regression
+        if not reg:
+            return self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle)
+
+        df = dataset.df.copy()
+        y_col = reg.y_metric
+        x_cols = reg.x_metrics
+        cols = [y_col] + x_cols
+        sub = df[cols].dropna()
+
+        # Compute predicted values
+        y_obs = pd.to_numeric(sub[y_col]).values
+        try:
+            import statsmodels.api as sm
+            X_df = sub[x_cols].apply(pd.to_numeric)
+            X_const = sm.add_constant(X_df)
+            model = sm.OLS(y_obs, X_const).fit()
+            y_pred = model.predict(X_const)
+        except Exception:
+            y_pred = y_obs
+
+        # Plot observed vs predicted
+        sns.regplot(
+            x=y_pred,
+            y=y_obs,
+            ax=ax,
+            ci=95,
+            color="#1d4ed8",
+            scatter_kws={"s": 65, "alpha": 0.85, "zorder": 4},
+            line_kws={"color": "#dc2626", "linewidth": 2.2, "label": "回帰適合線（95% CI）", "zorder": 5},
+        )
+
+        min_val = float(min(np.min(y_pred), np.min(y_obs)))
+        max_val = float(max(np.max(y_pred), np.max(y_obs)))
+        padding = (max_val - min_val) * 0.05
+        ax.plot(
+            [min_val - padding, max_val + padding],
+            [min_val - padding, max_val + padding],
+            linestyle="--",
+            color="#64748b",
+            linewidth=1.5,
+            label="完全一致基準線 (y = y_pred)",
+            zorder=3,
+        )
+
+        label_col = dataset.group_col or dataset.time_col
+        if label_col and label_col in df.columns and len(sub) <= 15:
+            labels = df.loc[sub.index, label_col].values
+            for i, txt in enumerate(labels):
+                ax.annotate(
+                    str(txt),
+                    (y_pred[i], y_obs[i]),
+                    textcoords="offset points",
+                    xytext=(0, 6),
+                    ha="center",
+                    fontsize=8.5,
+                    color="#1e293b",
+                    zorder=6,
+                )
+
+        unit_str = f" ({dataset.unit})" if dataset.unit else ""
+        ax.set_xlabel(f"重回帰モデル予測値 y_pred{unit_str}", fontsize=11, fontweight="bold")
+        ax.set_ylabel(f"実測値 y ({y_col}){unit_str}", fontsize=11, fontweight="bold")
+        ax.set_title(f"重回帰分析（Multiple Regression）実測値 vs 予測値プロット", fontsize=13, fontweight="bold", pad=12)
+        ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc="upper left")
+        ax.grid(True, linestyle="--", alpha=0.5)
+
+        # Stats box
+        r2_str = format_apa_stat(reg.r_squared, bounded=True)
+        adj_r2_str = format_apa_stat(reg.adj_r_squared, bounded=True)
+        p_model = format_apa_p(reg.p_val)
+        bf_model = format_bayes_factor(reg.bf10)
+
+        coeff_lines = []
+        for c in reg.coefficients:
+            b_str = format_apa_stat(c.beta, bounded=True)
+            p_c = format_apa_p(c.p_val)
+            coeff_lines.append(f"  ・{c.variable}: β = {b_str}, t = {c.t_val:.2f}, p {p_c}, VIF = {c.vif:.1f}")
+        coeff_text = "\n".join(coeff_lines)
+
+        stats_box = (
+            f"【重回帰モデル評価（APA 7th & ベイズ統計）】\n"
+            f"・モデル決定係数: R² = {r2_str} (adj. R² = {adj_r2_str})\n"
+            f"・全体F検定: F({reg.df_model}, {reg.df_resid}) = {reg.f_val:.2f}, p {p_model}\n"
+            f"・モデルベイズファクター: BF10 = {bf_model} [{reg.bf_interpretation}]\n"
+            f"・各説明変数の標準化偏回帰係数:\n{coeff_text}"
+        )
+        ax.text(
+            0.98,
+            0.04,
+            stats_box,
+            transform=ax.transAxes,
+            fontsize=8.5,
+            horizontalalignment="right",
+            verticalalignment="bottom",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="#f8fafc", edgecolor="#94a3b8", alpha=0.92),
+            zorder=6,
+        )
+
+    def _plot_no_correlation_scatter(
+        self,
+        fig: plt.Figure,
+        ax: plt.Axes,
+        dataset: EducationDataset,
+        analysis: AnalysisResult,
+        selected_angle: Optional[Any] = None,
+    ):
+        """
+        Plots scatter plot with Null-Support Bayes Factor (BF01) evaluating lack of correlation / independence.
+        """
+        df = dataset.df.copy()
+        no_corrs = analysis.no_correlations
+        if not no_corrs:
+            return self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle)
+
+        target_nc = no_corrs[0]
+        col_x = target_nc.metric_x
+        col_y = target_nc.metric_y
+
+        sub = df[[col_x, col_y]].dropna()
+        x_vals = pd.to_numeric(sub[col_x]).values
+        y_vals = pd.to_numeric(sub[col_y]).values
+
+        sns.regplot(
+            x=x_vals,
+            y=y_vals,
+            ax=ax,
+            ci=95,
+            color="#0891b2",
+            scatter_kws={"s": 70, "alpha": 0.85, "zorder": 4},
+            line_kws={"color": "#64748b", "linestyle": "--", "linewidth": 2.0, "label": "線形トレンド（95% CI）", "zorder": 5},
+        )
+
+        label_col = dataset.group_col or dataset.time_col
+        if label_col and label_col in df.columns and len(sub) <= 15:
+            labels = df.loc[sub.index, label_col].values
+            for i, txt in enumerate(labels):
+                ax.annotate(
+                    str(txt),
+                    (x_vals[i], y_vals[i]),
+                    textcoords="offset points",
+                    xytext=(0, 6),
+                    ha="center",
+                    fontsize=8.5,
+                    color="#334155",
+                    zorder=6,
+                )
+
+        x_unit = resolve_metric_unit(col_x, dataset.unit)
+        y_unit = resolve_metric_unit(col_y, dataset.unit)
+        ax.set_xlabel(f"{col_x}{f' ({x_unit})' if x_unit else ''}", fontsize=11, fontweight="bold")
+        ax.set_ylabel(f"{col_y}{f' ({y_unit})' if y_unit else ''}", fontsize=11, fontweight="bold")
+        ax.set_title(f"無相関・独立性検証散布図（Null Hypothesis Support）：{col_x} × {col_y}", fontsize=13, fontweight="bold", pad=12)
+        ax.grid(True, linestyle="--", alpha=0.5)
+
+        r_str = format_apa_stat(target_nc.pearson_r, bounded=True)
+        p_str = format_apa_p(target_nc.p_val)
+        bf10_str = format_bayes_factor(target_nc.bf10)
+        bf01_str = format_bayes_factor(target_nc.bf01)
+
+        stats_box = (
+            f"【無相関・独立性検定（APA 7th & ベイズ統計）】\n"
+            f"・ピアソン相関係数: r = {r_str}\n"
+            f"・無相関t検定: t({target_nc.df}) = {target_nc.t_val:.2f}, p {p_str}\n"
+            f"・対立仮説支持: BF10 = {bf10_str}\n"
+            f"・帰無仮説（真の無相関）支持: BF01 = {bf01_str}\n"
+            f"・証拠判定: {target_nc.bf_interpretation}\n"
+            f"※帯は 95% 信頼区間 (95% CI) を示す"
+        )
+        ax.text(
+            0.03,
+            0.04,
+            stats_box,
+            transform=ax.transAxes,
+            fontsize=8.5,
+            verticalalignment="bottom",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="#f0fdf4" if target_nc.bf01 >= 3.0 else "#f8fafc",
+                      edgecolor="#16a34a" if target_nc.bf01 >= 3.0 else "#94a3b8", alpha=0.92),
+            zorder=6,
+        )
+        ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc="upper right")
+

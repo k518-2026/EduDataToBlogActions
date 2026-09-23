@@ -533,4 +533,70 @@ def test_all_eight_datasets_pdf_four_pages_strict(tmp_path):
         assert page_count == 4, f"{dataset_id} produced {page_count} pages (expected strictly 4 pages)"
 
 
+def test_pdf_secondary_table_varieties():
+    import pandas as pd
+    import numpy as np
+    from src.academic_contexts import DatasetAcademicContext
+    from src.fetchers.base import EducationDataset
+
+    pdf_gen = EduPaperPdfGenerator()
+    analyzer = EduDataAnalyzer()
+
+    # 1. Test ANOVA secondary table
+    prefectures = ["A県", "B県", "C県", "D県"] * 4
+    years = [2021] * 8 + [2024] * 8
+    school_types = (["小学校"] * 4 + ["中学校"] * 4) * 2
+    scores = [70.0 if s == "小学校" else 55.0 for s in school_types]
+    df_anova = pd.DataFrame({"地域": prefectures, "年度": years, "学校区分": school_types, "正答率": scores})
+    ds_anova = EducationDataset(
+        id="t_a", title="ANOVA", category="math", region="japan", source_name="mext", source_url="u",
+        description="d", df=df_anova, metrics=["正答率"], time_col="年度", group_col="学校区分", unit="%",
+    )
+    angle_anova = DatasetAcademicContext(
+        angle_id="a1", angle_name="ANOVA", title_theme="T", academic_discipline="D",
+        analysis_method="two_way_anova", anova_dv="正答率", anova_factor_a="学校区分", anova_factor_b="年度",
+        secondary_chart_type="anova_interaction",
+    )
+    res_anova = analyzer.analyze(ds_anova, selected_angle=angle_anova)
+    cap, tbl, note = pdf_gen._build_secondary_table(ds_anova, res_anova)
+    assert "二要因分散分析" in cap
+    assert "BF₁₀" in note
+
+    # 2. Test Multiple Regression secondary table
+    np.random.seed(42)
+    x1 = np.random.uniform(40, 90, 20)
+    x2 = np.random.uniform(20, 80, 20)
+    y = 10.0 + 0.5 * x1 + 0.3 * x2 + np.random.normal(0, 1.0, 20)
+    df_reg = pd.DataFrame({"自治体": [f"市{i}" for i in range(20)], "学力": y, "意欲": x1, "活用": x2})
+    ds_reg = EducationDataset(
+        id="t_r", title="Reg", category="math", region="japan", source_name="mext", source_url="u",
+        description="d", df=df_reg, metrics=["学力", "意欲", "活用"], group_col="自治体", unit="点",
+    )
+    angle_reg = DatasetAcademicContext(
+        angle_id="a2", angle_name="Reg", title_theme="T", academic_discipline="D",
+        analysis_method="multiple_regression", regression_y="学力", regression_x_list=["意欲", "活用"],
+        secondary_chart_type="multiple_regression",
+    )
+    res_reg = analyzer.analyze(ds_reg, selected_angle=angle_reg)
+    cap, tbl, note = pdf_gen._build_secondary_table(ds_reg, res_reg)
+    assert "重回帰分析" in cap
+    assert "VIF" in note
+
+    # 3. Test No-Correlation secondary table
+    df_nc = pd.DataFrame({"年度": [2020, 2021, 2022, 2023, 2024], "支出": [3.4, 3.5, 3.4, 3.5, 3.4], "ネット": [80, 85, 90, 95, 98]})
+    ds_nc = EducationDataset(
+        id="t_nc", title="NC", category="ict", region="japan", source_name="mext", source_url="u",
+        description="d", df=df_nc, metrics=["支出", "ネット"], time_col="年度", unit="%",
+    )
+    angle_nc = DatasetAcademicContext(
+        angle_id="a3", angle_name="NC", title_theme="T", academic_discipline="D",
+        analysis_method="no_correlation", no_corr_x="支出", no_corr_y="ネット",
+        secondary_chart_type="no_correlation_scatter",
+    )
+    res_nc = analyzer.analyze(ds_nc, selected_angle=angle_nc)
+    cap, tbl, note = pdf_gen._build_secondary_table(ds_nc, res_nc)
+    assert "無相関仮説" in cap
+    assert "BF₀₁" in note
+
+
 

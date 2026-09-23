@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from unicodedata import category
 
+from src.analyzer import format_apa_p, format_apa_stat
 from src.utils import (
     clean_english_text,
     clean_text_spaces,
@@ -590,8 +591,133 @@ class EduPaperPdfGenerator:
     def _build_secondary_table(
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> Tuple[str, Table, str]:
-        """Constructs a secondary academic three-line table (Table 2) for trend regressions or correlations."""
-        if analysis.trends and len(analysis.trends) > 0:
+        """Constructs a secondary academic three-line table (Table 2) conforming to APA 7th standards."""
+        if analysis.two_way_anova is not None:
+            anova = analysis.two_way_anova
+            headers = [
+                Paragraph("変動因", self.styles["TableHeader"]),
+                Paragraph("<i>SS</i>", self.styles["TableHeader"]),
+                Paragraph("<i>df</i>", self.styles["TableHeader"]),
+                Paragraph("<i>MS</i>", self.styles["TableHeader"]),
+                Paragraph("<i>F</i>", self.styles["TableHeader"]),
+                Paragraph("<i>p</i>", self.styles["TableHeader"]),
+                Paragraph("<i>ηₚ²</i>", self.styles["TableHeader"]),
+                Paragraph("<i>BF</i><sub>10</sub>", self.styles["TableHeader"]),
+            ]
+            data = [headers]
+            effects = [anova.main_effect_a, anova.main_effect_b, anova.interaction]
+            for eff in effects:
+                name_disp = str(eff.name)[:7] + "…" if len(str(eff.name)) > 8 else str(eff.name)
+                p_text = format_apa_p(eff.p_val).replace("= ", "").replace("< ", "<")
+                eta_text = format_apa_stat(eff.eta_sq_p, bounded=True)
+                bf_text = format_bayes_factor(eff.bf10)
+
+                row = [
+                    Paragraph(name_disp, self.styles["TableCellLeft"]),
+                    Paragraph(f"{eff.ss:.1f}", self.styles["TableCell"]),
+                    Paragraph(str(eff.df), self.styles["TableCell"]),
+                    Paragraph(f"{eff.ms:.1f}", self.styles["TableCell"]),
+                    Paragraph(f"{eff.f_val:.1f}", self.styles["TableCell"]),
+                    Paragraph(p_text, self.styles["TableCell"]),
+                    Paragraph(eta_text, self.styles["TableCell"]),
+                    Paragraph(bf_text, self.styles["TableCell"]),
+                ]
+                data.append(row)
+
+            # Error / Residual row
+            data.append([
+                Paragraph("誤差(Res)", self.styles["TableCellLeft"]),
+                Paragraph(f"{anova.error_ss:.1f}", self.styles["TableCell"]),
+                Paragraph(str(anova.error_df), self.styles["TableCell"]),
+                Paragraph(f"{anova.error_ms:.1f}", self.styles["TableCell"]),
+                Paragraph("-", self.styles["TableCell"]),
+                Paragraph("-", self.styles["TableCell"]),
+                Paragraph("-", self.styles["TableCell"]),
+                Paragraph("-", self.styles["TableCell"]),
+            ])
+
+            col_widths = [48, 24, 16, 24, 23, 23, 23, 23]  # Sum = 204 pt
+            caption = "表２　二要因分散分析（ANOVA）およびベイズファクター一覧"
+            bin_str = "（※要因Bは2水準にビニング済）" if anova.factor_b_is_binned else ""
+            note = f"注）従属変数は{anova.dv}{bin_str}．SSは平方和，MSは平均平方，Fは検定統計量，ηₚ²は偏イータ二乗，BF₁₀はJZS/BICベイズファクター（>3で対立仮説支持）．APA 7th書式準拠．"
+
+        elif analysis.multiple_regression is not None:
+            mr = analysis.multiple_regression
+            headers = [
+                Paragraph("予測変数", self.styles["TableHeader"]),
+                Paragraph("<i>B</i>", self.styles["TableHeader"]),
+                Paragraph("<i>SE</i>", self.styles["TableHeader"]),
+                Paragraph("<i>β</i>", self.styles["TableHeader"]),
+                Paragraph("<i>t</i>", self.styles["TableHeader"]),
+                Paragraph("<i>p</i>", self.styles["TableHeader"]),
+                Paragraph("<i>VIF</i>", self.styles["TableHeader"]),
+                Paragraph("<i>BF</i><sub>10</sub>", self.styles["TableHeader"]),
+            ]
+            data = [headers]
+            for c in mr.coefficients[:5]:
+                var_disp = str(c.variable)[:6] + "…" if len(str(c.variable)) > 7 else str(c.variable)
+                b_text = f"{c.b:.2f}"
+                se_text = f"{c.se:.2f}"
+                beta_text = format_apa_stat(c.beta, bounded=True) if c.variable != "切片 (Intercept)" else "-"
+                t_text = f"{c.t_val:.1f}"
+                p_text = format_apa_p(c.p_val).replace("= ", "").replace("< ", "<")
+                vif_text = f"{c.vif:.1f}" if c.variable != "切片 (Intercept)" else "-"
+                bf_text = format_bayes_factor(c.bf10)
+
+                row = [
+                    Paragraph(var_disp, self.styles["TableCellLeft"]),
+                    Paragraph(b_text, self.styles["TableCell"]),
+                    Paragraph(se_text, self.styles["TableCell"]),
+                    Paragraph(beta_text, self.styles["TableCell"]),
+                    Paragraph(t_text, self.styles["TableCell"]),
+                    Paragraph(p_text, self.styles["TableCell"]),
+                    Paragraph(vif_text, self.styles["TableCell"]),
+                    Paragraph(bf_text, self.styles["TableCell"]),
+                ]
+                data.append(row)
+
+            col_widths = [48, 23, 22, 22, 23, 23, 20, 23]  # Sum = 204 pt
+            caption = "表２　重回帰分析推定量・多重共線性（VIF）・ベイズファクター一覧"
+            r2_apa = format_apa_stat(mr.r_squared, bounded=True)
+            adj_r2_apa = format_apa_stat(mr.adj_r_squared, bounded=True)
+            note = f"注）従属変数は{mr.y_metric}．R² = {r2_apa}，調整済みR² = {adj_r2_apa}，F({mr.df_model}, {mr.df_resid}) = {mr.f_val:.1f}，p {format_apa_p(mr.p_val)}，全体BF₁₀ = {format_bayes_factor(mr.bf10)}．VIF < 5.0．APA 7th準拠．"
+
+        elif analysis.no_correlations and len(analysis.no_correlations) > 0:
+            headers = [
+                Paragraph("指標X", self.styles["TableHeader"]),
+                Paragraph("指標Y", self.styles["TableHeader"]),
+                Paragraph("<i>r</i>", self.styles["TableHeader"]),
+                Paragraph("<i>t</i>", self.styles["TableHeader"]),
+                Paragraph("<i>p</i>", self.styles["TableHeader"]),
+                Paragraph("<i>BF</i><sub>10</sub>", self.styles["TableHeader"]),
+                Paragraph("<i>BF</i><sub>01</sub>", self.styles["TableHeader"]),
+            ]
+            data = [headers]
+            for nc in analysis.no_correlations[:5]:
+                x_name = str(nc.metric_x)[:5] + "…" if len(str(nc.metric_x)) > 6 else str(nc.metric_x)
+                y_name = str(nc.metric_y)[:5] + "…" if len(str(nc.metric_y)) > 6 else str(nc.metric_y)
+                r_text = format_apa_stat(nc.pearson_r, bounded=True)
+                t_text = f"{nc.t_val:.1f}"
+                p_text = format_apa_p(nc.p_val).replace("= ", "").replace("< ", "<")
+                bf10_text = format_bayes_factor(nc.bf10)
+                bf01_text = format_bayes_factor(nc.bf01)
+
+                row = [
+                    Paragraph(x_name, self.styles["TableCellLeft"]),
+                    Paragraph(y_name, self.styles["TableCellLeft"]),
+                    Paragraph(r_text, self.styles["TableCell"]),
+                    Paragraph(t_text, self.styles["TableCell"]),
+                    Paragraph(p_text, self.styles["TableCell"]),
+                    Paragraph(bf10_text, self.styles["TableCell"]),
+                    Paragraph(bf01_text, self.styles["TableCell"]),
+                ]
+                data.append(row)
+
+            col_widths = [45, 45, 23, 21, 23, 23, 24]  # Sum = 204 pt
+            caption = "表２　無相関仮説（H₀）検証・相関係数およびベイズファクター一覧"
+            note = "注）rは相関係数，tは無相関検定統計量，BF₁₀はH₁支持，BF₀₁はH₀支持（無相関・独立性の積極的証拠，>3で中程度，>10で強い証拠）．APA 7th準拠．"
+
+        elif analysis.trends and len(analysis.trends) > 0:
             headers = [
                 Paragraph("指標名", self.styles["TableHeader"]),
                 Paragraph("開始値", self.styles["TableHeader"]),
@@ -924,8 +1050,8 @@ class EduPaperPdfGenerator:
                     orig_w, orig_h = im.size
                 target_w = 200.0
                 target_h = target_w * (orig_h / orig_w)
-                if target_h > 115.0:
-                    target_h = 115.0
+                if target_h > 105.0:
+                    target_h = 105.0
                     target_w = target_h * (orig_w / orig_h)
 
                 # Clean dataset title for concise academic caption
@@ -951,8 +1077,8 @@ class EduPaperPdfGenerator:
                     orig_w, orig_h = im.size
                 target_w = 200.0
                 target_h = target_w * (orig_h / orig_w)
-                if target_h > 115.0:
-                    target_h = 115.0
+                if target_h > 105.0:
+                    target_h = 105.0
                     target_w = target_h * (orig_w / orig_h)
 
                 clean_fig_title2 = dataset.title
@@ -961,9 +1087,26 @@ class EduPaperPdfGenerator:
                 if len(clean_fig_title2) > 28:
                     clean_fig_title2 = clean_fig_title2[:26] + "…"
 
+                if analysis.two_way_anova is not None:
+                    anova = analysis.two_way_anova
+                    fa = str(anova.factor_a)[:10]
+                    fb = str(anova.factor_b)[:10]
+                    fig2_cap = f"図２　要因間交互作用プロット（{fa} × {fb}，95%CI併記）"
+                elif analysis.multiple_regression is not None:
+                    mr = analysis.multiple_regression
+                    ym = str(mr.y_metric)[:12]
+                    fig2_cap = f"図２　重回帰モデル観測値対予測値プロット（従属変数: {ym}，95%CI併記）"
+                elif analysis.no_correlations and len(analysis.no_correlations) > 0:
+                    nc = analysis.no_correlations[0]
+                    mx = str(nc.metric_x)[:8]
+                    my = str(nc.metric_y)[:8]
+                    fig2_cap = f"図２　無相関仮説検証散布図（{mx} × {my}，BF₀₁併記）"
+                else:
+                    fig2_cap = f"図２　{clean_fig_title2}の相関構造および比較分析（95%CI併記）"
+
                 figure2_elements = [
                     Image(str(secondary_chart_path), width=target_w, height=target_h),
-                    self._para(f"図２　{clean_fig_title2}の相関構造および比較分析（95%CI併記）", self.styles["FigureCaption"]),
+                    self._para(fig2_cap, self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure2_elements))
                 story.append(Spacer(1, 4))

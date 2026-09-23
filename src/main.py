@@ -213,6 +213,7 @@ def main():
         py_script_path=local_py_path,
         py_script_url=py_github_url,
         selected_angle=selected_angle,
+        secondary_chart_path=secondary_chart_path,
     )
 
 

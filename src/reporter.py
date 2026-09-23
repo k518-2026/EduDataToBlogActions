@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 from typing import Any, List, Optional
 
-from src.analyzer import AnalysisResult
+from src.analyzer import AnalysisResult, format_apa_p, format_apa_stat
 from src.config import Config
 from src.fetchers.base import EducationDataset
 from src.insights import EducationalInsights
@@ -44,6 +44,7 @@ class GeneratedReport:
     python_code: Optional[str] = None
     angle_id: Optional[str] = None
     angle_name: Optional[str] = None
+    secondary_chart_path: Optional[Path] = None
 
 
 class EduReportBuilder:
@@ -114,6 +115,74 @@ for m in {dataset.metrics}:
 plt.xlabel(f"{{time_col}} (年/年度)", fontsize=11)
 plt.ylabel(f"値 ({dataset.unit})", fontsize=11)
 plt.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white")"""
+
+        # Advanced Statistical Modeling snippet
+        adv_snippet = ""
+        if analysis.two_way_anova:
+            anova = analysis.two_way_anova
+            adv_snippet = f"""
+# ==============================================================================
+# 5. 二要因分散分析（Two-way ANOVA）& ベイズファクター (BF₁₀)
+# ==============================================================================
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+# モデル構築（主効果 A, B および 交互作用 A × B）
+formula = "{anova.dv} ~ C({anova.factor_a}) + C({anova.factor_b}) + C({anova.factor_a}):C({anova.factor_b})"
+try:
+    anova_model = ols(formula, data=df).fit()
+    anova_table = sm.stats.anova_lm(anova_model, typ=2)
+    print("\\n==================================================")
+    print("📋 二要因分散分析表（ANOVA Type II）")
+    print("==================================================")
+    print(anova_table)
+except Exception as e:
+    print(f"分散分析エラー: {{e}}")
+"""
+        elif analysis.multiple_regression:
+            mr = analysis.multiple_regression
+            x_cols_repr = repr(mr.x_metrics)
+            adv_snippet = f"""
+# ==============================================================================
+# 5. 重回帰分析（Multiple Linear Regression）& VIF & ベイズファクター (BF₁₀)
+# ==============================================================================
+import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+sub_mr = df[{x_cols_repr} + ["{mr.y_metric}"]].dropna()
+X = sub_mr[{x_cols_repr}]
+y = sub_mr["{mr.y_metric}"]
+X_const = sm.add_constant(X)
+reg_model = sm.OLS(y, X_const).fit()
+
+print("\\n==================================================")
+print("📋 重回帰分析推定量サマリー")
+print("==================================================")
+print(reg_model.summary())
+print("\\n【多重共線性 (VIF)】")
+vif_data = pd.DataFrame()
+vif_data["Variable"] = X_const.columns
+vif_data["VIF"] = [variance_inflation_factor(X_const.values, i) for i in range(X_const.shape[1])]
+print(vif_data)
+"""
+        elif analysis.no_correlations:
+            nc_pairs = [(c.metric_x, c.metric_y) for c in analysis.no_correlations]
+            adv_snippet = f"""
+# ==============================================================================
+# 5. 無相関分析（No-Correlation Analysis）& ベイズファクター (BF₀₁)
+# ==============================================================================
+print("\\n==================================================")
+print("🔍 帰無仮説（H₀: 相関なし・独立性）のベイズ検証")
+print("==================================================")
+nc_pairs = {nc_pairs}
+for col_x, col_y in nc_pairs:
+    if col_x in df.columns and col_y in df.columns:
+        sub = df[[col_x, col_y]].dropna()
+        if len(sub) >= 3:
+            r, p = stats.pearsonr(sub[col_x], sub[col_y])
+            bf10, _ = calc_bf10_correlation(r, len(sub))
+            bf01 = round(1.0 / bf10, 2) if bf10 > 0 else 99999.0
+            print(f"{{col_x}} × {{col_y}}: r = {{r:.3f}}, p = {{p:.4f}}, BF₁₀ = {{bf10}}, BF₀₁ = {{bf01}} (H₀支持強度)")
+"""
 
         code = f'''"""
 {dataset.title}
@@ -234,9 +303,9 @@ if len(metrics) >= 2:
                     r, p = stats.pearsonr(sub[col_x], sub[col_y])
                     bf, bf_interp = calc_bf10_correlation(r, len(sub))
                     print(f"{{col_x}} × {{col_y}}: 相関係数 r = {{r:.3f}}, p値 = {{p:.4f}}, BF₁₀ = {{bf}} [{{bf_interp}}]")
-
+{adv_snippet}
 # ==============================================================================
-# 5. データの可視化・グラフ生成
+# データの可視化・グラフ生成
 # ==============================================================================
 plt.figure(figsize=(10, 5.8), dpi=150)
 sns.set_theme(style="whitegrid")
@@ -554,6 +623,270 @@ plt.show()
         """
         return md_table, html_table
 
+    def _build_advanced_analysis_tables(
+        self, dataset: EducationDataset, analysis: AnalysisResult
+    ) -> tuple[str, str]:
+        """
+        Constructs APA 7th edition compliant Table 2 (Markdown & HTML)
+        for Two-way ANOVA, Multiple Linear Regression, or No-Correlation Analysis.
+        Concurrently presents Frequentist statistics and Bayesian Factors.
+        """
+        if analysis.two_way_anova is not None:
+            anova = analysis.two_way_anova
+            effects = [anova.main_effect_a, anova.main_effect_b, anova.interaction]
+            md_rows = [
+                "### 表2",
+                f"*二要因分散分析（ANOVA）およびベイズファクター（BF₁₀）［従属変数: {anova.dv}］*",
+                "",
+                "| 変動因 (Source) | 平方和 (*SS*) | 自由度 (*df*) | 平均平方 (*MS*) | *F*値 | *p*値 | 偏イータ二乗 (*ηₚ²*) | ベイズファクター (*BF*₁₀) | 証拠判定 |",
+                "| :--- | ---: | :---: | ---: | ---: | :---: | ---: | ---: | :--- |",
+            ]
+            html_rows = []
+            for i, eff in enumerate(effects):
+                p_str = format_apa_p(eff.p_val)
+                eta_str = format_apa_stat(eff.eta_sq_p, bounded=True)
+                bf_str = format_bayes_factor(eff.bf10)
+                md_rows.append(
+                    f"| **{eff.name}** | {eff.ss:.2f} | {eff.df} | {eff.ms:.2f} | {eff.f_val:.2f} | {p_str} | {eta_str} | {bf_str} | {eff.bf_interpretation} |"
+                )
+                bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+                html_rows.append(
+                    f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{eff.name}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{eff.ss:.2f}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace;">{eff.df}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{eff.ms:.2f}</td>
+                      <td style="padding:10px 12px; text-align:right; font-weight:bold; font-family:Consolas, monospace;">{eff.f_val:.2f}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace; color:#2563eb;"><i>p</i> {p_str}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold;">{eta_str}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold; color:#059669;">{bf_str}</td>
+                      <td style="padding:10px 14px; text-align:left; font-size:12px; color:#475569;">{eff.bf_interpretation}</td>
+                    </tr>"""
+                )
+
+            # Residual row
+            md_rows.append(
+                f"| 誤差 (Residual) | {anova.error_ss:.2f} | {anova.error_df} | {anova.error_ms:.2f} | - | - | - | - | - |"
+            )
+            html_rows.append(
+                f"""<tr style="background-color:#f1f5f9; border-top:1px solid #cbd5e1; color:#64748b;">
+                  <td style="padding:10px 14px; font-style:italic;">誤差 (Residual)</td>
+                  <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{anova.error_ss:.2f}</td>
+                  <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace;">{anova.error_df}</td>
+                  <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{anova.error_ms:.2f}</td>
+                  <td style="padding:10px 12px; text-align:center;">-</td>
+                  <td style="padding:10px 12px; text-align:center;">-</td>
+                  <td style="padding:10px 12px; text-align:center;">-</td>
+                  <td style="padding:10px 12px; text-align:center;">-</td>
+                  <td style="padding:10px 14px; text-align:center;">-</td>
+                </tr>"""
+            )
+
+            bin_note = "※時系列要因はセル観測数を確保するため前期・後期の2水準にビニングして推定．" if anova.factor_b_is_binned else ""
+            note_text = f"*注.* 従属変数は「{anova.dv}」．*SS* = 平方和，*df* = 自由度，*MS* = 平均平方，*ηₚ²* = 偏イータ二乗（効果量）．*BF*₁₀はJZS/BICベイズファクター（>3で対立仮説支持，<0.33で帰無仮説支持）．APA 7th標準に準拠．{bin_note}"
+            md_rows.extend(["", note_text, ""])
+
+            html_table = f"""
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+              <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:bold; color:#1e293b; font-size:14px;">
+                  📋 表2: 二要因分散分析（ANOVA）およびベイズファクター（BF₁₀）一覧
+                </div>
+                <span style="font-size:11.5px; background-color:#ede9fe; color:#6d28d9; font-weight:600; padding:3px 10px; border-radius:12px;">
+                  従属変数: {anova.dv}
+                </span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                  <thead>
+                    <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; border-top:2px solid #0f172a; border-bottom:1px solid #0f172a;">
+                      <th style="padding:10px 14px;">変動因 (Source)</th>
+                      <th style="padding:10px 12px; text-align:right;"><i>SS</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>df</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>MS</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>F</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>p</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>ηₚ²</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>BF</i>₁₀</th>
+                      <th style="padding:10px 14px;">証拠判定</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {''.join(html_rows)}
+                  </tbody>
+                  <tfoot>
+                    <tr style="border-top:2px solid #0f172a;"><td colspan="9" style="padding:8px 14px; font-size:11.5px; color:#64748b; background-color:#fafafa;">
+                      {note_text.replace('*', '')}
+                    </td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            """
+            return "\n".join(md_rows), html_table
+
+        elif analysis.multiple_regression is not None:
+            mr = analysis.multiple_regression
+            md_rows = [
+                "### 表2",
+                f"*重回帰分析の係数推定量・多重共線性（VIF）およびベイズファクター（BF₁₀）［従属変数: {mr.y_metric}］*",
+                "",
+                "| 予測変数 (Predictor) | 非標準化係数 (*B*) | 標準誤差 (*SE*) | 標準化係数 (*β*) | *t*値 | *p*値 | *VIF* | ベイズファクター (*BF*₁₀) | 証拠判定 |",
+                "| :--- | ---: | ---: | ---: | ---: | :---: | ---: | ---: | :--- |",
+            ]
+            html_rows = []
+            for i, c in enumerate(mr.coefficients):
+                p_str = format_apa_p(c.p_val)
+                beta_str = format_apa_stat(c.beta, bounded=True) if c.variable != "切片 (Intercept)" else "-"
+                vif_str = f"{c.vif:.2f}" if c.variable != "切片 (Intercept)" else "-"
+                bf_str = format_bayes_factor(c.bf10)
+                md_rows.append(
+                    f"| **{c.variable}** | {c.b:.3f} | {c.se:.3f} | {beta_str} | {c.t_val:.2f} | {p_str} | {vif_str} | {bf_str} | {c.bf_interpretation} |"
+                )
+                bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+                html_rows.append(
+                    f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{c.variable}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{c.b:.3f}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; color:#64748b;">{c.se:.3f}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold;">{beta_str}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{c.t_val:.2f}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace; color:#2563eb;"><i>p</i> {p_str}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{vif_str}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold; color:#059669;">{bf_str}</td>
+                      <td style="padding:10px 14px; text-align:left; font-size:12px; color:#475569;">{c.bf_interpretation}</td>
+                    </tr>"""
+                )
+
+            r2_apa = format_apa_stat(mr.r_squared, bounded=True)
+            adj_r2_apa = format_apa_stat(mr.adj_r_squared, bounded=True)
+            model_p_apa = format_apa_p(mr.p_val)
+            model_bf_str = format_bayes_factor(mr.bf10)
+
+            note_text = (
+                f"*注.* 従属変数は「{mr.y_metric}」．*R*² = {r2_apa}，調整済み*R*² = {adj_r2_apa}，"
+                f"*F*({mr.df_model}, {mr.df_resid}) = {mr.f_val:.2f}，*p* {model_p_apa}，"
+                f"モデル全体*BF*₁₀ = {model_bf_str}（{mr.bf_interpretation}）．"
+                f"*VIF* = 分散拡大係数（< 5.0で多重共線性なし）．APA 7th標準に準拠．"
+            )
+            md_rows.extend(["", note_text, ""])
+
+            html_table = f"""
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+              <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:bold; color:#1e293b; font-size:14px;">
+                  📋 表2: 重回帰分析推定量・多重共線性（VIF）・ベイズファクター（BF₁₀）一覧
+                </div>
+                <span style="font-size:11.5px; background-color:#e0f2fe; color:#0369a1; font-weight:600; padding:3px 10px; border-radius:12px;">
+                  従属変数: {mr.y_metric} (R² = {r2_apa})
+                </span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                  <thead>
+                    <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; border-top:2px solid #0f172a; border-bottom:1px solid #0f172a;">
+                      <th style="padding:10px 14px;">予測変数 (Predictor)</th>
+                      <th style="padding:10px 12px; text-align:right;"><i>B</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>SE</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>β</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>t</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>p</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>VIF</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>BF</i>₁₀</th>
+                      <th style="padding:10px 14px;">証拠判定</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {''.join(html_rows)}
+                  </tbody>
+                  <tfoot>
+                    <tr style="border-top:2px solid #0f172a;"><td colspan="9" style="padding:8px 14px; font-size:11.5px; color:#64748b; background-color:#fafafa;">
+                      {note_text.replace('*', '')}
+                    </td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            """
+            return "\n".join(md_rows), html_table
+
+        elif analysis.no_correlations and len(analysis.no_correlations) > 0:
+            md_rows = [
+                "### 表2",
+                "*無相関仮説（H₀）検証・ピアソン積率相関およびベイズファクター（BF₀₁）*",
+                "",
+                "| 分析指標ペア (*X* × *Y*) | 相関係数 (*r*) | *t*値 | 自由度 (*df*) | *p*値 | *BF*₁₀ (H₁支持) | *BF*₀₁ (H₀支持) | 帰無仮説証拠判定 |",
+                "| :--- | ---: | ---: | :---: | :---: | ---: | ---: | :--- |",
+            ]
+            html_rows = []
+            for i, nc in enumerate(analysis.no_correlations):
+                r_apa = format_apa_stat(nc.pearson_r, bounded=True)
+                p_apa = format_apa_p(nc.p_val)
+                bf10_str = format_bayes_factor(nc.bf10)
+                bf01_str = format_bayes_factor(nc.bf01)
+                md_rows.append(
+                    f"| **{nc.metric_x}** × **{nc.metric_y}** | {r_apa} | {nc.t_val:.2f} | {nc.df} | {p_apa} | {bf10_str} | {bf01_str} | {nc.bf_interpretation} |"
+                )
+                bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+                html_rows.append(
+                    f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{nc.metric_x} <span style="color:#94a3b8;">×</span> {nc.metric_y}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold;">{r_apa}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{nc.t_val:.2f}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace;">{nc.df}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace; color:#64748b;"><i>p</i> {p_apa}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{bf10_str}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold; color:#0284c7;">{bf01_str}</td>
+                      <td style="padding:10px 14px; text-align:left; font-size:12px; color:#475569;">{nc.bf_interpretation}</td>
+                    </tr>"""
+                )
+
+            note_text = (
+                "*注.* *r* = ピアソン積率相関係数，*t* = 無相関検定統計量，*BF*₀₁ = 1 / *BF*₁₀（帰無仮説H₀「相関なし・独立」を支持する証拠強度，>3で中程度，>10で強い証拠）．"
+                "APA 7th標準に準拠．"
+            )
+            md_rows.extend(["", note_text, ""])
+
+            html_table = f"""
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+              <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:bold; color:#1e293b; font-size:14px;">
+                  📋 表2: 無相関仮説（H₀）検証・ピアソン積率相関およびベイズファクター（BF₀₁）一覧
+                </div>
+                <span style="font-size:11.5px; background-color:#e0f2fe; color:#0284c7; font-weight:600; padding:3px 10px; border-radius:12px;">
+                  帰無仮説支持 (BF₀₁)
+                </span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                  <thead>
+                    <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; border-top:2px solid #0f172a; border-bottom:1px solid #0f172a;">
+                      <th style="padding:10px 14px;">分析指標ペア (X × Y)</th>
+                      <th style="padding:10px 12px; text-align:right;"><i>r</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>t</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>df</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>p</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>BF</i>₁₀</th>
+                      <th style="padding:10px 12px; text-align:right;"><i>BF</i>₀₁</th>
+                      <th style="padding:10px 14px;">帰無仮説証拠判定</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {''.join(html_rows)}
+                  </tbody>
+                  <tfoot>
+                    <tr style="border-top:2px solid #0f172a;"><td colspan="8" style="padding:8px 14px; font-size:11.5px; color:#64748b; background-color:#fafafa;">
+                      {note_text.replace('*', '')}
+                    </td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            """
+            return "\n".join(md_rows), html_table
+
+        return "", ""
+
     def build_report(
         self,
         dataset: EducationDataset,
@@ -567,6 +900,7 @@ plt.show()
         peer_review_pdf_path: Optional[Path] = None,
         peer_review_pdf_url: Optional[str] = None,
         selected_angle: Optional[Any] = None,
+        secondary_chart_path: Optional[Path] = None,
     ) -> GeneratedReport:
         today_str = get_jst_now().strftime("%Y年%m月%d日")
         date_iso = get_jst_now().strftime("%Y-%m-%d")
@@ -590,7 +924,7 @@ plt.show()
         else:
             tags.append("情報教育")
 
-        # Encode chart to Base64 so it can be viewed anywhere without 404 Not Found
+        # Encode primary chart to Base64 so it can be viewed anywhere without 404 Not Found
         chart_b64 = ""
         if chart_path and chart_path.exists():
             try:
@@ -599,12 +933,44 @@ plt.show()
             except Exception as e:
                 logger.warning(f"Failed to base64 encode chart image: {e}")
 
-        # GitHub raw image URL for Step Summary and Markdown
+        # Encode secondary chart to Base64 if present
+        secondary_chart_b64 = ""
+        if secondary_chart_path and secondary_chart_path.exists():
+            try:
+                with open(secondary_chart_path, "rb") as f:
+                    secondary_chart_b64 = base64.b64encode(f.read()).decode("utf-8")
+            except Exception as e:
+                logger.warning(f"Failed to base64 encode secondary chart image: {e}")
+
+        # GitHub raw image URLs for Step Summary and Markdown
         dest_chart_filename = f"{date_iso}_{chart_path.name}"
         raw_github_img_url = (
-            f"https://raw.githubusercontent.com/k518-2026/EduDataToBlogActions/main/"
+            f"https://raw.githubusercontent.com/{Config.GITHUB_REPOSITORY}/{Config.GITHUB_BRANCH}/"
             f"reports/assets/{dest_chart_filename}"
         )
+
+        dest_sec_chart_filename = f"{date_iso}_{secondary_chart_path.name}" if secondary_chart_path else ""
+        raw_github_secondary_img_url = (
+            f"https://raw.githubusercontent.com/{Config.GITHUB_REPOSITORY}/{Config.GITHUB_BRANCH}/"
+            f"reports/assets/{dest_sec_chart_filename}"
+            if secondary_chart_path else ""
+        )
+
+        sec_img_src = (
+            f"data:image/png;base64,{secondary_chart_b64}"
+            if secondary_chart_b64
+            else raw_github_secondary_img_url
+        )
+
+        # Determine academic title for secondary chart based on analysis method
+        if analysis.two_way_anova:
+            sec_fig_title = f"要因間交互作用プロット（{analysis.two_way_anova.factor_a} × {analysis.two_way_anova.factor_b}，95%CI併記）"
+        elif analysis.multiple_regression:
+            sec_fig_title = f"重回帰モデル観測値対予測値プロット（従属変数: {analysis.multiple_regression.y_metric}，95%CI併記）"
+        elif analysis.no_correlations:
+            sec_fig_title = f"無相関仮説検証散布図（{analysis.no_correlations[0].metric_x} × {analysis.no_correlations[0].metric_y}，BF₀₁併記）"
+        else:
+            sec_fig_title = f"{dataset.title}の比較分析・相関構造グラフ（95%CI併記）"
 
         # Generate reproducible Python analysis code
         python_code = self._generate_python_analysis_code(dataset, analysis)
@@ -620,8 +986,23 @@ plt.show()
         # 1. Build KPI highlight cards and clean tables
         kpi_cards_html = self._build_kpi_cards_html(dataset, analysis)
         desc_table_md, desc_table_html = self._build_descriptive_stats_tables(dataset, analysis)
+        adv_table_md, adv_table_html = self._build_advanced_analysis_tables(dataset, analysis)
         trend_table_md, trend_table_html = self._build_trend_tables(dataset, analysis)
         corr_table_md, corr_table_html = self._build_correlation_tables(analysis)
+
+        # Determine Table 2
+        if adv_table_md:
+            table2_md = adv_table_md
+            table2_html = adv_table_html
+        elif trend_table_md:
+            table2_md = trend_table_md
+            table2_html = trend_table_html
+        elif corr_table_md:
+            table2_md = corr_table_md
+            table2_html = corr_table_html
+        else:
+            table2_md = ""
+            table2_html = ""
 
         # Academic Thesis PDF & Peer Review Report links
         pdf_badge_md = ""
@@ -671,7 +1052,6 @@ plt.show()
           </div>
 """
 
-
         # 3. Assemble Markdown Content (Includes raw URL chart and full Python script)
         clean_summary = clean_insight_text(insights.executive_summary)
         clean_pedagogy = clean_insight_text(insights.pedagogical_implications)
@@ -693,6 +1073,23 @@ plt.show()
                 )
 
         insights_bullets_md = "\n".join([f"- {ins}" for ins in analysis.key_insights])
+
+        # Secondary chart Markdown block
+        secondary_chart_md = ""
+        if secondary_chart_path:
+            secondary_chart_md = f"""
+### 図2
+![{sec_fig_title}]({raw_github_secondary_img_url})
+
+*図2.* {sec_fig_title}（頻度論およびベイズ統計による統計モデル検証）
+"""
+
+        extra_tables_md = ""
+        if adv_table_md:
+            if trend_table_md:
+                extra_tables_md += trend_table_md
+            if corr_table_md:
+                extra_tables_md += corr_table_md
 
         markdown_content = f"""# {title}
 
@@ -724,17 +1121,21 @@ plt.show()
 
 ## 📈 統計分析データテーブル
 
-### 📊 主要指標の基本記述統計量
+### 表1
+*主要指標の基本記述統計量一覧*
 {desc_table_md}
-{trend_table_md}{corr_table_md}### 統計から導出された主要ハイライト
+{table2_md}{extra_tables_md}### 統計から導出された主要ハイライト
 {insights_bullets_md}
 
 ---
 
 ## 🖼️ データ可視化グラフ
 
+### 図1
 ![{dataset.title}のグラフ画像]({raw_github_img_url})
 
+*図1.* {dataset.title}の時系列推移またはグループ別比較（帯・誤差棒: 95%信頼区間）
+{secondary_chart_md}
 ---
 
 ## 💡 教育現場・授業実践への具体的示唆
@@ -759,7 +1160,7 @@ plt.show()
 *Generated automatically by EduDataToBlogActions pipeline.*
 """
 
-        # 4. Assemble HTML Content (With Base64 image, reproducible Python code box, and interactive Copy Button)
+        # 4. Assemble HTML Content (With Base64 images, reproducible Python code box, and interactive Copy Button)
         wp_status = Config.WP_POST_STATUS or "publish"
         cat_str = ",".join(categories)
         tag_str = ",".join(tags)
@@ -777,6 +1178,24 @@ plt.show()
             if chart_b64
             else raw_github_img_url
         )
+
+        # Secondary chart HTML block
+        secondary_chart_html = ""
+        if secondary_chart_path:
+            secondary_chart_html = f"""
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); text-align:center;">
+              <div style="font-weight:bold; color:#1e293b; font-size:13.5px; margin-bottom:8px; text-align:left;">図2: {sec_fig_title}</div>
+              <img src="{sec_img_src}" alt="{sec_fig_title}" style="max-width:100%; height:auto; border-radius:6px;" />
+              <p style="font-size:12px; color:#64748b; margin-top:8px; text-align:left; line-height:1.5;">*図2.* {sec_fig_title}（頻度論およびベイズ統計による統計モデル検証）</p>
+            </div>
+            """
+
+        extra_tables_html = ""
+        if adv_table_html:
+            if trend_table_html:
+                extra_tables_html += trend_table_html
+            if corr_table_html:
+                extra_tables_html += corr_table_html
 
         html_content = f"""
         <div style="font-family:'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif; line-height:1.8; color:#2b2d42; max-width:820px; margin:auto; padding:15px;">
@@ -809,11 +1228,15 @@ plt.show()
             <b>調査概要:</b> {dataset.description}
           </div>
 
-          <!-- Chart Section with Base64 embedded PNG -->
-          <div style="margin:30px 0; text-align:center;">
-            <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px; text-align:left;">🖼️ データ可視化グラフ</h3>
-            <img src="{img_src}" alt="{dataset.title}" style="max-width:100%; height:auto; border-radius:6px; box-shadow:0 3px 8px rgba(0,0,0,0.12); margin-top:10px;" />
-            <p style="font-size:12px; color:#6c757d; margin-top:6px;">図: {dataset.title}（EduDataToBlogActions 統計分析パイプラインにて生成）</p>
+          <!-- Chart Section with Base64 embedded PNGs -->
+          <div style="margin:30px 0;">
+            <h3 style="color:#1d3557; border-bottom:2px solid #457b9d; padding-bottom:5px; text-align:left;">🖼️ データ可視化グラフ（図1 &amp; 図2）</h3>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); text-align:center;">
+              <div style="font-weight:bold; color:#1e293b; font-size:13.5px; margin-bottom:8px; text-align:left;">図1: {dataset.title} の主要分布・時系列推移（95%CI併記）</div>
+              <img src="{img_src}" alt="{dataset.title}" style="max-width:100%; height:auto; border-radius:6px;" />
+              <p style="font-size:12px; color:#64748b; margin-top:8px; text-align:left; line-height:1.5;">*図1.* {dataset.title}の時系列推移またはグループ別比較（帯・誤差棒: 95%信頼区間）</p>
+            </div>
+            {secondary_chart_html}
           </div>
 
           <!-- Statistical Tables Section -->
@@ -822,10 +1245,9 @@ plt.show()
 
           {desc_table_html}
 
-          {trend_table_html}
+          {table2_html}
 
-          {corr_table_html}
-
+          {extra_tables_html}
 
           <!-- Key Highlights Bullet Points -->
           <div style="background-color:#f0f7f4; border-radius:6px; padding:15px 20px; margin-bottom:30px;">
@@ -904,4 +1326,5 @@ plt.show()
             python_code=python_code,
             angle_id=getattr(selected_angle, "angle_id", "") if selected_angle else "",
             angle_name=getattr(selected_angle, "angle_name", "") if selected_angle else "",
+            secondary_chart_path=secondary_chart_path,
         )

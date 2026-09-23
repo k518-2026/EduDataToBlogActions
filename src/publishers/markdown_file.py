@@ -34,6 +34,14 @@ class MarkdownFilePublisher(BasePublisher):
             shutil.copy(report.chart_path, dest_chart_path)
             logger.info(f"Copied chart asset to {dest_chart_path}")
 
+        # 1.5. Copy secondary chart asset to reports/assets/
+        dest_sec_chart_filename = None
+        if report.secondary_chart_path and report.secondary_chart_path.exists():
+            dest_sec_chart_filename = f"{report.created_at}_{report.secondary_chart_path.name}"
+            dest_sec_chart_path = self.assets_dir / dest_sec_chart_filename
+            shutil.copy(report.secondary_chart_path, dest_sec_chart_path)
+            logger.info(f"Copied secondary chart asset to {dest_sec_chart_path}")
+
         # 2. Copy academic thesis PDF to reports/pdf/
         if report.pdf_path and report.pdf_path.exists():
             dest_pdf_path = self.pdf_dir / report.pdf_path.name
@@ -55,12 +63,16 @@ class MarkdownFilePublisher(BasePublisher):
                 shutil.copy(report.py_script_path, dest_py_path)
             logger.info(f"Archived Python analysis script to {dest_py_path}")
 
-        # 4. Adjust chart path in markdown content to point to assets/
+        # 4. Adjust chart paths in markdown content to point to assets/
         md_content = report.markdown_content.replace(
             f"({report.chart_path.name})", f"(assets/{dest_chart_filename})"
         )
+        if report.secondary_chart_path and dest_sec_chart_filename:
+            md_content = md_content.replace(
+                f"({report.secondary_chart_path.name})", f"(assets/{dest_sec_chart_filename})"
+            )
 
-        # 4. Write markdown report
+        # 5. Write markdown report
         report_file = self.reports_dir / f"{report.created_at}_{report.dataset_id}.md"
         with open(report_file, "w", encoding="utf-8") as f:
             f.write(md_content)

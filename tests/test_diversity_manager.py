@@ -152,6 +152,9 @@ class TestDiversityManager:
         analysis_mock.trends = []
         analysis_mock.correlations = []
         analysis_mock.key_insights = []
+        analysis_mock.two_way_anova = None
+        analysis_mock.multiple_regression = None
+        analysis_mock.no_correlations = []
 
         report = builder.build_report(
             dataset=dataset,

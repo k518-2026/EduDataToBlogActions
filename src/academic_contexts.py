@@ -12,23 +12,24 @@ from typing import Dict, List, Optional
 class DatasetAcademicContext:
     """Scholarly context and theoretical profile for an educational dataset."""
 
-    dataset_id: str
-    academic_topic: str
-    theoretical_framework: str
-    core_research_problems: str
-    banned_cliches: List[str]
-    specific_prompt_guidance: str
-    curated_references: List[str]
-    fallback_title: str
-    fallback_subtitle: str
-    fallback_keywords: List[str]
-    fallback_background: str
-    fallback_objectives: str
-    fallback_discussion: str
-    fallback_review_critique: str
-    fallback_major_revisions: List[str]
-    fallback_minor_revisions: List[str]
-    fallback_questions_to_authors: List[str]
+    dataset_id: str = ""
+    academic_topic: str = ""
+    theoretical_framework: str = ""
+    core_research_problems: str = ""
+    banned_cliches: List[str] = field(default_factory=list)
+    specific_prompt_guidance: str = ""
+    curated_references: List[str] = field(default_factory=list)
+    fallback_title: str = ""
+    fallback_subtitle: str = ""
+    fallback_keywords: List[str] = field(default_factory=list)
+    fallback_background: str = ""
+    fallback_objectives: str = ""
+    fallback_discussion: str = ""
+    fallback_review_critique: str = ""
+    fallback_major_revisions: List[str] = field(default_factory=list)
+    fallback_minor_revisions: List[str] = field(default_factory=list)
+    fallback_questions_to_authors: List[str] = field(default_factory=list)
+    academic_discipline: str = ""
     title_en: str = ""
     source_en: str = ""
     metrics_en: Dict[str, str] = field(default_factory=dict)
@@ -44,6 +45,14 @@ class DatasetAcademicContext:
     scatter_y_metric: Optional[str] = None
     group_comparison_metric: Optional[str] = None
     secondary_chart_type: Optional[str] = None
+    analysis_method: str = "correlation"
+    anova_dv: Optional[str] = None
+    anova_factor_a: Optional[str] = None
+    anova_factor_b: Optional[str] = None
+    regression_y: Optional[str] = None
+    regression_x_list: Optional[List[str]] = None
+    no_corr_x: Optional[str] = None
+    no_corr_y: Optional[str] = None
 
 
 # Registry of scholarly contexts for each dataset
@@ -178,7 +187,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='認知的学力到達度（平均得点）と情意面（自己効力感・好意度）の間にはどのような共変連動性（または乖離）が認められるか。',
         scatter_x_metric='平均得点',
         scatter_y_metric='勉強が楽しい肯定率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='two_way_anova',
+        anova_dv='平均得点',
+        anova_factor_a='学年・教科',
+        anova_factor_b='調査年',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 2. High School Informatics: Informatics I Reform & Common Test
@@ -313,7 +327,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='大学入試共通テスト「情報」対策の実施比率とプログラミング言語活用率との間にはどのような構造的連動性が存在するか。',
         scatter_x_metric='共通テスト情報対策実施率',
         scatter_y_metric='Python活用率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='探究演習導入率',
+        regression_x_list=['Python活用率', '共通テスト情報対策実施率'],
+        secondary_chart_type='multiple_regression',
     ),
 
     # 3. National Assessment Math: Elementary-Junior High Gap & Formative Problem Solving
@@ -450,7 +468,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='1人1台端末の日常的活用率と学力平均正答率との間にはどのような相関・連動性が認められるか。',
         scatter_x_metric='端末活用率',
         scatter_y_metric='平均正答率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='two_way_anova',
+        anova_dv='平均正答率',
+        anova_factor_a='校種・教科',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 4. Japan MEXT ICT Informatization: GIGA Phase 2 & Hardware vs Utilization Disconnect
@@ -585,7 +608,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq1='初等中等教育の各校種（小・中・高）におけるICT端末日常利用率の現状水準と格差はどう推移しているか。',
         rq2='校種間における普及速度の差異およびインフラ整備から日常探究への質的転換はどう連動しているか。',
         group_comparison_metric='全国平均',
-        secondary_chart_type='group_comparison_bar',
+        
+        analysis_method='two_way_anova',
+        anova_dv='全国平均',
+        anova_factor_a='指標区分',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 5. OECD PISA Math & ICT: Inverted-U Hypothesis & Screen Time
@@ -714,7 +742,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='数学的リテラシーの全体達成水準と男女得点差との間にはどのような国際的相関構造が認められるか。',
         scatter_x_metric='数学得点',
         scatter_y_metric='男女得点差',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='数学得点',
+        regression_x_list=['男子得点', '女子得点'],
+        secondary_chart_type='multiple_regression',
     ),
 
     # 6. UNESCO World ICT Skills: SDG 4.4 & Global Digital Divide
@@ -844,7 +876,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='日常的表計算スキル（基礎ICT力）の普及度と高度プログラミングスキル保有率との間にはどのような国際的相関が存在するか。',
         scatter_x_metric='表計算高度利用率',
         scatter_y_metric='プログラミングスキル保有率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='no_correlation',
+        no_corr_x='プログラミングスキル保有率',
+        no_corr_y='表計算高度利用率',
+        secondary_chart_type='no_correlation_scatter',
     ),
 
     # 7. Japan STEM CS Enrollment: Gender Gap & Pipeline Leak
@@ -973,7 +1009,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='専攻分野の入学定員・入学者規模の拡大と女性比率の改善との間にはどのような相関構造が認められるか。',
         scatter_x_metric='入学者総数',
         scatter_y_metric='女性比率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='two_way_anova',
+        anova_dv='入学者総数',
+        anova_factor_a='分野',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 8. World Bank Education Indicators: Public Expenditure & Production Function
@@ -1107,7 +1148,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='国家の教育公財政支出の規模と学習到達度（基礎習熟度達成）との間にはどのような費用対効果相関が認められるか。',
         scatter_x_metric='教育支出対GDP比',
         scatter_y_metric='数学最低習熟度達成率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='数学最低習熟度達成率',
+        regression_x_list=['教育支出対GDP比', 'インターネット利用率'],
+        secondary_chart_type='multiple_regression',
     ),
 
     # 9. Japan Teacher Workload Survey (MEXT)
@@ -1232,7 +1277,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='長時間勤務の持続と授業準備時間の圧迫との間にはどのような構造的トレードオフが存在するか。',
         scatter_x_metric='在校等時間',
         scatter_y_metric='授業準備時間',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='在校等時間',
+        regression_x_list=['授業準備時間', '部活動指導時間'],
+        secondary_chart_type='multiple_regression',
     ),
 
     # 10. Japan Special Needs Education (MEXT)
@@ -1351,7 +1400,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='児童生徒の急増に対するICT支援端末の活用浸透度はどのように連動しているか。',
         scatter_x_metric='端末支援活用率',
         scatter_y_metric='通級指導児童生徒数',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='no_correlation',
+        no_corr_x='通級指導児童生徒数',
+        no_corr_y='端末支援活用率',
+        secondary_chart_type='no_correlation_scatter',
     ),
 
     # 11. Japan School Absenteeism & Bullying (MEXT)
@@ -1470,7 +1523,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='不登校児童生徒数の急激な増加に対し、自宅ICT学習出席扱い制度はどの程度追従・連動しているか（相関構造と制度的普及の課題）。',
         scatter_x_metric='不登校児童生徒数',
         scatter_y_metric='ICT出席扱い生徒数',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='two_way_anova',
+        anova_dv='千人あたり不登校率',
+        anova_factor_a='学校種',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 12. OECD TALIS Teacher Survey
@@ -1592,7 +1650,11 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         rq2='教員間の日常的共同指導（チームティーチング等）の実施度とICT活用指導力との間にはどのような国際的相関が存在するか。',
         scatter_x_metric='教員間協働指導実施率',
         scatter_y_metric='ICT活用指導肯定率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='批判的思考促進自己効力感',
+        regression_x_list=['ICT活用指導肯定率', '教員間協働指導実施率'],
+        secondary_chart_type='multiple_regression',
     ),
 }
 
@@ -1642,7 +1704,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='「将来役立つ」という実利認識は内発的な学習好意度や学力得点とどのように連動しているか。',
         scatter_x_metric='将来役立つ肯定率',
         scatter_y_metric='勉強が楽しい肯定率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='平均得点',
+        regression_x_list=['勉強が楽しい肯定率', '将来役立つ肯定率'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1683,7 +1749,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='探究的プログラミング実習の実施割合と本格的言語（Python）の指導導入との間にはいかなる連動性が存在するか。',
         scatter_x_metric='探究演習導入率',
         scatter_y_metric='Python活用率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='two_way_anova',
+        anova_dv='Python活用率',
+        anova_factor_a='学校区分',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
         ),
     ],
 
@@ -1724,7 +1795,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='主観的な数学への好意度・有能感と客観的正答率との共変構造は学年進行によってどう変化するか。',
         scatter_x_metric='勉強が好き肯定率',
         scatter_y_metric='平均正答率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='平均正答率',
+        regression_x_list=['勉強が好き肯定率', '将来役立つ肯定率'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1764,7 +1839,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq1='クラウド活用と端末利活用における校種別の進捗格差はどう推移しているか。',
         rq2='校務・授業のデジタル化の浸透スピードと学校段階間の格差構造にはいかなる要因が存在するか。',
         group_comparison_metric='全国平均',
-        secondary_chart_type='group_comparison_bar',
+        
+        analysis_method='multiple_regression',
+        regression_y='全国平均',
+        regression_x_list=['小学校', '中学校'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1805,7 +1884,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='各国における男子の認知的達成と女子の認知的達成との共変関係はどうなっているか。',
         scatter_x_metric='男子得点',
         scatter_y_metric='女子得点',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='no_correlation',
+        no_corr_x='男女得点差',
+        no_corr_y='数学得点',
+        secondary_chart_type='no_correlation_scatter',
         ),
     ],
 
@@ -1846,7 +1929,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='表現系スキルの普及と構造化論理思考を要するコーディングスキルとの連動構造はどうなっているか。',
         scatter_x_metric='プレゼン作成スキル保有率',
         scatter_y_metric='プログラミングスキル保有率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='プログラミングスキル保有率',
+        regression_x_list=['表計算高度利用率', 'プレゼン作成スキル保有率'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1887,7 +1974,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='全体の定員拡充が進む中で、女性比率の構造的停滞を打破する連動要因はいかに存在するか。',
         scatter_x_metric='入学者総数',
         scatter_y_metric='女性比率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='no_correlation',
+        no_corr_x='入学者総数',
+        no_corr_y='女性比率',
+        secondary_chart_type='no_correlation_scatter',
         ),
     ],
 
@@ -1928,7 +2019,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='デジタルインフラの接続進展が学習到達度（数学習熟度）の飛躍にどの程度寄与しているか。',
         scatter_x_metric='インターネット利用率',
         scatter_y_metric='数学最低習熟度達成率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='no_correlation',
+        no_corr_x='教育支出対GDP比',
+        no_corr_y='インターネット利用率',
+        secondary_chart_type='no_correlation_scatter',
         ),
     ],
 
@@ -1969,7 +2064,12 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='部活動指導負担の多寡が教員の持ち帰り仕事や総勤務時間の延長とどう連動しているか。',
         scatter_x_metric='部活動指導時間',
         scatter_y_metric='持ち帰り仕事時間',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='two_way_anova',
+        anova_dv='在校等時間',
+        anova_factor_a='校種',
+        anova_factor_b='調査年',
+        secondary_chart_type='anova_interaction',
         ),
     ],
 
@@ -2010,7 +2110,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='人的支援配置（支援員数）と生徒数の増大との間にはどのような需給相関構造が存在するか。',
         scatter_x_metric='特別支援教育支援員数',
         scatter_y_metric='特別支援学級在籍数',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='multiple_regression',
+        regression_y='通級指導児童生徒数',
+        regression_x_list=['特別支援学級在籍数', '特別支援教育支援員数'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -2050,7 +2154,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq1='小学校と中学校の間における千人あたり不登校率の水準差および経年拡大傾向はどのように推移しているか。',
         rq2='学校段階の移行（中1ギャップ）に伴う不登校率の急上昇構造に対し、学校種ごとの支援体制はどう連動しているか。',
         group_comparison_metric='千人あたり不登校率',
-        secondary_chart_type='group_comparison_bar',
+        
+        analysis_method='no_correlation',
+        no_corr_x='ICT出席扱い生徒数',
+        no_corr_y='千人あたり不登校率',
+        secondary_chart_type='no_correlation_scatter',
         ),
     ],
 
@@ -2091,7 +2199,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         rq2='高次思考を促す指導観と日常的ICTツール利活用との連動関係はどうなっているか。',
         scatter_x_metric='批判的思考促進自己効力感',
         scatter_y_metric='ICT活用指導肯定率',
-        secondary_chart_type='correlation_scatter',
+        
+        analysis_method='no_correlation',
+        no_corr_x='教員間協働指導実施率',
+        no_corr_y='批判的思考促進自己効力感',
+        secondary_chart_type='no_correlation_scatter',
         ),
     ],
 }
