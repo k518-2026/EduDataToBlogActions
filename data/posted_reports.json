@@ -936,5 +936,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-24T05:11:18.408869+09:00",
     "date": "2026-09-24"
+  },
+  {
+    "dataset_id": "japan_timss_math_science",
+    "angle_id": "timss_affective_paradox",
+    "angle_name": "TIMSSパラドックス（認知的学力到達度と自己効力感の非対称性）",
+    "title": "【TIMSS】小・中学生の算数・数学到達度と学習意欲の推移：「数学が得意」なのに「嫌い」な子どもたち：TIMSSパラドックスが暴く学力と自己効力感の乖離 (2026年09月24日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-24T07:58:01.144261+09:00",
+    "date": "2026-09-24"
   }
 ]
