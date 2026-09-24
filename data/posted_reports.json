@@ -956,5 +956,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-24T07:58:01.144261+09:00",
     "date": "2026-09-24"
+  },
+  {
+    "dataset_id": "japan_teacher_workload_survey",
+    "angle_id": "workload_extracurricular_burden",
+    "angle_name": "中学校における部活動指導負担と持ち帰り仕事の日常化",
+    "title": "【教員勤務実態調査】小・中学校教員の在校等時間と授業準備・持ち帰り仕事の推移：中学校教員を追い詰める部活動指導の呪縛：勤務実態調査データが語る地域移行の急務 (2026年09月24日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-24T22:15:57.136612+09:00",
+    "date": "2026-09-24"
   }
 ]
