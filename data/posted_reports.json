@@ -1018,5 +1018,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-25T22:15:55.299065+09:00",
     "date": "2026-09-25"
+  },
+  {
+    "dataset_id": "oecd_talis_teacher_survey",
+    "angle_id": "talis_collaboration_ict",
+    "angle_name": "TALIS国際比較に見る日本の教員協働指導とICT活用指導力の乖離構造",
+    "title": "【OECD TALIS】中学校教員の指導自己効力感とICT・理数探究実践の国際比較：TALIS国際比較が暴く教員の「孤立した教室」：なぜ日本の教員は共同指導とICT活用に慎重なのか (2026年09月26日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-26T05:09:52.151869+09:00",
+    "date": "2026-09-26"
   }
 ]
