@@ -997,5 +997,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-25T05:11:26.980596+09:00",
     "date": "2026-09-25"
+  },
+  {
+    "dataset_id": "japan_special_needs_education",
+    "angle_id": "special_needs_support_staff_allocation",
+    "angle_name": "特別支援教育支援員の配置格差と通常学級ユニバーサルデザイン",
+    "title": "【特別支援教育実態調査】通常学級における通級指導児童生徒数とICT支援の推移：インクルーシブ教育の最前線：支援員配置数とICT端末活用がもたらす通常学級の質的変容 (2026年09月25日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-25T22:15:55.299065+09:00",
+    "date": "2026-09-25"
   }
 ]
