@@ -1038,5 +1038,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-26T05:09:52.151869+09:00",
     "date": "2026-09-26"
+  },
+  {
+    "dataset_id": "japan_school_absenteeism_bullying",
+    "angle_id": "absenteeism_school_transition_gap",
+    "angle_name": "小学校から中学校への学校種移行期（中1ギャップ）における不登校率急上昇",
+    "title": "【児童生徒指導要録調査】小・中学校における不登校児童生徒数とICT学習支援の推移：なぜ中学校で不登校が3倍に跳ね上がるのか？：問題行動・不登校調査データが暴く中1ギャップの構造 (2026年09月26日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-26T22:13:34.086281+09:00",
+    "date": "2026-09-26"
   }
 ]
