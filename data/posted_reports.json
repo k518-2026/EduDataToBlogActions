@@ -1059,5 +1059,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-26T22:13:34.086281+09:00",
     "date": "2026-09-26"
+  },
+  {
+    "dataset_id": "oecd_pisa_math_ict",
+    "angle_id": "pisa_socioeconomic_gradient",
+    "angle_name": "社会経済的背景（ESCS）とデジタル学習機会の格差勾配",
+    "title": "【OECD PISA】主要国の数学的リテラシー得点とデジタル活用の比較：デジタル時代の教育格差：PISAデータが示す家庭環境とデジタル学習レジリエンスの国際格差 (2026年09月27日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-27T05:09:45.693217+09:00",
+    "date": "2026-09-27"
   }
 ]
