@@ -1079,5 +1079,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-27T05:09:45.693217+09:00",
     "date": "2026-09-27"
+  },
+  {
+    "dataset_id": "japan_high_school_informatics",
+    "angle_id": "hs_info_computational_thinking",
+    "angle_name": "計算論的思考の育成と共通テスト型筆記演習の乖離",
+    "title": "【高校情報教育実態調査】「情報I」プログラミング指導とICT環境の推移：ペーパーテスト化されるプログラミング：計算論的思考の育成と共通テスト対策の指導的ジレンマ (2026年09月27日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-27T22:13:21.371562+09:00",
+    "date": "2026-09-27"
   }
 ]
