@@ -933,9 +933,13 @@ class EduDataAnalyzer:
         results: List[NoCorrelationResult] = []
         num_cols = [m for m in metrics if m in df.columns and pd.api.types.is_numeric_dtype(df[m])]
 
-        pairs = []
+        target_pair = None
         if target_x and target_y and target_x in df.columns and target_y in df.columns:
-            pairs.append((target_x, target_y))
+            target_pair = (target_x, target_y)
+
+        pairs = []
+        if target_pair:
+            pairs.append(target_pair)
 
         for i in range(len(num_cols)):
             for j in range(i + 1, len(num_cols)):
@@ -943,6 +947,9 @@ class EduDataAnalyzer:
                 if p not in pairs and (p[1], p[0]) not in pairs:
                     if not is_collinear_or_redundant_pair(p[0], p[1]):
                         pairs.append(p)
+
+        target_res = None
+        auto_res: List[NoCorrelationResult] = []
 
         for col_x, col_y in pairs:
             sub = df[[col_x, col_y]].dropna()
@@ -953,22 +960,31 @@ class EduDataAnalyzer:
                 t_val = r * math.sqrt(df_deg / max(1.0 - r**2, 1e-6)) if abs(r) < 1.0 else 0.0
                 bf10, bf01, interp = compute_bayes_factor_no_correlation(float(r), n)
                 interp_desc = self._interpret_correlation(float(r))
-                results.append(
-                    NoCorrelationResult(
-                        metric_x=col_x,
-                        metric_y=col_y,
-                        pearson_r=round(float(r), 3),
-                        t_val=round(float(t_val), 2),
-                        df=df_deg,
-                        p_val=round(float(p_val), 4),
-                        bf10=bf10,
-                        bf01=bf01,
-                        interpretation=interp_desc,
-                        bf_interpretation=interp,
-                    )
+                item = NoCorrelationResult(
+                    metric_x=col_x,
+                    metric_y=col_y,
+                    pearson_r=round(float(r), 3),
+                    t_val=round(float(t_val), 2),
+                    df=df_deg,
+                    p_val=round(float(p_val), 4),
+                    bf10=bf10,
+                    bf01=bf01,
+                    interpretation=interp_desc,
+                    bf_interpretation=interp,
                 )
+                if target_pair and ((col_x, col_y) == target_pair or (col_y, col_x) == target_pair):
+                    target_res = item
+                else:
+                    # In auto-discovery, only keep pairs where null hypothesis is supported (p >= 0.05 or bf01 >= 1.0)
+                    if p_val >= 0.05 or bf01 >= 1.0:
+                        auto_res.append(item)
 
-        results.sort(key=lambda x: -x.bf01)
+        auto_res.sort(key=lambda x: -x.bf01)
+        if target_res:
+            results = [target_res] + auto_res
+        else:
+            results = auto_res
+
         return results
 
     def _compute_trend(
@@ -1103,11 +1119,18 @@ class EduDataAnalyzer:
             p_str = format_apa_p(nc.p_val)
             bf10_disp = format_bayes_factor(nc.bf10)
             bf01_disp = format_bayes_factor(nc.bf01)
-            insights.append(
-                f"⚡ 意外な非連動・真の独立性検証（無相関分析）: 「{nc.metric_x}」と「{nc.metric_y}」の間には統計的に有意な線形相関が認められず"
-                f"（r = {r_str}, t({nc.df}) = {nc.t_val}, p {p_str}）、対立仮説支持の BF₁₀ = {bf10_disp} に対し、"
-                f"帰無仮説（真の無相関・独立性）を支持するベイズファクター BF₀₁ = {bf01_disp}（{nc.bf_interpretation}）が算出されました。"
-            )
+            if nc.p_val >= 0.05 or nc.bf01 >= 1.0:
+                insights.append(
+                    f"⚡ 意外な非連動・真の独立性検証（無相関分析）: 「{nc.metric_x}」と「{nc.metric_y}」の間には統計的に有意な線形相関が認められず"
+                    f"（r = {r_str}, t({nc.df}) = {nc.t_val}, p {p_str}）、対立仮説支持の BF₁₀ = {bf10_disp} に対し、"
+                    f"帰無仮説（真の無相関・独立性）を支持するベイズファクター BF₀₁ = {bf01_disp}（{nc.bf_interpretation}）が算出されました。"
+                )
+            else:
+                insights.append(
+                    f"🔍 無相関仮説（独立性）の検証結果: 「{nc.metric_x}」と「{nc.metric_y}」の無相関仮説（独立性）を検証したところ、"
+                    f"統計的に有意な線形相関が認められ（r = {r_str}, t({nc.df}) = {nc.t_val}, p {p_str}）、"
+                    f"帰無仮説（無相関）は棄却され対立仮説（有意な相関あり）を支持するベイズファクター BF₁₀ = {bf10_disp}（{nc.bf_interpretation}）が確認されました。"
+                )
 
         # 2. Trend insights with unexpectedness detection
         for tr in trends[:2]:

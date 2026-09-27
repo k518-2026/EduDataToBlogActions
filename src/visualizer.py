@@ -1033,7 +1033,17 @@ class EduDataVisualizer:
         y_unit = resolve_metric_unit(col_y, dataset.unit)
         ax.set_xlabel(f"{col_x}{f' ({x_unit})' if x_unit else ''}", fontsize=11, fontweight="bold")
         ax.set_ylabel(f"{col_y}{f' ({y_unit})' if y_unit else ''}", fontsize=11, fontweight="bold")
-        ax.set_title(f"無相関・独立性検証散布図（Null Hypothesis Support）：{col_x} × {col_y}", fontsize=13, fontweight="bold", pad=12)
+        if target_nc.p_val >= 0.05 or target_nc.bf01 >= 1.0:
+            ax.set_title(f"無相関・独立性検証散布図（帰無仮説支持）：{col_x} × {col_y}", fontsize=13, fontweight="bold", pad=12)
+            result_label = "帰無仮説支持（無相関・独立）"
+            box_face = "#f0fdf4" if target_nc.bf01 >= 3.0 else "#f8fafc"
+            box_edge = "#16a34a" if target_nc.bf01 >= 3.0 else "#94a3b8"
+        else:
+            ax.set_title(f"無相関仮説検証散布図（帰無仮説棄却・相関支持）：{col_x} × {col_y}", fontsize=13, fontweight="bold", pad=12)
+            result_label = "帰無仮説棄却（有意な相関あり）"
+            box_face = "#eff6ff" if target_nc.bf10 >= 3.0 else "#f8fafc"
+            box_edge = "#2563eb" if target_nc.bf10 >= 3.0 else "#94a3b8"
+
         ax.grid(True, linestyle="--", alpha=0.5)
 
         # Ensure comfortable margins so points and annotations never hug the canvas border
@@ -1054,10 +1064,11 @@ class EduDataVisualizer:
 
         stats_box = (
             f"【無相関・独立性検定（APA 7th & ベイズ統計）】\n"
+            f"・検定判定: {result_label}\n"
             f"・ピアソン相関係数: r = {r_str}\n"
             f"・無相関t検定: t({target_nc.df}) = {target_nc.t_val:.2f}, p {p_str}\n"
             f"・対立仮説支持: BF10 = {bf10_str}\n"
-            f"・帰無仮説（真の無相関）支持: BF01 = {bf01_str}\n"
+            f"・帰無仮説支持: BF01 = {bf01_str}\n"
             f"・証拠判定: {target_nc.bf_interpretation}\n"
             f"※帯は 95% 信頼区間 (95% CI) を示す"
         )
@@ -1069,8 +1080,7 @@ class EduDataVisualizer:
             fontsize=8.5,
             horizontalalignment=stat_pos["ha"],
             verticalalignment=stat_pos["va"],
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="#f0fdf4" if target_nc.bf01 >= 3.0 else "#f8fafc",
-                      edgecolor="#16a34a" if target_nc.bf01 >= 3.0 else "#94a3b8", alpha=0.92),
+            bbox=dict(boxstyle="round,pad=0.5", facecolor=box_face, edgecolor=box_edge, alpha=0.92),
             zorder=6,
         )
         ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc=legend_loc)

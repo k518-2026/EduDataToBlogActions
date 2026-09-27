@@ -350,5 +350,55 @@ def test_analyzer_no_correlations():
     assert nc.metric_x == "教育支出対GDP比"
     assert nc.metric_y == "インターネット利用率"
     assert nc.bf01 > 0.0
+    # Since p >= 0.05, insight must state absence of significant correlation
+    assert any("統計的に有意な線形相関が認められず" in ins for ins in res.key_insights)
+
+
+def test_analyzer_no_correlations_rejected():
+    from src.academic_contexts import DatasetAcademicContext
+
+    # Strongly correlated data
+    df = pd.DataFrame({
+        "年度": list(range(2015, 2025)),
+        "入学者総数": [28400, 29100, 30200, 31500, 32800, 34600, 36200, 38100, 40500, 42800],
+        "女性比率": [14.5, 14.9, 15.5, 16.0, 16.5, 17.3, 18.1, 19.0, 20.1, 21.2],
+    })
+
+    dataset = EducationDataset(
+        id="test_correlated_ds",
+        title="強相関データ",
+        category="math",
+        region="japan",
+        source_name="文部科学省",
+        source_url="https://example.com",
+        description="強相関テスト",
+        df=df,
+        metrics=["入学者総数", "女性比率"],
+        time_col="年度",
+        unit="人",
+    )
+
+    angle = DatasetAcademicContext(
+        angle_id="no_corr_test_rejected",
+        angle_name="無相関仮説棄却テスト",
+        title_theme="無相関仮説棄却テスト",
+        academic_discipline="教育社会学",
+        analysis_method="no_correlation",
+        no_corr_x="入学者総数",
+        no_corr_y="女性比率",
+        secondary_chart_type="no_correlation_scatter",
+    )
+
+    analyzer = EduDataAnalyzer()
+    res = analyzer.analyze(dataset, selected_angle=angle)
+
+    assert len(res.no_correlations) >= 1
+    nc = res.no_correlations[0]
+    assert nc.p_val < 0.05
+    # Must NEVER claim no correlation when p < .05
+    assert not any("統計的に有意な線形相関が認められず" in ins for ins in res.key_insights)
+    # Must explicitly state that the null hypothesis of no correlation was rejected
+    assert any("帰無仮説（無相関）は棄却され" in ins for ins in res.key_insights)
+
 
 

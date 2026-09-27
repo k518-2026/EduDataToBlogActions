@@ -877,10 +877,8 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         scatter_x_metric='表計算高度利用率',
         scatter_y_metric='プログラミングスキル保有率',
         
-        analysis_method='no_correlation',
-        no_corr_x='プログラミングスキル保有率',
-        no_corr_y='表計算高度利用率',
-        secondary_chart_type='no_correlation_scatter',
+        analysis_method='correlation',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 7. Japan STEM CS Enrollment: Gender Gap & Pipeline Leak
@@ -1975,10 +1973,10 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         scatter_x_metric='入学者総数',
         scatter_y_metric='女性比率',
         
-        analysis_method='no_correlation',
-        no_corr_x='入学者総数',
-        no_corr_y='女性比率',
-        secondary_chart_type='no_correlation_scatter',
+        analysis_method='multiple_regression',
+        regression_y='女性比率',
+        regression_x_list=['入学者総数', '女性入学者数'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -2200,10 +2198,10 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         scatter_x_metric='批判的思考促進自己効力感',
         scatter_y_metric='ICT活用指導肯定率',
         
-        analysis_method='no_correlation',
-        no_corr_x='教員間協働指導実施率',
-        no_corr_y='批判的思考促進自己効力感',
-        secondary_chart_type='no_correlation_scatter',
+        analysis_method='multiple_regression',
+        regression_y='批判的思考促進自己効力感',
+        regression_x_list=['教員間協働指導実施率', 'ICT活用指導肯定率'],
+        secondary_chart_type='multiple_regression',
         ),
     ],
 }
