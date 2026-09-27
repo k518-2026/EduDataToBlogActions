@@ -416,6 +416,26 @@ def is_collinear_or_redundant_pair(col_x: str, col_y: str) -> bool:
     if "得点差" in col_y and ("男子" in col_x or "女子" in col_x):
         return True
 
+    # Part-Whole / Ratio artifacts: Total (A+B) vs Ratio (A/(A+B)) or Total (A+B) vs Component (A)
+    is_total_x = any(w in col_x for w in ["総数", "全体", "合計", "全体数"])
+    is_total_y = any(w in col_y for w in ["総数", "全体", "合計", "全体数"])
+    is_part_x = any(w in col_x for w in ["女性", "女子", "男性", "男子", "比率", "割合", "率"])
+    is_part_y = any(w in col_y for w in ["女性", "女子", "男性", "男子", "比率", "割合", "率"])
+    if (is_total_x and is_part_y) or (is_total_y and is_part_x):
+        shared_domain = any(dom in col_x and dom in col_y for dom in ["入学者", "生徒", "児童", "教員", "学校", "学力"])
+        if shared_domain or ("総数" in col_x and "比率" in col_y) or ("総数" in col_y and "比率" in col_x):
+            return True
+        if ("総数" in col_x and any(g in col_y for g in ["女性", "女子", "男性", "男子"])) or ("総数" in col_y and any(g in col_x for g in ["女性", "女子", "男性", "男子"])):
+            return True
+
+    # Component count vs component ratio of the same demographic (e.g. 女性入学者数 vs 女性比率)
+    if ("女性" in col_x or "女子" in col_x) and ("女性" in col_y or "女子" in col_y):
+        if ("数" in col_x and "比率" in col_y) or ("比率" in col_x and "数" in col_y):
+            return True
+    if ("男性" in col_x or "男子" in col_x) and ("男性" in col_y or "男子" in col_y):
+        if ("数" in col_x and "比率" in col_y) or ("比率" in col_x and "数" in col_y):
+            return True
+
     return False
 
 

@@ -142,3 +142,66 @@ def test_report_builder_and_markdown_publisher_with_peer_review(tmp_path):
     published_review_pdf = reports_dir / "pdf" / fake_review_pdf.name
     assert published_review_pdf.exists()
     assert published_review_pdf.read_bytes() == b"%PDF- dummy review"
+
+
+def test_peer_review_rejects_fatal_flaws():
+    """Verify that peer review strictly rejects papers with part-whole artifacts or contradictory conclusions."""
+    from src.academic_paper import AcademicPaper
+    from src.analyzer import CorrelationResult, NoCorrelationResult
+    from src.fetchers.base import EducationDataset
+    import pandas as pd
+
+    df = pd.DataFrame({
+        "年度": [2020, 2021, 2022, 2023],
+        "入学者総数": [1000, 1100, 1200, 1300],
+        "女性比率": [15.0, 16.0, 17.0, 18.0],
+    })
+    dataset = EducationDataset(
+        id="dummy_stem",
+        title="テストデータ",
+        category="math",
+        region="japan",
+        source_name="文科省",
+        source_url="https://example.com",
+        description="テスト",
+        df=df,
+        metrics=["入学者総数", "女性比率"],
+        time_col="年度",
+        unit="人",
+    )
+
+    analysis = EduDataAnalyzer().analyze(dataset)
+    # Manually simulate a fatal flaw pair
+    analysis.correlations = [
+        CorrelationResult(
+            metric_x="入学者総数",
+            metric_y="女性比率",
+            pearson_r=0.999,
+            p_value=0.0001,
+            interpretation="極めて強い相関",
+            bf10=9999.0,
+            bf_interpretation="極めて強い証拠",
+        )
+    ]
+    paper = AcademicPaper(
+        title="大学定員増と女性比率の推移",
+        subtitle="副題",
+        abstract="本稿は入学者総数と女性比率の相関を分析した。",
+        keywords=["情報科学", "定員", "ジェンダー"],
+        background="背景記述",
+        objectives="RQ検証",
+        methodology="相関分析",
+        results_text="入学者総数と女性比率の間に極めて強い正の相関が認められた。",
+        discussion="考察",
+        references=["Ref 1"],
+    )
+
+    review_gen = PeerReviewGenerator()
+    review = review_gen.generate_review(paper, dataset, analysis)
+
+    assert review.decision == "不採録（Reject）"
+    assert "不採録" in review.overall_critique
+    assert "比率擬似相関" in review.overall_critique or "アーティファクト" in review.overall_critique
+    grade, comment = review.scores["信頼性・統計的妥当性"]
+    assert grade in ["D", "F"]
+
