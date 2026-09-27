@@ -65,6 +65,117 @@ class EduDataVisualizer:
         plt.rcParams["xtick.labelsize"] = 10
         plt.rcParams["ytick.labelsize"] = 10
 
+    @staticmethod
+    def _find_optimal_box_and_legend_locs(
+        x_vals: np.ndarray,
+        y_vals: np.ndarray,
+        ax: plt.Axes,
+    ) -> Tuple[Dict[str, Any], str]:
+        """
+        Dynamically evaluates plot space to identify the emptiest quadrants/regions for
+        placing statistical annotations and legends without occluding any data points or labels.
+
+        Returns:
+            (stat_box_kwargs, legend_loc)
+            where stat_box_kwargs contains {x, y, ha, va} in axes coordinates.
+        """
+        s_x = pd.Series(x_vals)
+        s_y = pd.to_numeric(pd.Series(y_vals), errors="coerce")
+        s_x_num = pd.to_numeric(s_x, errors="coerce")
+        if s_x_num.notna().sum() >= len(s_x) * 0.5:
+            valid = pd.DataFrame({"x": s_x_num, "y": s_y}).dropna()
+        else:
+            unique_cats = {cat: i for i, cat in enumerate(s_x.unique())}
+            s_x_cat = s_x.map(unique_cats)
+            valid = pd.DataFrame({"x": s_x_cat, "y": s_y}).dropna()
+
+        if len(valid) == 0:
+            return {"x": 0.03, "y": 0.04, "ha": "left", "va": "bottom"}, "upper right"
+
+        x_clean = valid["x"].values
+        y_clean = valid["y"].values
+
+        x_min, x_max = ax.get_xlim()
+        y_min, y_max = ax.get_ylim()
+        x_span = max(x_max - x_min, 1e-6)
+        y_span = max(y_max - y_min, 1e-6)
+
+        # Normalize points to [0, 1] axes fractions
+        u = (x_clean - x_min) / x_span
+        v = (y_clean - y_min) / y_span
+
+        # Define candidate zones for the large stats box (footprint approx 45% width, 38% height)
+        candidates_stat = [
+            {
+                "name": "lower right",
+                "x_range": (0.50, 0.99),
+                "y_range": (0.01, 0.40),
+                "stat_kwargs": {"x": 0.97, "y": 0.04, "ha": "right", "va": "bottom"},
+            },
+            {
+                "name": "upper right",
+                "x_range": (0.50, 0.99),
+                "y_range": (0.60, 0.99),
+                "stat_kwargs": {"x": 0.97, "y": 0.96, "ha": "right", "va": "top"},
+            },
+            {
+                "name": "lower left",
+                "x_range": (0.01, 0.50),
+                "y_range": (0.01, 0.40),
+                "stat_kwargs": {"x": 0.03, "y": 0.04, "ha": "left", "va": "bottom"},
+            },
+            {
+                "name": "upper left",
+                "x_range": (0.01, 0.50),
+                "y_range": (0.60, 0.99),
+                "stat_kwargs": {"x": 0.03, "y": 0.96, "ha": "left", "va": "top"},
+            },
+        ]
+
+        scored_stat = []
+        for cand in candidates_stat:
+            x0, x1 = cand["x_range"]
+            y0, y1 = cand["y_range"]
+            inside_mask = (u >= x0 - 0.02) & (u <= x1 + 0.02) & (v >= y0 - 0.02) & (v <= y1 + 0.02)
+            inside_count = int(np.sum(inside_mask))
+            cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+            dists = np.sqrt((u - cx) ** 2 + (v - cy) ** 2)
+            min_dist = float(np.min(dists)) if len(dists) > 0 else 1.0
+            penalty = inside_count * 1000.0 - min_dist * 5.0
+            scored_stat.append((penalty, cand))
+
+        scored_stat.sort(key=lambda s: s[0])
+        best_stat_zone = scored_stat[0][1]
+        chosen_stat_name = best_stat_zone["name"]
+
+        # Define candidate zones for the compact legend (excluding the corner chosen for stat box)
+        candidates_legend = [
+            {"name": "upper right", "x_range": (0.55, 0.99), "y_range": (0.78, 0.99), "legend_loc": "upper right"},
+            {"name": "upper left",  "x_range": (0.01, 0.45), "y_range": (0.78, 0.99), "legend_loc": "upper left"},
+            {"name": "lower right", "x_range": (0.55, 0.99), "y_range": (0.01, 0.22), "legend_loc": "lower right"},
+            {"name": "lower left",  "x_range": (0.01, 0.45), "y_range": (0.01, 0.22), "legend_loc": "lower left"},
+        ]
+
+        scored_legend = []
+        for cand in candidates_legend:
+            if cand["name"] == chosen_stat_name:
+                continue
+            x0, x1 = cand["x_range"]
+            y0, y1 = cand["y_range"]
+            inside_mask = (u >= x0 - 0.02) & (u <= x1 + 0.02) & (v >= y0 - 0.02) & (v <= y1 + 0.02)
+            inside_count = int(np.sum(inside_mask))
+            cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+            dists = np.sqrt((u - cx) ** 2 + (v - cy) ** 2)
+            min_dist = float(np.min(dists)) if len(dists) > 0 else 1.0
+            penalty = inside_count * 1000.0 - min_dist * 5.0
+            scored_legend.append((penalty, cand))
+
+        scored_legend.sort(key=lambda s: s[0])
+        best_legend_zone = scored_legend[0][1]
+
+        return best_stat_zone["stat_kwargs"], best_legend_zone["legend_loc"]
+
+
     def generate_chart(
         self,
         dataset: EducationDataset,
@@ -242,6 +353,8 @@ class EduDataVisualizer:
             else 2.0
         )
 
+        all_x_vals = []
+        all_y_vals = []
         if group_col and group_col in df.columns:
             groups = df[group_col].unique()
             for idx, grp in enumerate(groups):
@@ -251,6 +364,8 @@ class EduDataVisualizer:
                 color = palette[idx % len(palette)]
                 x_vals = sub[time_col].values
                 y_vals = pd.to_numeric(sub[primary_metric], errors="coerce").values
+                all_x_vals.extend(x_vals)
+                all_y_vals.extend(y_vals)
 
                 ci_err = self._compute_trend_ci_errors(sub, time_col, primary_metric, overall_std)
 
@@ -303,6 +418,8 @@ class EduDataVisualizer:
                     color = palette[idx % len(palette)]
                     x_vals = sub[time_col].values
                     y_vals = pd.to_numeric(sub[m], errors="coerce").values
+                    all_x_vals.extend(x_vals)
+                    all_y_vals.extend(y_vals)
                     m_std = (
                         analysis.descriptive_stats.get(m).std
                         if m in analysis.descriptive_stats
@@ -351,16 +468,20 @@ class EduDataVisualizer:
         ax.set_title(f"{dataset.title}\n【経年推移と95%信頼区間】", fontsize=13, fontweight="bold", pad=12)
         ax.set_xlabel(f"{time_col} (年/年度)", fontsize=11, labelpad=8)
         ax.set_ylabel(f"値 ({primary_unit})", fontsize=11, labelpad=8)
-        ax.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white", edgecolor="#cbd5e1", fontsize=9)
+
+        # Ensure comfortable headroom for legend and labels
+        ax.margins(y=0.18, x=0.04)
+        stat_pos, legend_loc = self._find_optimal_box_and_legend_locs(all_x_vals, all_y_vals, ax)
+        ax.legend(title="【帯・誤差棒: 95% CI】", frameon=True, facecolor="white", edgecolor="#cbd5e1", fontsize=9, loc=legend_loc)
         ax.grid(True, linestyle="--", alpha=0.5)
 
         ax.text(
-            0.99,
-            0.03,
+            stat_pos["x"],
+            stat_pos["y"],
             "※エラーバーおよび網掛け帯は 95% 信頼区間 (95% CI) を示す",
             transform=ax.transAxes,
-            ha="right",
-            va="bottom",
+            ha=stat_pos["ha"],
+            va=stat_pos["va"],
             fontsize=8.5,
             color="#334155",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85, edgecolor="#cbd5e1"),
@@ -594,13 +715,25 @@ class EduDataVisualizer:
         ax.set_ylabel(f"{col_y} ({y_unit})", fontsize=11, labelpad=8)
         ax.grid(True, linestyle="--", alpha=0.5)
 
+        x_vals = pd.to_numeric(df[col_x], errors="coerce").dropna().values
+        y_vals = pd.to_numeric(df[col_y], errors="coerce").dropna().values
+        if len(x_vals) > 0 and len(y_vals) > 0:
+            x_min_val, x_max_val = float(np.min(x_vals)), float(np.max(x_vals))
+            y_min_val, y_max_val = float(np.min(y_vals)), float(np.max(y_vals))
+            x_span = max(x_max_val - x_min_val, 1.0)
+            y_span = max(y_max_val - y_min_val, 1.0)
+            ax.set_xlim(x_min_val - 0.08 * x_span, x_max_val + 0.08 * x_span)
+            ax.set_ylim(y_min_val - 0.12 * y_span, y_max_val + 0.15 * y_span)
+
+        note_pos, _ = self._find_optimal_box_and_legend_locs(x_vals, y_vals, ax)
+
         ax.text(
-            0.99,
-            0.03,
+            note_pos["x"],
+            note_pos["y"],
             "※回帰直線の帯は 95% 信頼区間 (95% CI) を示す",
             transform=ax.transAxes,
-            ha="right",
-            va="bottom",
+            ha=note_pos["ha"],
+            va=note_pos["va"],
             fontsize=8.5,
             color="#475569",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85, edgecolor="#cbd5e1"),
@@ -656,6 +789,8 @@ class EduDataVisualizer:
 
         x_coords = {val: i for i, val in enumerate(unique_fb)}
 
+        all_xs = []
+        all_ys = []
         for idx, grp_a in enumerate(unique_fa):
             grp_data = grouped[grouped[fa] == grp_a].sort_values(by=fb_col)
             color = palette[idx % len(palette)]
@@ -663,6 +798,8 @@ class EduDataVisualizer:
             xs = [x_coords[x] for x in grp_data[fb_col]]
             ys = grp_data["mean"].values
             yerr = grp_data["ci"].values
+            all_xs.extend(xs)
+            all_ys.extend(ys)
 
             ax.errorbar(
                 xs,
@@ -685,7 +822,15 @@ class EduDataVisualizer:
         ax.set_ylabel(f"{dv}{unit_str}", fontsize=11, fontweight="bold")
         ax.set_xlabel(f"{fb}（要因B）", fontsize=11, fontweight="bold")
         ax.set_title(f"二要因分散分析（Two-way ANOVA）交互作用プロット：{fa} × {fb}", fontsize=13, fontweight="bold", pad=12)
-        ax.legend(title=f"【{fa}（要因A）】", frameon=True, facecolor="white", edgecolor="#cbd5e1", loc="best")
+
+        # Provide vertical margin
+        if len(all_ys) > 0:
+            y_min_val, y_max_val = float(np.min(all_ys)), float(np.max(all_ys))
+            y_span = max(y_max_val - y_min_val, 1.0)
+            ax.set_ylim(y_min_val - 0.15 * y_span, y_max_val + 0.18 * y_span)
+
+        stat_pos, legend_loc = self._find_optimal_box_and_legend_locs(np.array(all_xs), np.array(all_ys), ax)
+        ax.legend(title=f"【{fa}（要因A）】", frameon=True, facecolor="white", edgecolor="#cbd5e1", loc=legend_loc)
         ax.grid(True, linestyle="--", alpha=0.5)
 
         # Stats text box (APA 7th format)
@@ -710,12 +855,13 @@ class EduDataVisualizer:
             f"※誤差棒は各水準の 95% 信頼区間 (95% CI) を示す"
         )
         ax.text(
-            0.02,
-            0.04,
+            stat_pos["x"],
+            stat_pos["y"],
             stats_box,
             transform=ax.transAxes,
             fontsize=8.5,
-            verticalalignment="bottom",
+            horizontalalignment=stat_pos["ha"],
+            verticalalignment=stat_pos["va"],
             bbox=dict(boxstyle="round,pad=0.5", facecolor="#f8fafc", edgecolor="#94a3b8", alpha=0.92),
             zorder=6,
         )
@@ -765,10 +911,12 @@ class EduDataVisualizer:
 
         min_val = float(min(np.min(y_pred), np.min(y_obs)))
         max_val = float(max(np.max(y_pred), np.max(y_obs)))
-        padding = (max_val - min_val) * 0.05
+        span = max(max_val - min_val, 1.0)
+        ax.set_xlim(min_val - 0.10 * span, max_val + 0.10 * span)
+        ax.set_ylim(min_val - 0.15 * span, max_val + 0.18 * span)
         ax.plot(
-            [min_val - padding, max_val + padding],
-            [min_val - padding, max_val + padding],
+            [min_val - 0.10 * span, max_val + 0.10 * span],
+            [min_val - 0.10 * span, max_val + 0.10 * span],
             linestyle="--",
             color="#64748b",
             linewidth=1.5,
@@ -795,7 +943,9 @@ class EduDataVisualizer:
         ax.set_xlabel(f"重回帰モデル予測値 y_pred{unit_str}", fontsize=11, fontweight="bold")
         ax.set_ylabel(f"実測値 y ({y_col}){unit_str}", fontsize=11, fontweight="bold")
         ax.set_title(f"重回帰分析（Multiple Regression）実測値 vs 予測値プロット", fontsize=13, fontweight="bold", pad=12)
-        ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc="upper left")
+
+        stat_pos, legend_loc = self._find_optimal_box_and_legend_locs(y_pred, y_obs, ax)
+        ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc=legend_loc)
         ax.grid(True, linestyle="--", alpha=0.5)
 
         # Stats box
@@ -819,13 +969,13 @@ class EduDataVisualizer:
             f"・各説明変数の標準化偏回帰係数:\n{coeff_text}"
         )
         ax.text(
-            0.98,
-            0.04,
+            stat_pos["x"],
+            stat_pos["y"],
             stats_box,
             transform=ax.transAxes,
             fontsize=8.5,
-            horizontalalignment="right",
-            verticalalignment="bottom",
+            horizontalalignment=stat_pos["ha"],
+            verticalalignment=stat_pos["va"],
             bbox=dict(boxstyle="round,pad=0.5", facecolor="#f8fafc", edgecolor="#94a3b8", alpha=0.92),
             zorder=6,
         )
@@ -886,6 +1036,17 @@ class EduDataVisualizer:
         ax.set_title(f"無相関・独立性検証散布図（Null Hypothesis Support）：{col_x} × {col_y}", fontsize=13, fontweight="bold", pad=12)
         ax.grid(True, linestyle="--", alpha=0.5)
 
+        # Ensure comfortable margins so points and annotations never hug the canvas border
+        if len(x_vals) > 0 and len(y_vals) > 0:
+            x_min_val, x_max_val = float(np.min(x_vals)), float(np.max(x_vals))
+            y_min_val, y_max_val = float(np.min(y_vals)), float(np.max(y_vals))
+            x_span = max(x_max_val - x_min_val, 1.0)
+            y_span = max(y_max_val - y_min_val, 1.0)
+            ax.set_xlim(x_min_val - 0.08 * x_span, x_max_val + 0.08 * x_span)
+            ax.set_ylim(y_min_val - 0.15 * y_span, y_max_val + 0.18 * y_span)
+
+        stat_pos, legend_loc = self._find_optimal_box_and_legend_locs(x_vals, y_vals, ax)
+
         r_str = format_apa_stat(target_nc.pearson_r, bounded=True)
         p_str = format_apa_p(target_nc.p_val)
         bf10_str = format_bayes_factor(target_nc.bf10)
@@ -901,15 +1062,17 @@ class EduDataVisualizer:
             f"※帯は 95% 信頼区間 (95% CI) を示す"
         )
         ax.text(
-            0.03,
-            0.04,
+            stat_pos["x"],
+            stat_pos["y"],
             stats_box,
             transform=ax.transAxes,
             fontsize=8.5,
-            verticalalignment="bottom",
+            horizontalalignment=stat_pos["ha"],
+            verticalalignment=stat_pos["va"],
             bbox=dict(boxstyle="round,pad=0.5", facecolor="#f0fdf4" if target_nc.bf01 >= 3.0 else "#f8fafc",
                       edgecolor="#16a34a" if target_nc.bf01 >= 3.0 else "#94a3b8", alpha=0.92),
             zorder=6,
         )
-        ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc="upper right")
+        ax.legend(frameon=True, facecolor="white", edgecolor="#cbd5e1", loc=legend_loc)
+
 
