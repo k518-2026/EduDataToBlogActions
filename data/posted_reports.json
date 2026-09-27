@@ -1100,5 +1100,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-27T22:13:21.371562+09:00",
     "date": "2026-09-27"
+  },
+  {
+    "dataset_id": "japan_stem_cs_enrollment",
+    "angle_id": "stem_capacity_and_workforce_demand",
+    "angle_name": "IT人材需要の急拡大と大学情報系学部の定員受容容量",
+    "title": "【学校基本調査】情報科学・工学系学科入学者数と女子比率の推移：IT立国を目指す日本の大学定員ジレンマ：情報系学部入学者増と理数教育基盤のキャパシティ制約 (2026年09月28日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-28T05:09:51.448581+09:00",
+    "date": "2026-09-28"
   }
 ]
