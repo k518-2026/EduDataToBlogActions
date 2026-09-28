@@ -1161,5 +1161,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-28T22:16:40.375888+09:00",
     "date": "2026-09-28"
+  },
+  {
+    "dataset_id": "unesco_world_ict_skills",
+    "angle_id": "unesco_gender_disparity_in_skills",
+    "angle_name": "世界主要国における女性のICTスキル習得動態",
+    "title": "【UNESCO/ITU】各国のプログラミング・デジタルスキル比較：デジタルスキルにおけるジェンダー平等の現在地：ユネスコデータに見る各国の女性ICT習熟度 (2026年09月29日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-29T05:10:09.153604+09:00",
+    "date": "2026-09-29"
   }
 ]
