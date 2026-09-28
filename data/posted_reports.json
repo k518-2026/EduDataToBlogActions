@@ -1120,5 +1120,26 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-28T05:09:51.448581+09:00",
     "date": "2026-09-28"
+  },
+  {
+    "dataset_id": "japan_mext_ict_informatization",
+    "angle_id": "mext_ict_cloud_utilization",
+    "angle_name": "校務クラウド化と協働的学びの実現度",
+    "title": "【学校教育情報化実態調査】1人1台端末利活用率とICT指導力の推移：校務DXと学習ログ活用の現在地：クラウド化がもたらす教員業務効率化と授業改善の相関 (2026年09月28日)",
+    "categories": [
+      "教育データ分析",
+      "情報教育",
+      "プログラミング教育",
+      "GIGAスクール"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "情報教育"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-28T20:11:32.687112+09:00",
+    "date": "2026-09-28"
   }
 ]
