@@ -1063,7 +1063,7 @@ class EduDataAnalyzer:
         elif abs_r >= 0.2:
             strength = "弱い"
         else:
-            strength = "相関ほぼなし"
+            return f"相関ほぼなし (r = {round(r, 2)})"
         return f"{strength}{direction} (r = {round(r, 2)})"
 
     def _generate_key_insights(
@@ -1198,7 +1198,15 @@ class EduDataAnalyzer:
                 )
 
         # 4. Correlation insights with unexpected non-correlation detection
-        for cr in correlations[:2]:
+        reported_nc_pairs = set()
+        if primary_method == "no_correlation" and no_correlations:
+            nc0 = no_correlations[0]
+            reported_nc_pairs.add((nc0.metric_x, nc0.metric_y))
+            reported_nc_pairs.add((nc0.metric_y, nc0.metric_x))
+
+        for cr in correlations[:3]:
+            if (cr.metric_x, cr.metric_y) in reported_nc_pairs:
+                continue
             corr_tag = "🔗 相関分析"
             if abs(cr.pearson_r) < 0.3:
                 corr_tag = "⚡ 意外な非連動（独立性）"
@@ -1207,9 +1215,17 @@ class EduDataAnalyzer:
             bf_info = f", ベイズファクター BF₁₀ = {format_bayes_factor(cr.bf10)} [{cr.bf_interpretation}]" if cr.bf10 is not None else ""
             r_apa = format_apa_stat(cr.pearson_r, bounded=True)
             p_apa = format_apa_p(cr.p_value)
-            insights.append(
-                f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、{cr.interpretation}が認められました"
-                f"（相関係数 r = {r_apa}, p {p_apa}{bf_info}）。"
-            )
+            if cr.p_value >= 0.05 or abs(cr.pearson_r) < 0.2:
+                insights.append(
+                    f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、統計的に有意な線形相関は認められませんでした"
+                    f"（相関係数 r = {r_apa}, p {p_apa}{bf_info}）。"
+                )
+            else:
+                insights.append(
+                    f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、統計的に有意な{cr.interpretation}が認められました"
+                    f"（相関係数 r = {r_apa}, p {p_apa}{bf_info}）。"
+                )
+            if len([ins for ins in insights if ins.startswith("🔗 相関分析") or ins.startswith("⚡ 意外な非連動") or ins.startswith("⚡ 逆転の相関")]) >= 2:
+                break
 
         return insights

@@ -592,7 +592,8 @@ class EduPaperPdfGenerator:
         self, dataset: EducationDataset, analysis: AnalysisResult
     ) -> Tuple[str, Table, str]:
         """Constructs a secondary academic three-line table (Table 2) conforming to APA 7th standards."""
-        if analysis.two_way_anova is not None:
+        method = getattr(analysis, "primary_method", "correlation")
+        if method == "two_way_anova" and analysis.two_way_anova is not None:
             anova = analysis.two_way_anova
             headers = [
                 Paragraph("変動因", self.styles["TableHeader"]),
@@ -641,7 +642,7 @@ class EduPaperPdfGenerator:
             bin_str = "（※要因Bは2水準にビニング済）" if anova.factor_b_is_binned else ""
             note = f"注）従属変数は{anova.dv}{bin_str}．SSは平方和，MSは平均平方，Fは検定統計量，ηₚ²は偏イータ二乗，BF₁₀はJZS/BICベイズファクター（>3で対立仮説支持）．APA 7th書式準拠．"
 
-        elif analysis.multiple_regression is not None:
+        elif method == "multiple_regression" and analysis.multiple_regression is not None:
             mr = analysis.multiple_regression
             headers = [
                 Paragraph("予測変数", self.styles["TableHeader"]),
@@ -682,7 +683,7 @@ class EduPaperPdfGenerator:
             adj_r2_apa = format_apa_stat(mr.adj_r_squared, bounded=True)
             note = f"注）従属変数は{mr.y_metric}．R² = {r2_apa}，調整済みR² = {adj_r2_apa}，F({mr.df_model}, {mr.df_resid}) = {mr.f_val:.1f}，p {format_apa_p(mr.p_val)}，全体BF₁₀ = {format_bayes_factor(mr.bf10)}．VIF < 5.0．APA 7th準拠．"
 
-        elif analysis.no_correlations and len(analysis.no_correlations) > 0:
+        elif method == "no_correlation" and analysis.no_correlations and len(analysis.no_correlations) > 0:
             headers = [
                 Paragraph("指標X", self.styles["TableHeader"]),
                 Paragraph("指標Y", self.styles["TableHeader"]),

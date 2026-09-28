@@ -12,6 +12,7 @@ from datetime import datetime
 import html
 import json
 import logging
+import math
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -631,7 +632,8 @@ plt.show()
         for Two-way ANOVA, Multiple Linear Regression, or No-Correlation Analysis.
         Concurrently presents Frequentist statistics and Bayesian Factors.
         """
-        if analysis.two_way_anova is not None:
+        method = getattr(analysis, "primary_method", "correlation")
+        if method == "two_way_anova" and analysis.two_way_anova is not None:
             anova = analysis.two_way_anova
             effects = [anova.main_effect_a, anova.main_effect_b, anova.interaction]
             md_rows = [
@@ -725,7 +727,7 @@ plt.show()
             """
             return "\n".join(md_rows), html_table
 
-        elif analysis.multiple_regression is not None:
+        elif method == "multiple_regression" and analysis.multiple_regression is not None:
             mr = analysis.multiple_regression
             md_rows = [
                 "### 表2",
@@ -810,12 +812,25 @@ plt.show()
             """
             return "\n".join(md_rows), html_table
 
-        elif analysis.no_correlations and len(analysis.no_correlations) > 0:
+        elif method == "no_correlation" and analysis.no_correlations and len(analysis.no_correlations) > 0:
+            all_rejected = all(nc.p_val < 0.05 and nc.bf10 > 3.0 for nc in analysis.no_correlations)
+            header_subtitle = (
+                "*指標間の線形相関およびベイズファクター（BF₁₀）検証一覧*"
+                if all_rejected
+                else "*無相関仮説（H₀）検証・ピアソン積率相関およびベイズファクター（BF₀₁）*"
+            )
+            card_title = (
+                "📋 表2: 指標間の線形相関およびベイズファクター（BF₁₀）一覧"
+                if all_rejected
+                else "📋 表2: 無相関仮説（H₀）検証・ピアソン積率相関およびベイズファクター（BF₀₁）一覧"
+            )
+            badge_title = "対立仮説支持 (BF₁₀)" if all_rejected else "帰無仮説支持 (BF₀₁)"
+
             md_rows = [
                 "### 表2",
-                "*無相関仮説（H₀）検証・ピアソン積率相関およびベイズファクター（BF₀₁）*",
+                header_subtitle,
                 "",
-                "| 分析指標ペア (*X* × *Y*) | 相関係数 (*r*) | *t*値 | 自由度 (*df*) | *p*値 | *BF*₁₀ (H₁支持) | *BF*₀₁ (H₀支持) | 帰無仮説証拠判定 |",
+                "| 分析指標ペア (*X* × *Y*) | 相関係数 (*r*) | *t*値 | 自由度 (*df*) | *p*値 | *BF*₁₀ (H₁支持) | *BF*₀₁ (H₀支持) | 証拠判定 |",
                 "| :--- | ---: | ---: | :---: | :---: | ---: | ---: | :--- |",
             ]
             html_rows = []
@@ -851,10 +866,10 @@ plt.show()
             <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
               <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-weight:bold; color:#1e293b; font-size:14px;">
-                  📋 表2: 無相関仮説（H₀）検証・ピアソン積率相関およびベイズファクター（BF₀₁）一覧
+                  {card_title}
                 </div>
                 <span style="font-size:11.5px; background-color:#e0f2fe; color:#0284c7; font-weight:600; padding:3px 10px; border-radius:12px;">
-                  帰無仮説支持 (BF₀₁)
+                  {badge_title}
                 </span>
               </div>
               <div style="overflow-x:auto;">
@@ -868,7 +883,7 @@ plt.show()
                       <th style="padding:10px 12px; text-align:center;"><i>p</i></th>
                       <th style="padding:10px 12px; text-align:right;"><i>BF</i>₁₀</th>
                       <th style="padding:10px 12px; text-align:right;"><i>BF</i>₀₁</th>
-                      <th style="padding:10px 14px;">帰無仮説証拠判定</th>
+                      <th style="padding:10px 14px;">証拠判定</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -876,6 +891,82 @@ plt.show()
                   </tbody>
                   <tfoot>
                     <tr style="border-top:2px solid #0f172a;"><td colspan="8" style="padding:8px 14px; font-size:11.5px; color:#64748b; background-color:#fafafa;">
+                      {note_text.replace('*', '')}
+                    </td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            """
+            return "\n".join(md_rows), html_table
+
+        elif analysis.correlations and len(analysis.correlations) > 0:
+            md_rows = [
+                "### 表2",
+                "*主要指標間におけるピアソン積率相関およびベイズファクター（BF₁₀）一覧*",
+                "",
+                "| 分析指標ペア (*X* × *Y*) | 相関係数 (*r*) | *t*値 | 自由度 (*df*) | *p*値 | *BF*₁₀ (H₁支持) | 証拠判定 |",
+                "| :--- | ---: | ---: | :---: | :---: | ---: | :--- |",
+            ]
+            html_rows = []
+            for i, cr in enumerate(analysis.correlations[:5]):
+                r_apa = format_apa_stat(cr.pearson_r, bounded=True)
+                p_apa = format_apa_p(cr.p_value)
+                bf10_str = format_bayes_factor(cr.bf10)
+                n_sample = analysis.sample_size
+                df_deg = max(n_sample - 2, 1)
+                denom = max(1.0 - cr.pearson_r**2, 1e-6)
+                t_stat = cr.pearson_r * math.sqrt(df_deg / denom) if abs(cr.pearson_r) < 1.0 else 0.0
+                md_rows.append(
+                    f"| **{cr.metric_x}** × **{cr.metric_y}** | {r_apa} | {t_stat:.2f} | {df_deg} | {p_apa} | {bf10_str} | {cr.bf_interpretation} |"
+                )
+                bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+                html_rows.append(
+                    f"""<tr style="background-color:{bg}; border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:10px 14px; font-weight:bold; color:#0f172a;">{cr.metric_x} <span style="color:#94a3b8;">×</span> {cr.metric_y}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold;">{r_apa}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace;">{t_stat:.2f}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace;">{df_deg}</td>
+                      <td style="padding:10px 12px; text-align:center; font-family:Consolas, monospace; color:#2563eb;"><i>p</i> {p_apa}</td>
+                      <td style="padding:10px 12px; text-align:right; font-family:Consolas, monospace; font-weight:bold; color:#059669;">{bf10_str}</td>
+                      <td style="padding:10px 14px; text-align:left; font-size:12px; color:#475569;">{cr.bf_interpretation}</td>
+                    </tr>"""
+                )
+
+            note_text = (
+                "*注.* *r* = ピアソン積率相関係数，*t* = 無相関検定統計量，*BF*₁₀ = JZSベイズファクター（>3でH1支持，<0.33でH0支持）．"
+                "APA 7th標準に準拠．"
+            )
+            md_rows.extend(["", note_text, ""])
+
+            html_table = f"""
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
+              <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:bold; color:#1e293b; font-size:14px;">
+                  📋 表2: 主要指標間におけるピアソン積率相関およびベイズファクター（BF₁₀）一覧
+                </div>
+                <span style="font-size:11.5px; background-color:#e0f2fe; color:#0284c7; font-weight:600; padding:3px 10px; border-radius:12px;">
+                  相関・ベイズ検定
+                </span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                  <thead>
+                    <tr style="background-color:#f1f5f9; color:#475569; font-size:12px; font-weight:600; border-top:2px solid #0f172a; border-bottom:1px solid #0f172a;">
+                      <th style="padding:10px 14px;">分析指標ペア (X × Y)</th>
+                      <th style="padding:10px 12px; text-align:right;"><i>r</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>t</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>df</i></th>
+                      <th style="padding:10px 12px; text-align:center;"><i>p</i></th>
+                      <th style="padding:10px 12px; text-align:right;"><i>BF</i>₁₀</th>
+                      <th style="padding:10px 14px;">証拠判定</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {''.join(html_rows)}
+                  </tbody>
+                  <tfoot>
+                    <tr style="border-top:2px solid #0f172a;"><td colspan="7" style="padding:8px 14px; font-size:11.5px; color:#64748b; background-color:#fafafa;">
                       {note_text.replace('*', '')}
                     </td></tr>
                   </tfoot>
@@ -963,12 +1054,15 @@ plt.show()
         )
 
         # Determine academic title for secondary chart based on analysis method
-        if analysis.two_way_anova:
+        method = getattr(analysis, "primary_method", "correlation")
+        if method == "two_way_anova" and analysis.two_way_anova:
             sec_fig_title = f"要因間交互作用プロット（{analysis.two_way_anova.factor_a} × {analysis.two_way_anova.factor_b}，95%CI併記）"
-        elif analysis.multiple_regression:
+        elif method == "multiple_regression" and analysis.multiple_regression:
             sec_fig_title = f"重回帰モデル観測値対予測値プロット（従属変数: {analysis.multiple_regression.y_metric}，95%CI併記）"
-        elif analysis.no_correlations:
+        elif method == "no_correlation" and analysis.no_correlations:
             sec_fig_title = f"無相関仮説検証散布図（{analysis.no_correlations[0].metric_x} × {analysis.no_correlations[0].metric_y}，BF₀₁併記）"
+        elif analysis.correlations:
+            sec_fig_title = f"主要指標間散布図および回帰直線（{analysis.correlations[0].metric_x} × {analysis.correlations[0].metric_y}，95%CI併記）"
         else:
             sec_fig_title = f"{dataset.title}の比較分析・相関構造グラフ（95%CI併記）"
 
