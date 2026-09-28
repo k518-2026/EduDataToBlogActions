@@ -1141,5 +1141,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-28T20:11:32.687112+09:00",
     "date": "2026-09-28"
+  },
+  {
+    "dataset_id": "worldbank_education_indicators",
+    "angle_id": "wb_internet_leapfrogging",
+    "angle_name": "発展途上国におけるインターネット接続と教育成果の飛躍",
+    "title": "【世界銀行】教育支出と初等中等数学習熟度の国際比較分析：教育インフラのリープフロッグ：世界銀行データに見るデジタル接続が途上国の基礎学力を底上げする力 (2026年09月28日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-28T22:16:40.375888+09:00",
+    "date": "2026-09-28"
   }
 ]
