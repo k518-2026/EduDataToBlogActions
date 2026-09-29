@@ -117,25 +117,58 @@ class PeerReviewGenerator:
                     ),
                 })
 
-        # 2. Contradictory Inferences
-        full_text = f"{paper.title} {paper.subtitle} {paper.abstract} {paper.results_text} {paper.discussion}"
+        # 2. Contradictory Inferences (checked at sentence level to avoid cross-pair false positives)
+        full_text = f"{paper.title}。\n{paper.subtitle}。\n{paper.abstract}\n{paper.results_text}\n{paper.discussion}"
+        sentences = [s.strip() for s in re.split(r"[。．\n]+", full_text) if s.strip()]
+        null_claim_phrases = ["相関が認められず", "相関は認められず", "無相関", "独立している", "独立した要因", "連動性が存在せず"]
+        checked_contradictions = set()
         for nc in analysis.no_correlations:
-            if abs(nc.pearson_r) >= 0.5 or nc.p_val < 0.05 or nc.bf10 >= 3.0:
-                if any(w in full_text for w in ["相関が認められず", "相関は認められず", "無相関", "独立している", "連動性が存在せず"]):
-                    if nc.metric_x in full_text and nc.metric_y in full_text:
-                        issues.append({
-                            "category": "FATAL_CONTRADICTION",
-                            "title": f"計算結果と本文解釈の破綻的矛盾（「{nc.metric_x}」×「{nc.metric_y}」）",
-                            "desc": (
-                                f"指標「{nc.metric_x}」と「{nc.metric_y}」の間で統計的に有意な強い相関"
-                                f"（r = {nc.pearson_r:+.2f}, p < .05, BF₁₀ = {nc.bf10:.1f}）が算出されているにもかかわらず、"
-                                "本文中において『相関が認められず』『真の独立性』と正反対の結論を述べている。"
-                                "計算結果と著者の主張が致命的に矛盾しており、学術論文としての論理的一貫性を根本から喪失している。"
-                            ),
-                        })
+            pair_key = tuple(sorted([nc.metric_x, nc.metric_y]))
+            if abs(nc.pearson_r) >= 0.40 and (nc.p_val < 0.05 or nc.bf10 >= 3.0):
+                has_sentence_contradiction = any(
+                    (nc.metric_x in sent and nc.metric_y in sent and any(w in sent for w in null_claim_phrases))
+                    for sent in sentences
+                )
+                if has_sentence_contradiction and pair_key not in checked_contradictions:
+                    checked_contradictions.add(pair_key)
+                    p_fmt = "< .001" if nc.p_val < 0.001 else f"= {nc.p_val:.3f}"
+                    issues.append({
+                        "category": "FATAL_CONTRADICTION",
+                        "title": f"計算結果と本文解釈の破綻的矛盾（「{nc.metric_x}」×「{nc.metric_y}」）",
+                        "desc": (
+                            f"指標「{nc.metric_x}」と「{nc.metric_y}」の間で統計的に有意な相関"
+                            f"（r = {nc.pearson_r:+.2f}, p {p_fmt}, BF₁₀ = {nc.bf10:.1f}）が算出されているにもかかわらず、"
+                            "本文中において『相関が認められず』『真の独立性』と正反対の結論を述べている。"
+                            "計算結果と著者の主張が致命的に矛盾しており、学術論文としての論理的一貫性を根本から喪失している。"
+                        ),
+                    })
+
+        for cr in analysis.correlations:
+            pair_key = tuple(sorted([cr.metric_x, cr.metric_y]))
+            p_v = getattr(cr, "p_value", getattr(cr, "p_val", 1.0))
+            bf_v = getattr(cr, "bf10", 1.0) or 1.0
+            if abs(cr.pearson_r) >= 0.40 and (p_v < 0.05 or bf_v >= 3.0):
+                has_sentence_contradiction = any(
+                    (cr.metric_x in sent and cr.metric_y in sent and any(w in sent for w in null_claim_phrases))
+                    for sent in sentences
+                )
+                if has_sentence_contradiction and pair_key not in checked_contradictions:
+                    checked_contradictions.add(pair_key)
+                    p_fmt = "< .001" if p_v < 0.001 else f"= {p_v:.3f}"
+                    issues.append({
+                        "category": "FATAL_CONTRADICTION",
+                        "title": f"計算結果と本文解釈の破綻的矛盾（「{cr.metric_x}」×「{cr.metric_y}」）",
+                        "desc": (
+                            f"指標「{cr.metric_x}」と「{cr.metric_y}」の間で統計的に有意な相関"
+                            f"（r = {cr.pearson_r:+.2f}, p {p_fmt}, BF₁₀ = {bf_v:.1f}）が算出されているにもかかわらず、"
+                            "本文中において『相関が認められず』『真の独立性』と正反対の結論を述べている。"
+                            "計算結果と著者の主張が致命的に矛盾しており、学術論文としての論理的一貫性を根本から喪失している。"
+                        ),
+                    })
 
         # 3. Tautological Regression / Mathematical Identity Models
-        if analysis.multiple_regression:
+        p_method = getattr(analysis, "primary_method", "correlation")
+        if analysis.multiple_regression and p_method in ("multiple_regression", "correlation"):
             mr = analysis.multiple_regression
             is_tautology = mr.r_squared > 0.998 and any(
                 is_collinear_or_redundant_pair(mr.y_metric, x_var) for x_var in mr.x_metrics
@@ -266,27 +299,31 @@ class PeerReviewGenerator:
             audit_lines.append("また、総合講評（overall_critique）および主要修正要求（major_revisions）において、数理的アーティファクトや論理矛盾を厳正かつ容赦なく断罪してください。\n")
             audit_section = "\n".join(audit_lines)
 
+        metrics_str = "，".join(dataset.metrics)
+        k_rows = len(dataset.df)
+
         return f"""あなたは教育工学・情報教育・教育統計学を専門とする学術論文誌の「シニア査読委員（非常に厳格で学術的妥当性に妥協のないベテラン査読者）」です。
 以下の学術論文（ショートレター）原稿を厳正かつ批判的に審査し、学会公式の「査読結果通知書・査読報告書（Peer Review Report）」を作成してください。
 
 {audit_section}
 ※査読判定の基準（学術的真理と方法論の厳正な査定）：
 - 査読判定は以下の4区分から、論文の学術的品質・計算の妥当性・論理的整合性に基づき客観的かつ厳格に判定してください：
-  1. 【不採録（Reject）】: 致命的な方法論的欠陥（比率擬似相関、部分-全体交絡、計算結果と解釈の破綻的矛盾、重大な多重共線性・恒等式回帰等）が存在し、抜本的な研究デザイン再構築が必要な場合。
-  2. 【条件付採録（Major Revision）】: 基本データ・分析に一定の価値があるが、交絡因子の未統制、生態学的誤謬、理論的裏付けの不足など大幅な改稿と再査読を要する場合。
+  1. 【不採録（Reject）】: 致命的な方法論的欠陥（比率擬似相関、部分-全体交絡、データセットに存在しない指標を分析したとする虚偽・乖離、計算結果と解釈の破綻的矛盾、重大な多重共線性・恒等式回帰等）が存在し、抜本的な研究デザイン再構築が必要な場合。
+  2. 【条件付採録（Major Revision）】: 基本データ・分析および指標間の整合性に一定の価値があるが、交絡因子の未統制、生態学的誤謬、集計標本数の制約、理論的裏付けの深化など大幅な改稿と再査読を要する場合。
   3. 【条件付採録（Minor Revision）】: 分析および結論は概ね妥当で、軽微な表現・注記・体裁修正のみで採録可能な場合。
   4. 【採録（Accept）】: 修正不要でそのまま公刊に値する場合。
 
 ※特に以下の学術的弱点・批判点を鋭く論じてください：
   1. 【数理的アーティファクト・比率擬似相関】: 全体量（A+B）と構成比（A/(A+B)）の相関など、部分-全体交絡や数式上の見かけの連動を教育学的知見と誤認していないか。
-  2. 【計算結果と主張の一致】: 相関係数やp値の計算結果と本文の結論が正しく整合しているか（矛盾や強弁がないか）。
-  3. 【生態学的誤謬（Ecological Fallacy）】: 自治体・学校種別のマクロ集計データから、個々の児童生徒の認知・心理メカニズムを推論する際の論理的飛躍と限界。
-  4. 【相関関係と因果関係の混同】: 端末活用率や好意度と学力正答率の連動性について、交絡因子（家庭のSES、学習時間等）が統制されていない点。
+  2. 【データ指標と計算結果・主張の一致】: 元データの収録指標（{metrics_str}）および相関係数・p値・ベイズファクターの計算結果と、本文のRQ・結論が正しく整合しているか（矛盾や強弁がないか）。
+  3. 【生態学的誤謬（Ecological Fallacy）】: 自治体・学校種・国別のマクロ集計データ（集計単位数 K={k_rows}）から、個々の児童生徒・教員の認知・心理メカニズムを推論する際の論理的飛躍と限界。
+  4. 【相関関係と因果関係の混同】: 指標間の統計的関連性について、未観測の交絡因子（家庭のSES、制度的要因等）が統制されていない点。
   5. 【データセット固有の学術課題】: 『{ctx.academic_topic}』（理論枠組み: {ctx.theoretical_framework}）に関して、本稿の分析や考察における限界や未解明点（{ctx.core_research_problems}）を厳しく追究する点。
 
 ### 【審査対象論文 情報】
 - 論文題目: {paper.title}
 - 副題: {paper.subtitle}
+- 元データ収録指標（K={k_rows}）: {metrics_str}
 - 抄録: {paper.abstract}
 - リサーチクエスチョン: {paper.objectives}
 - 分析手法: {paper.methodology}
@@ -301,7 +338,7 @@ class PeerReviewGenerator:
 {{
   "paper_title": "{paper.title}",
   "category": "生成AI論文",
-  "decision": "不採録（Reject） または 条件付採録（Major Revision）",
+  "decision": "不採録（Reject） / 条件付採録（Major Revision） / 条件付採録（Minor Revision） / 採録（Accept） のいずれか",
   "scores": {{
     "独創性・新規性": ["評定（A〜D）", "寸評"],
     "有用性・教育的貢献": ["評定（A〜D）", "寸評"],

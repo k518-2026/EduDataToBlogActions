@@ -816,8 +816,10 @@ class AcademicPaperGenerator:
                 f"- {cr.metric_x} × {cr.metric_y}: 相関係数 <i>r</i>={format_apa_stat(cr.pearson_r, bounded=True)}， <i>p</i>値{format_apa_p(cr.p_value)}{bf_str} ({cr.interpretation})"
             )
 
+        p_method = getattr(analysis, "primary_method", "correlation")
+
         anova_lines = []
-        if analysis.two_way_anova:
+        if p_method == "two_way_anova" and analysis.two_way_anova:
             an = analysis.two_way_anova
             ea, eb, eab = an.main_effect_a, an.main_effect_b, an.interaction
             bin_note = "（※時系列要因はセル観測数確保のため前期・後期2分割ビニング済）" if an.factor_b_is_binned else ""
@@ -828,7 +830,7 @@ class AcademicPaperGenerator:
             anova_lines.append(f"- 誤差: 自由度 <i>df</i>={an.error_df}，<i>SS</i>={an.error_ss:.2f}，<i>MS</i>={an.error_ms:.2f}")
 
         reg_lines = []
-        if analysis.multiple_regression:
+        if p_method == "multiple_regression" and analysis.multiple_regression:
             mr = analysis.multiple_regression
             reg_lines.append(f"重回帰分析結果（従属変数: {mr.y_metric}，決定係数 <i>R</i><sup>2</sup>={format_apa_stat(mr.r_squared, bounded=True)}，調整済み <i>R</i><sup>2</sup>={format_apa_stat(mr.adj_r_squared, bounded=True)}，モデル検定 <i>F</i>({mr.df_model}, {mr.df_resid})={mr.f_val:.2f}，<i>p</i>{format_apa_p(mr.p_val)}，全体<i>BF</i><sub>10</sub>={format_bayes_factor(mr.bf10)} [{mr.bf_interpretation}]）:")
             for c in mr.coefficients:
@@ -837,7 +839,7 @@ class AcademicPaperGenerator:
                 reg_lines.append(f"- 予測変数「{c.variable}」: <i>B</i>={c.b:.3f}，<i>SE</i>={c.se:.3f}{beta_str}，<i>t</i>={c.t_val:.2f}，<i>p</i>{format_apa_p(c.p_val)}{vif_str}，<i>BF</i><sub>10</sub>={format_bayes_factor(c.bf10)} [{c.bf_interpretation}]")
 
         no_corr_lines = []
-        if analysis.no_correlations:
+        if p_method == "no_correlation" and analysis.no_correlations:
             no_corr_lines.append("無相関分析（帰無仮説H₀「相関なし・独立」のベイズ検証結果）:")
             for nc in analysis.no_correlations:
                 no_corr_lines.append(f"- {nc.metric_x} × {nc.metric_y}: 相関係数 <i>r</i>={format_apa_stat(nc.pearson_r, bounded=True)}，<i>t</i>({nc.df})={nc.t_val:.2f}，<i>p</i>{format_apa_p(nc.p_val)}，<i>BF</i><sub>10</sub>={format_bayes_factor(nc.bf10)}，<i>BF</i><sub>01</sub>={format_bayes_factor(nc.bf01)} [{nc.bf_interpretation}]")
@@ -1219,9 +1221,10 @@ class AcademicPaperGenerator:
         pop_size = getattr(analysis, "sample_population_size", "") or getattr(dataset, "sample_population_size", "")
         pop_info_str = f"，母集団規模: {pop_size}" if pop_size else ""
 
+        p_method = getattr(analysis, "primary_method", "correlation")
         adv_method_desc = ""
         adv_desc = ""
-        if analysis.two_way_anova:
+        if p_method == "two_way_anova" and analysis.two_way_anova:
             an = analysis.two_way_anova
             ea, eb, eab = an.main_effect_a, an.main_effect_b, an.interaction
             p_a = format_apa_p(ea.p_val)
@@ -1250,7 +1253,7 @@ class AcademicPaperGenerator:
                 f"図１に示す時系列推移ならびに図２の要因間交互作用プロット（95%信頼区間併記）からも，"
                 f"要因水準の組み合わせによる特有の構造的連関パターンが視覚的に裏付けられた．"
             )
-        elif analysis.multiple_regression:
+        elif p_method == "multiple_regression" and analysis.multiple_regression:
             mr = analysis.multiple_regression
             r2_str = format_apa_stat(mr.r_squared, bounded=True)
             adj_r2_str = format_apa_stat(mr.adj_r_squared, bounded=True)
@@ -1276,7 +1279,7 @@ class AcademicPaperGenerator:
                 f"各予測変数の標準化偏回帰係数は，{'，'.join(coeff_descs)}となり，多重共線性（VIF < 5.0）を排除した上で各要因の独立した寄与度が同定された．"
                 f"図１の全体トレンドならびに図２の重回帰観測値対予測値プロット（95%信頼区間併記）からも，モデル適合度の高さが確認された．"
             )
-        elif analysis.no_correlations:
+        elif p_method == "no_correlation" and analysis.no_correlations:
             nc = analysis.no_correlations[0]
             r_str = format_apa_stat(nc.pearson_r, bounded=True)
             p_str = format_apa_p(nc.p_val)
@@ -1286,7 +1289,7 @@ class AcademicPaperGenerator:
                 f"2. 無相関分析（No-Correlation / 独立性のベイズ検証）: 指標間の線形関連性の欠如（独立性）を実証するため，"
                 f"ピアソン積率相関検定に加えて帰無仮説支持の証拠強度を直接定量化するベイズファクター<i>BF</i><sub>01</sub>（= 1 / <i>BF</i><sub>10</sub>）を算出した．\n"
             )
-            if nc.p_val >= 0.05 or nc.bf01 >= 1.0:
+            if abs(nc.pearson_r) < 0.35 and (nc.p_val >= 0.05 or nc.bf01 >= 1.0):
                 adv_desc = (
                     f"「{nc.metric_x}」と「{nc.metric_y}」の関連性について無相関仮説（H₀: 関連性なし・独立）の検証（表２参照）を実施したところ，"
                     f"相関係数は<i>r</i>={r_str}，<i>t</i>({nc.df})={nc.t_val:.2f}，<i>p</i>{p_str}にとどまった．"
@@ -1294,6 +1297,12 @@ class AcademicPaperGenerator:
                     f"帰無仮説支持の証拠強度を示す<i>BF</i><sub>01</sub>={bf01_str}（{nc.bf_interpretation}）が導出された．"
                     f"これにより，両指標間には統計的に有意な線形連動性が存在せず，独立した要因として機能しているという積極的証拠が示された．"
                     f"図１の基本分布ならびに図２の無相関検証散布図（回帰直線およびBF₀₁併記）からも，散布の独立性が明確に裏付けられた．"
+                )
+            elif nc.p_val >= 0.05:
+                adv_desc = (
+                    f"「{nc.metric_x}」と「{nc.metric_y}」の関連性について検証（表２参照）を実施したところ，"
+                    f"標本相関係数は<i>r</i>={r_str}と中程度の傾向を示したものの，<i>t</i>({nc.df})={nc.t_val:.2f}，<i>p</i>{p_str}（<i>BF</i><sub>10</sub>={bf10_str}，<i>BF</i><sub>01</sub>={bf01_str}）となり，"
+                    f"標本規模の制約から統計的有意水準（5%）には到達せず，帰無仮説・対立仮説双方に対して判断留保（inconclusive）の領域にとどまった．"
                 )
             else:
                 adv_desc = (

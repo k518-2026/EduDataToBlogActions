@@ -1088,16 +1088,17 @@ class EduPaperPdfGenerator:
                 if len(clean_fig_title2) > 28:
                     clean_fig_title2 = clean_fig_title2[:26] + "…"
 
-                if analysis.two_way_anova is not None:
+                p_method = getattr(analysis, "primary_method", "correlation")
+                if p_method == "two_way_anova" and analysis.two_way_anova is not None:
                     anova = analysis.two_way_anova
                     fa = str(anova.factor_a)[:10]
                     fb = str(anova.factor_b)[:10]
                     fig2_cap = f"図２　要因間交互作用プロット（{fa} × {fb}，95%CI併記）"
-                elif analysis.multiple_regression is not None:
+                elif p_method == "multiple_regression" and analysis.multiple_regression is not None:
                     mr = analysis.multiple_regression
                     ym = str(mr.y_metric)[:12]
                     fig2_cap = f"図２　重回帰モデル観測値対予測値プロット（従属変数: {ym}，95%CI併記）"
-                elif analysis.no_correlations and len(analysis.no_correlations) > 0:
+                elif p_method == "no_correlation" and analysis.no_correlations and len(analysis.no_correlations) > 0:
                     nc = analysis.no_correlations[0]
                     mx = str(nc.metric_x)[:8]
                     my = str(nc.metric_y)[:8]

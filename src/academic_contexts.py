@@ -720,33 +720,33 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         title_en="Digital Utilization and Mathematics Literacy in Secondary Education: International Comparative Evidence from OECD PISA",
         source_en="Organisation for Economic Co-operation and Development (OECD)",
         metrics_en={
-            "数学的リテラシー平均得点": "Mathematical Literacy Average Score",
-            "学校でのICT利用時間": "School ICT Utilization Time (Hours/Week)",
-            "ICTリソースの質": "Quality Index of Educational ICT Resources",
+            "数学得点": "Mathematical Literacy Score",
+            "男子得点": "Male Mathematics Score",
+            "女子得点": "Female Mathematics Score",
+            "男女得点差": "Gender Score Gap (Boys - Girls)",
         },
-        fallback_keywords_en=["OECD PISA", "MATHEMATICAL LITERACY", "ICT UTILIZATION", "EDUCATIONAL TECHNOLOGY", "NONLINEAR REGRESSION"],
+        fallback_keywords_en=["OECD PISA", "MATHEMATICAL LITERACY", "GENDER GAP", "EDUCATIONAL EQUITY", "CROSS-NATIONAL ANALYSIS"],
         fallback_summary_en=(
-            "This study investigates the international relationship between school-based digital technology utilization and adolescent mathematical "
-            "literacy based on the Programme for International Student Assessment (PISA) database published by the OECD. Through robust descriptive "
-            "analysis, cross-national correlations, and Bayesian inference models across participating educational systems, we scrutinize whether "
-            "increased ICT exposure directly translates into heightened cognitive proficiency. The empirical findings substantiate an inverted U-shaped "
-            "non-linear association, demonstrating that moderate, pedagogically guided digital engagement enhances mathematical competency, whereas "
-            "excessive or unstructured screen time correlates with performance attenuation. Policy implications regarding structured digital integration "
-            "and balanced educational technology adoption are discussed."
+            "This study investigates the international longitudinal trajectories of adolescent mathematical literacy and gender score disparities "
+            "based on the Programme for International Student Assessment (PISA) database published by the OECD. Through descriptive profiling, "
+            "two-way analysis of variance, and Bayesian inference models across participating educational systems from 2012 to 2022, we scrutinize "
+            "structural cross-national differences and resilient performance patterns during global educational disruptions. Policy implications "
+            "regarding equitable mathematics instruction and balanced educational technology integration are discussed."
         ),
         angle_id="pisa_math_resilience_and_ict",
-        angle_name="PISA国際比較に見る数学的リテラシーとデジタル端末利用時間の非線形関係（デジタル・パラドックス）",
-        title_theme="端末を長く使う生徒ほど数学スコアが下がる？：PISAデータが突きつける「デジタル学習時間の逆説」",
-        focus_metrics=['数学得点', '男女得点差'],
-        rq1='PISA参加主要国における数学的リテラシー得点および男女得点差の分布特性にはどのような特徴があるか。',
-        rq2='数学的リテラシーの全体達成水準と男女得点差との間にはどのような国際的相関構造が認められるか。',
-        scatter_x_metric='数学得点',
-        scatter_y_metric='男女得点差',
+        angle_name="PISA国際比較に見る数学的リテラシーの経年レジリエンスと男女得点差の国際構造",
+        title_theme="PISA国際比較が示す日本の数学的リテラシーの頑健性とジェンダー得点差の構造的持続",
+        focus_metrics=['数学得点', '男子得点', '女子得点', '男女得点差'],
+        rq1='PISA参加主要国における数学的リテラシー得点（全体・男子・女子）および男女得点差の分布特性にはどのような特徴があるか。',
+        rq2='国別要因および調査年次要因は数学的リテラシー得点および男女得点差の推移にどのような主効果と変動をもたらしているか。',
+        scatter_x_metric='男子得点',
+        scatter_y_metric='女子得点',
         
-        analysis_method='multiple_regression',
-        regression_y='数学得点',
-        regression_x_list=['男子得点', '女子得点'],
-        secondary_chart_type='multiple_regression',
+        analysis_method='two_way_anova',
+        anova_dv='数学得点',
+        anova_factor_a='国・地域',
+        anova_factor_b='調査年',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 6. UNESCO World ICT Skills: SDG 4.4 & Global Digital Divide
@@ -1009,7 +1009,7 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         scatter_y_metric='女性入学者数',
         
         analysis_method='two_way_anova',
-        anova_dv='入学者総数',
+        anova_dv='女性入学者数',
         anova_factor_a='分野',
         anova_factor_b='年度',
         secondary_chart_type='anova_interaction',
@@ -1139,29 +1139,29 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "for transitioning from quantitative financial expansion to qualitative resource efficacy."
         ),
         angle_id="wb_education_expenditure_efficiency",
-        angle_name="世界銀行データに見る教育公支出GDP比と学習到達度の非線形費用対効果（教育投資効率の罠）",
-        title_theme="教育予算を増やせば学力は向上するか？：世界銀行データが示す公教育投資と学習到達度の収穫逓減",
+        angle_name="世界銀行データに見る教育公支出GDP比と学習到達度の非連動（Hanushekの教育支出パラドックス）",
+        title_theme="教育予算を増やせば学力は向上するか？：世界銀行データが示す公教育投資と学習到達度の独立性検証",
         focus_metrics=['教育支出対GDP比', '数学最低習熟度達成率', 'インターネット利用率'],
-        rq1='世界各国における公的教育支出（対GDP比）と数学最低習熟度達成率の分布水準はどう分布しているか。',
-        rq2='国家の教育公財政支出の規模と学習到達度（基礎習熟度達成）との間にはどのような費用対効果相関が認められるか。',
+        rq1='世界主要国における公的教育支出（対GDP比）と数学最低習熟度達成率の分布水準はどう分布しているか。',
+        rq2='国家の教育公財政支出の規模（対GDP比）と数学最低習熟度達成率との間には線形連動性が存在するか、それとも独立（無相関）であるか。',
         scatter_x_metric='教育支出対GDP比',
         scatter_y_metric='数学最低習熟度達成率',
         
-        analysis_method='multiple_regression',
-        regression_y='数学最低習熟度達成率',
-        regression_x_list=['教育支出対GDP比', 'インターネット利用率'],
-        secondary_chart_type='multiple_regression',
+        analysis_method='no_correlation',
+        no_corr_x='教育支出対GDP比',
+        no_corr_y='数学最低習熟度達成率',
+        secondary_chart_type='no_correlation_scatter',
     ),
 
     # 9. Japan Teacher Workload Survey (MEXT)
     "japan_teacher_workload_survey": DatasetAcademicContext(
         dataset_id="japan_teacher_workload_survey",
-        academic_topic="公立小・中学校教員の在校等時間・業務負担と授業準備時間の圧迫構造（学校DXと多忙化のパラドックス）",
+        academic_topic="公立小・中学校教員の事務・校務処理および部活動指導負担による授業準備時間の圧迫構造（学校DXと多忙化のパラドックス）",
         theoretical_framework="職務要求度-資源モデル (Job Demands-Resources Model)，感情労働論，業務プロセス再設計 (BPR) 理論",
         core_research_problems=(
-            "GIGAスクール構想や校務DXが推進される一方で，小・中学校教員の1日あたり在校等時間は依然として過労死ライン近傍で推移し，"
+            "GIGAスクール構想や校務DXが推進される一方で，小・中学校教員の事務・校務処理時間や部活動指導負担は依然として高水準で推移し，"
             "最も本質的であるはずの「授業準備時間」が1日1時間未満へと圧迫され続ける『学校DX多忙化パラドックス』が顕在化している．"
-            "特に中学校における部活動指導負担や持ち帰り仕事時間の実態と，授業改善リソースのトレードオフを計量的に解明する．"
+            "特に校種・職階間における事務処理負担や部活動指導負担と，授業改善リソース（授業準備時間）のトレードオフを計量的に解明する．"
         ),
         banned_cliches=[
             "近年のSociety 5.0の進展に伴い",
@@ -1171,9 +1171,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "情報化社会の急速な進展に伴い",
         ],
         specific_prompt_guidance=(
-            "必ず『学校DXと多忙化のパラドックス（ICT普及と授業準備時間圧迫の同時進行）』から論述を開始すること．"
+            "必ず『学校DXと多忙化のパラドックス（事務・校務処理や部活動指導負担による授業準備時間の圧迫）』から論述を開始すること．"
             "Bakker & Demeroutiの職務要求度-資源モデルやKyriacouの教員ストレッサー理論に言及し，"
-            "単なるハードウェア整備や定時退勤の掛け声を超えた，校務BPRと授業研究時間の保障を学術的に論じること．"
+            "単なるハードウェア整備を超えた，校務BPRと授業研究時間の保障を学術的に論じること．"
         ),
         curated_references=[
             "文部科学省 (2023) 令和4年度教員勤務実態調査（速報値）の概要. 文部科学省.",
@@ -1185,100 +1185,98 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "BAKKER, A. B. and DEMEROUTI, E. (2007) The Job Demands-Resources model: State of the art. Journal of Managerial Psychology, <b>22</b> (3) ：309-328.",
             "堀田龍也 (2021) GIGAスクール構想下の教育DXと学校組織の変容. 教育工学研究, <b>45</b> (3) ：211-220.",
         ],
-        fallback_title="教員勤務実態調査における在校等時間と授業準備時間の時系列動態に関する計量分析†",
-        fallback_subtitle="学校DX推進下における業務負担と授業研究時間のトレードオフ構造の解明",
-        fallback_keywords=["教員勤務実態調査", "在校等時間", "授業準備時間", "部活動指導", "学校DX"],
+        fallback_title="教員勤務実態調査における周辺校務負担と授業準備時間の圧迫構造に関する計量分析†",
+        fallback_subtitle="学校DX推進下における事務・部活動負担と授業研究時間のトレードオフ検証",
+        fallback_keywords=["教員勤務実態調査", "授業準備時間", "事務・校務処理", "部活動指導", "学校DX"],
         fallback_background=(
             "我が国の学校教育現場において，教員の長時間勤務と多忙化の是正は教育の質を左右する最重要の政策課題である．"
-            "文部科学省 (2023) の教員勤務実態調査速報値によれば，公立小学校および中学校教員の平日1日あたり在校等時間は依然として10時間から11時間を超える水準にある．"
+            "文部科学省 (2023) の教員勤務実態調査によれば，公立小学校および中学校教員の授業時間以外の事務・校務処理や部活動指導負担は依然として重い水準にある．"
             "中央教育審議会 (2019) が「学校における働き方改革」の答申を公表し，時間外勤務の上限指針（月45時間，年360時間）が示されたものの，"
-            "教育現場における業務負担の軽減は遅々として進んでいない（妹尾，2019）．"
+            "教育現場における実質的な業務削減は遅々として進んでいない（妹尾，2019）．"
             "とりわけ，Kyriacou (2001) や Bakker & Demerouti (2007) の職務要求度-資源モデルが指摘するように，"
-            "高い職務要求に対して授業準備や専門研修などの「教育資源」が不足する場合，教員のバーンアウトや離職リスクが急増する（油布，2020）．"
-            "国際的に見ても，OECD (2020) のTALIS調査において日本の教員の総勤務時間は参加国中最長であり，"
-            "堀田 (2021) が論じるようにGIGAスクール端末の配備による校務DXが進展する一方で，ICT機器の管理・運用業務が新たな多忙化を生む構造的矛盾が指摘されている．"
-            "したがって，教員の在校時間，授業準備時間，部活動指導時間，持ち帰り仕事時間の時系列推移データを計量的に検証することは，"
+            "高い職務要求（事務処理や部活動指導）に対して授業準備や専門研修などの「教育資源」が圧迫される場合，教員のバーンアウトや指導の質低下が惹起される（油布，2020）．"
+            "国際的に見ても，OECD (2020) のTALIS調査において日本の教員の事務作業および課外活動指導時間は参加国中最長であり，"
+            "堀田 (2021) が論じるようにGIGAスクール端末の配備による校務DXが進展する一方で，周辺校務が授業準備時間を蚕食する構造的矛盾が指摘されている．"
+            "したがって，教員の授業時間，授業準備時間，事務・校務処理時間，部活動指導時間，持ち帰り仕事時間の構成内訳データを計量的に検証することは，"
             "持続可能な学校教育体制を確立する上で不可欠な実証的要請である．"
         ),
         fallback_objectives=(
-            "本研究の目的は，文部科学省の教員勤務実態調査の公的データに基づき，公立小・中学校教員の在校等時間および業務内訳の経年変化を計量的に分析し，"
-            "学校DX期における教員業務の構造的課題を解明することである．具体的には以下の2つのリサーチクエスチョン（RQ）を設定する：\n\n"
-            "・RQ1: 2006年から2022年に至る平日在校等時間および授業準備時間の実態推移において，どのような偏りと水準変化が認められるか．\n"
-            "・RQ2: 小学校と中学校の校種間比較において，部活動指導時間や持ち帰り仕事時間と総勤務時間との間にいかなる連動性・トレードオフが存在するか．"
+            "本研究の目的は，文部科学省の教員勤務実態調査の公的データに基づき，公立小・中学校の校種・職階別における業務時間内訳の経年変化を計量的に分析し，"
+            "周辺校務および部活動指導が授業準備時間に及ぼす圧迫構造を解明することである．具体的には以下の2つのリサーチクエスチョン（RQ）を設定する：\n\n"
+            "・RQ1: 2006年から2022年に至る授業時間，事務・校務処理時間，および授業準備時間の推移において，どのような偏りと水準変化が認められるか．\n"
+            "・RQ2: 事務・校務処理時間および部活動指導時間を説明変数とした重回帰モデルにおいて，授業準備時間の圧迫に対してどのような負の寄与度（トレードオフ）が実証されるか．"
         ),
         fallback_discussion=(
             "本実証分析から得られた知見を，リサーチクエスチョンに沿って先行研究と対比しながら教育工学的および教育社会学的観点から考察する．\n\n"
-            "【RQ1に関する考察：在校等時間の高止まりと授業準備時間の圧迫】\n"
-            "RQ1で明らかとなった平日在校等時間と授業準備時間の推移について論述する．文部科学省 (2023) の報告通り，小学校で10.7時間，中学校で11.0時間と"
-            "依然として過酷な勤務実態が継続している．中央教育審議会 (2019) の上限目標と対比すると，時間短縮はごくわずかにとどまっており，"
+            "【RQ1に関する考察：周辺校務の高止まりと授業準備時間の圧迫】\n"
+            "RQ1で明らかとなった業務時間内訳と授業準備時間の推移について論述する．文部科学省 (2023) の報告通り，事務・校務処理や課外指導が"
+            "依然として大きな比重を占めている．中央教育審議会 (2019) の改革目標と対比すると，事務負担の軽減は限定的であり，"
             "妹尾 (2019) が指摘する「形骸的な働き方改革」の実態と完全に符合している（同じところ）．"
-            "さらに，油布 (2020) が警鐘を鳴らすように，授業準備時間が1日0.7時間（約40分）前後にまで削られている事実は，"
-            "教員の本質的職務である授業改善の時間が周縁化されている深刻な危機を示している．"
-            "堀田 (2021) はGIGA端末の導入が校務効率化をもたらすと論じたが，実際には授業準備時間の顕著な増加は見られず，"
-            "テクノロジー導入が直ちには時間的余裕の創出に結びついていない点（違うところ）が実証された．\n\n"
-            "【RQ2に関する考察：中学校の部活動指導負担と職務要求の不均衡】\n"
-            "RQ2で明らかとなった校種間差と業務内訳の連動性について考察する．中学校における部活動指導時間が平日1.5〜2.1時間を占め，"
-            "総勤務時間を押し上げる主要因となっている点は，OECD (2020) の国際比較知見と強く合致する（同じところ）．"
-            "Bakker & Demerouti (2007) の職務要求度-資源理論を援用すれば，部活動指導という過剰な職務要求が，"
-            "授業研究という自律的資源の獲得を直接阻害している構造が浮き彫りとなった．"
+            "さらに，油布 (2020) が警鐘を鳴らすように，授業準備時間が1日0.7〜1.1時間前後にまで抑制されている事実は，"
+            "教員の本質的職務である教材研究の時間が周縁化されている深刻な危機を示している．"
+            "堀田 (2021) は校務DXが業務効率化をもたらすと論じたが，過渡期においてはむしろ管理事務負担が授業準備時間の回復を阻んでいる実態（違うところ）が実証された．\n\n"
+            "【RQ2に関する考察：事務・校務処理および部活動指導と授業準備時間のトレードオフ】\n"
+            "RQ2で明らかとなった重回帰分析の結果について考察する．事務・校務処理時間および部活動指導時間が授業準備時間に対して有意な負の偏回帰係数を示し，"
+            "本質的な教材研究時間を直接圧迫している構造は，OECD (2020) の国際比較知見と強く合致する（同じところ）．"
+            "Bakker & Demerouti (2007) の職務要求度-資源理論を援用すれば，事務処理や部活動という周辺的職務要求が，"
+            "授業研究という中核的資源の獲得を直接阻害している構造が浮き彫りとなった．"
             "Kyriacou (2001) が論じた教員ストレッサーの観点からも，持ち帰り仕事時間が0.4〜0.6時間と日常化している実態は，"
-            "勤務時間外への業務浸食が教員の心理的ウェルビーイングを著しく損ねている証左である（違うところ）．\n\n"
+            "勤務時間内で消化しきれなかった授業準備が家庭生活へ浸食している証左である（違うところ）．\n\n"
             "【研究の限界と今後の課題】\n"
-            "本研究の限界として，調査年の間隔（2006，2016，2022年）が広く，COVID-19パンデミックによる一時的特異性や自治体独自の支援員配置効果を"
-            "十分に弁別できていない点が挙げられる．今後は月次校務ログデータを用いた微視的分析が期待される．"
+            "本研究の限界として，調査年の間隔（2006，2016，2022年）が広く，校種・職階別のマクロ平均値（K=12）に基づく分析であるため，"
+            "自治体独自の支援員配置効果や個人差を十分に弁別できていない点が挙げられる．今後は校務ログデータを用いた微視的分析が期待される．"
         ),
         fallback_review_critique=(
-            "本稿は、文部科学省「教員勤務実態調査」の時系列データを用い、公立小中学校教員の在校等時間と業務内訳の変遷を計量的に検証した学術論文である。"
-            "GIGAスクール導入下においても授業準備時間が圧迫され続けている構造的パラドックスを実証した意義は高い。"
-            "しかしながら、平日以外の休日勤務データの未検討および職種別（主幹教諭・養護教諭等）の差異の統制に課題があるため、"
+            "本稿は、文部科学省「教員勤務実態調査」の時系列データを用い、公立小中学校の校種・職階別における業務時間内訳と授業準備時間の圧迫構造を計量的に検証した学術論文である。"
+            "総勤務時間と内訳のトートロジーを避け、独立した業務カテゴリ間のトレードオフを重回帰分析により実証した方法論的配慮は高く評価できる。"
+            "しかしながら、集計標本サイズ（K=12）の統計的検出力の限界および休日勤務データの未検討について課題があるため、"
             "【条件付採録（Major Revision）】と判定する。"
         ),
         fallback_major_revisions=[
             "【休日勤務時間および部活動休養日設定の効果の言及】: "
-            "平日の在校時間のみならず、土日祝日の部活動・授業準備負担について第4節および第5節で言及を補強されたい。",
+            "平日の業務時間内訳のみならず、土日祝日の部活動・授業準備負担について第4節および第5節で言及を補強されたい。",
             "【教職調整額（給特法）と制度的インセンティブの議論】: "
-            "時間外勤務が減少しにくい法制度的背景（給特法の定額働かせ構造）について中央教育審議会 (2019) を踏まえて論究されたい。",
+            "周辺校務が減少しにくい法制度的背景（給特法の定額働かせ構造）について中央教育審議会 (2019) を踏まえて論究されたい。",
             "【校務DXと業務削減の具体的因果関係の検証】: "
-            "ICT化が削減した業務と逆に増やした業務の二面性について堀田 (2021) 等を引用して考察を深められたい。",
+            "ICT化が削減した事務と逆に増やした管理業務の二面性について堀田 (2021) 等を引用して考察を深められたい。",
         ],
         fallback_minor_revisions=[
-            "表1の校種別サンプル数および調査実施時期の注記を明記すること。",
-            "在校等時間と法定労働時間（1日7時間45分）との超過分に関するグラフ注記を追記すること。",
+            "表1の校種・職階別サンプル数（K=12）および調査実施時期の注記を明記すること。",
+            "図2の重回帰予測プロットにおける各観測点（校種・職階×調査年）の分布について本文で簡潔に補足すること。",
         ],
         fallback_questions_to_authors=[
-            "1. 校務支援システムやクラウドツールの導入が教員の「持ち帰り仕事」の形態（自宅PCでの作業）に与えた影響についてどうお考えか。",
+            "1. 校務支援システムやクラウドツールの導入が教員の「事務・校務処理時間」および「持ち帰り仕事」に与えた影響についてどうお考えか。",
             "2. 地域移行が進む部活動指導員制度が中学校教員の授業準備時間回復にどの程度寄与し得ると予想されるか。",
         ],
-        title_en="Longitudinal Empirical Analysis of Teachers' Working Hours and Lesson Preparation Time: The Paradox of Workload in School Digital Transformation",
+        title_en="Empirical Analysis of Administrative and Extracurricular Burdens Compressing Lesson Preparation Time in Japanese Schools",
         source_en="Ministry of Education, Culture, Sports, Science and Technology (MEXT)",
         metrics_en={
-            "在校等時間": "Total School Working Hours",
+            "授業時間": "Class Instruction Time",
             "授業準備時間": "Lesson Preparation Time",
+            "事務・校務処理時間": "Administrative and Clerical Work Time",
             "部活動指導時間": "Extracurricular Activity Guidance Time",
             "持ち帰り仕事時間": "Take-Home Work Time",
         },
-        fallback_keywords_en=["TEACHER WORKLOAD", "WORKING HOURS", "LESSON PREPARATION", "EXTRACURRICULAR ACTIVITIES", "SCHOOL DX"],
+        fallback_keywords_en=["TEACHER WORKLOAD", "LESSON PREPARATION", "ADMINISTRATIVE BURDEN", "EXTRACURRICULAR ACTIVITIES", "SCHOOL DX"],
         fallback_summary_en=(
-            "This empirical study investigates the longitudinal transition of public elementary and lower secondary school teachers' working hours "
-            "and task allocations using open statistical survey data from MEXT Japan. Grounded in the Job Demands-Resources model and educational "
-            "sociological theories of emotional labor, descriptive metrics, trend regressions, and Bayesian factor estimations (BF10) were examined. "
-            "The empirical findings reveal that while school digital infrastructure has expanded substantially, daily working hours remain elevated "
-            "above 10 to 11 hours, critically compressing essential lesson preparation time to under 45 minutes per day. Extracurricular guidance in lower "
-            "secondary schools continues to impose severe time-allocation trade-offs. We discuss organizational work process re-engineering and systemic "
-            "governance reforms to safeguard instructional development time."
+            "This empirical study investigates the longitudinal transition of public elementary and lower secondary school teachers' task allocations "
+            "using official survey data from MEXT Japan. Grounded in the Job Demands-Resources model, multiple regression and Bayesian factor estimations "
+            "were conducted across school types and job ranks from 2006 to 2022. The findings reveal that administrative duties and extracurricular club "
+            "guidance exert a statistically significant negative effect on essential lesson preparation time, compressing instructional research to under "
+            "one hour per day. Organizational work process re-engineering and systemic reforms are discussed."
         ),
         angle_id="workload_dx_time_squeeze",
-        angle_name="学校DX推進下における教員の在校等時間と授業準備時間圧迫のパラドックス",
-        title_theme="学校DXと教員多忙化のパラドックス：ICT導入がなぜ授業準備時間を圧迫するのか",
-        focus_metrics=['在校等時間', '授業準備時間', '持ち帰り仕事時間'],
-        rq1='公立小・中学校教員の在校等時間および授業準備時間の実態水準はどう推移しているか。',
-        rq2='長時間勤務の持続と授業準備時間の圧迫との間にはどのような構造的トレードオフが存在するか。',
-        scatter_x_metric='在校等時間',
+        angle_name="学校DX推進下における事務・部活動負担と授業準備時間圧迫のトレードオフ構造",
+        title_theme="学校DXと教員多忙化のパラドックス：周辺校務と部活動指導がなぜ授業準備時間を圧迫するのか",
+        focus_metrics=['授業準備時間', '事務・校務処理時間', '部活動指導時間', '持ち帰り仕事時間'],
+        rq1='公立小・中学校教員の授業時間、事務・校務処理時間、および授業準備時間の実態水準はどう推移しているか。',
+        rq2='事務・校務処理負担および部活動指導時間と、授業準備時間の圧迫との間にはどのような構造的トレードオフが存在するか。',
+        scatter_x_metric='事務・校務処理時間',
         scatter_y_metric='授業準備時間',
         
         analysis_method='multiple_regression',
-        regression_y='在校等時間',
-        regression_x_list=['授業準備時間', '部活動指導時間'],
+        regression_y='授業準備時間',
+        regression_x_list=['事務・校務処理時間', '部活動指導時間'],
         secondary_chart_type='multiple_regression',
     ),
 
@@ -1395,14 +1393,15 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         title_theme="通常学級における特別支援教育とICT支援：通級指導急増が問い直す包摂的学習環境",
         focus_metrics=['通級指導児童生徒数', '特別支援教育支援員数', '端末支援活用率'],
         rq1='小・中学校における通級指導児童生徒数とICT支援機器の活用率の経年推移はどう推移しているか。',
-        rq2='児童生徒の急増に対するICT支援端末の活用浸透度はどのように連動しているか。',
+        rq2='学校種要因（小学校・中学校）および年度要因は通級指導児童生徒数の増加動態にどのような主効果および交互作用をもたらしているか。',
         scatter_x_metric='端末支援活用率',
         scatter_y_metric='通級指導児童生徒数',
         
-        analysis_method='no_correlation',
-        no_corr_x='通級指導児童生徒数',
-        no_corr_y='端末支援活用率',
-        secondary_chart_type='no_correlation_scatter',
+        analysis_method='two_way_anova',
+        anova_dv='通級指導児童生徒数',
+        anova_factor_a='学校種',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 11. Japan School Absenteeism & Bullying (MEXT)
@@ -1456,7 +1455,7 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "本研究の目的は，文部科学省の公的調査データに基づき，公立小・中学校における不登校児童生徒数およびICT出席扱い制度の利用実態を計量的に分析することである．"
             "具体的には以下の2つのリサーチクエスチョン（RQ）を設定する：\n\n"
             "・RQ1: 小学校と中学校における不登校児童生徒数および千人あたり不登校率の経年推移において，学校種移行に伴う不連続性（中1ギャップ）がどのように発現しているか．\n"
-            "・RQ2: 自宅等におけるICT学習を出席扱いとした児童生徒数の増加動態と，不登校総数に対するセーフティネットとしてのカバー率はどう変化しているか．"
+            "・RQ2: 自宅等におけるICT学習を出席扱いとした児童生徒数の増加動態と，不登校児童生徒数との間にどのような相関連動性が認められるか．"
         ),
         fallback_discussion=(
             "実証分析から得られた知見を先行研究と対比しながら考察する．\n\n"
@@ -1522,11 +1521,8 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         scatter_x_metric='不登校児童生徒数',
         scatter_y_metric='ICT出席扱い生徒数',
         
-        analysis_method='two_way_anova',
-        anova_dv='千人あたり不登校率',
-        anova_factor_a='学校種',
-        anova_factor_b='年度',
-        secondary_chart_type='anova_interaction',
+        analysis_method='correlation',
+        secondary_chart_type='correlation_scatter',
     ),
 
     # 12. OECD TALIS Teacher Survey
@@ -1761,43 +1757,47 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"],
         DatasetAcademicContext(
             dataset_id="japan_national_assessment_math",
-            academic_topic="全国学力テストにおける知識・計算処理と数学的論述・表現力の二極化動態",
-            theoretical_framework="SOLO分類学 (Structure of Observed Learning Outcomes)，Pólyaの問題解決プロセス理論",
+            academic_topic="全国学力・学習状況調査における1人1台端末の日常的活用と算数・数学正答率および学習好意度の重回帰構造",
+            theoretical_framework="メディア認知理論，Wigfield & Ecclesの期待価値理論，TPACKフレームワーク",
             core_research_problems=(
-                "基本計算や定型手続きの正答率は高止まりする一方で，「根拠を言葉と数式を用いて説明する」論述式設問の無解答率・誤答率が"
-                "顕著に高い数学的表現力の構造的課題を計量的に解明する．"
+                "GIGAスクール構想による1人1台端末活用率の急上昇が，児童生徒の算数・数学への学習好意度（勉強が好き肯定率）と相まって，"
+                "客観的な学力到達度（平均正答率）にどのような独立した寄与を及ぼしているのかを重回帰分析により計量的に解明する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].banned_cliches,
-            specific_prompt_guidance="計算力と論述表現力の乖離、無解答率の分析に焦点を当てて論じること．",
+            specific_prompt_guidance="必ず収録指標（平均正答率・勉強が好き肯定率・将来役立つ肯定率・端末活用率）に基づき，学習好意度を統制した上での端末活用率と正答率の多変量連関に焦点を当てて論じること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].curated_references,
-            fallback_title="全国学力調査における計算処理力と数学的表現・論述力の構造的二極化に関する計量分析†",
-            fallback_subtitle="無解答率の動態と多面的問題解決プロセスの評価",
-            fallback_keywords=["全国学力調査", "数学的表現力", "論述式問題", "無解答率", "問題解決"],
+            fallback_title="全国学力・学習状況調査における1人1台端末活用率と算数・数学正答率の多変量連関分析†",
+            fallback_subtitle="学習好意度を統制した重回帰モデルによるデジタル学習環境効果の検証",
+            fallback_keywords=["全国学力調査", "端末活用率", "平均正答率", "学習好意度", "重回帰分析"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_background,
-            fallback_objectives="本研究の目的は，全国学力調査における論述式問題の正答率および無解答率の時系列推移を検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，全国学力・学習状況調査の公的データに基づき，算数・数学への好意度（勉強が好き肯定率）および1人1台端末活用率が平均正答率に及ぼす独立した寄与度を検証することである．\n\n"
+                "・RQ1: 小学校算数および中学校数学における平均正答率，学習好意度，および端末活用率の経年推移と分布特性はどのようになっているか．\n"
+                "・RQ2: 勉強が好き肯定率および端末活用率を説明変数とした重回帰モデルにおいて，平均正答率に対する各要因の標準化偏回帰係数（β）および説明力（R²）はどう評価されるか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_questions_to_authors,
-            title_en="Dichotomy Between Computational Skills and Mathematical Reasoning in National Assessments",
+            title_en="Multivariate Analysis of 1-to-1 Device Utilization, Learning Attitudes, and Mathematics Achievement in National Assessments",
             source_en=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].metrics_en,
-            fallback_keywords_en=["MATHEMATICAL REASONING", "COMPUTATIONAL SKILLS", "NATIONAL ASSESSMENT", "EXPLANATORY ABILITY"],
+            fallback_keywords_en=["NATIONAL ASSESSMENT", "ICT UTILIZATION", "LEARNING ATTITUDES", "MULTIPLE REGRESSION"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["japan_national_assessment_math"].fallback_summary_en,
             angle_id="national_math_reasoning_gap",
-            angle_name="知識・計算処理と数学的思考力・表現力の二極化動態",
-            title_theme="計算はできるが説明できない？：全国学力テストが暴く数学的表現力・論述力の構造的課題",
-            focus_metrics=['平均正答率', '勉強が好き肯定率', '将来役立つ肯定率'],
-        rq1='小中学校間の移行における数学的正答率と「数学が好き」肯定率の落差構造はどう推移しているか。',
-        rq2='主観的な数学への好意度・有能感と客観的正答率との共変構造は学年進行によってどう変化するか。',
-        scatter_x_metric='勉強が好き肯定率',
-        scatter_y_metric='平均正答率',
-        
-        analysis_method='multiple_regression',
-        regression_y='平均正答率',
-        regression_x_list=['勉強が好き肯定率', '将来役立つ肯定率'],
-        secondary_chart_type='multiple_regression',
+            angle_name="1人1台端末活用率と学習好意度が算数・数学正答率に及ぼす多変量連関",
+            title_theme="端末活用と「数学が好き」は学力をどう支えるか：全国学力調査データの重回帰分析",
+            focus_metrics=['平均正答率', '勉強が好き肯定率', '端末活用率'],
+            rq1='小中学校間の移行における算数・数学の平均正答率、勉強が好き肯定率、および端末活用率はどう推移しているか。',
+            rq2='勉強が好き肯定率と端末活用率を説明変数とした重回帰分析において、平均正答率に対する各要因の独立した寄与度はどうなっているか。',
+            scatter_x_metric='勉強が好き肯定率',
+            scatter_y_metric='平均正答率',
+            
+            analysis_method='multiple_regression',
+            regression_y='平均正答率',
+            regression_x_list=['勉強が好き肯定率', '端末活用率'],
+            secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1806,42 +1806,46 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"],
         DatasetAcademicContext(
             dataset_id="japan_mext_ict_informatization",
-            academic_topic="学校教育情報化における校務クラウド化と教員業務効率化・協働的学びの連動性",
-            theoretical_framework="Mishra & KoehlerのTPACK，教員自己効力感理論，教育DX組織成熟度モデル",
+            academic_topic="学校教育情報化における義務教育段階（小・中学校）から高等学校へのICT基盤・指導力の波及構造",
+            theoretical_framework="Rogersのイノベーション普及理論 (Diffusion of Innovations)，Mishra & KoehlerのTPACK，学校段階接続論",
             core_research_problems=(
-                "端末配備完了後のフェーズにおいて，校務支援システムのクラウド化と児童生徒の学習ログ利活用が"
-                "教員の授業研究時間の確保と学級内の協働学習の質にいかに寄与するかを計量的に解明する．"
+                "GIGAスクール構想による義務教育段階（小学校・中学校）での急速なICT環境整備・指導力向上が，"
+                "設置者（都道府県・私立）の異なる高等学校段階の情報化進捗とどのように連動・波及しているかを重回帰分析により計量的に解明する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].banned_cliches,
-            specific_prompt_guidance="校務DXと授業改善の相乗効果、学習ログ活用と教員負担軽減に焦点を当てて論じること．",
+            specific_prompt_guidance="小学校・中学校における教育情報化の進展と高等学校段階への波及効果・学校種間連動性に焦点を当てて論じること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].curated_references,
-            fallback_title="学校教育情報化における校務クラウド化と協働的指導実践の連動性に関する実証分析†",
-            fallback_subtitle="文部科学省実態調査データに基づく教員指導力とICT基盤の共進化検証",
-            fallback_keywords=["学校教育情報化", "校務クラウド", "教員指導力", "協働的学び", "教育DX"],
+            fallback_title="学校教育情報化における義務教育段階から高等学校への進捗波及構造に関する重回帰分析†",
+            fallback_subtitle="文部科学省実態調査データに基づく校種間ICT整備・指導力の共進化検証",
+            fallback_keywords=["学校教育情報化", "校種間接続", "教員ICT指導力", "高等学校", "教育DX"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_background,
-            fallback_objectives="本研究の目的は，校務クラウド化の進展と教員のICT指導力向上との連動性を計量的に検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，小学校および中学校における教育情報化指標の進展が高等学校段階の指標水準とどのように連動しているかを重回帰分析により検証することである．\n\n"
+                "・RQ1: 小学校，中学校，および高等学校における教育情報化指標の推移と分布特性はどのようになっているか．\n"
+                "・RQ2: 小学校および中学校の指標水準を説明変数とした重回帰モデルにおいて，高等学校の教育情報化水準はどの程度説明されるか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_questions_to_authors,
-            title_en="Cloud Infrastructure Integration and Collaborative Pedagogical Practices in School ICT",
+            title_en="Cross-Stage Spillover of ICT Infrastructure and Pedagogical Competence from Compulsory to Upper Secondary Education",
             source_en=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].metrics_en,
-            fallback_keywords_en=["CLOUD INFRASTRUCTURE", "EDUCATIONAL DX", "TEACHING COMPETENCE", "MEXT INFORMATIZATION"],
+            fallback_keywords_en=["SCHOOL INFORMATIZATION", "EDUCATIONAL DX", "TEACHING COMPETENCE", "CROSS-STAGE SPILLOVER"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["japan_mext_ict_informatization"].fallback_summary_en,
             angle_id="mext_ict_cloud_utilization",
-            angle_name="校務クラウド化と協働的学びの実現度",
-            title_theme="校務DXと学習ログ活用の現在地：クラウド化がもたらす教員業務効率化と授業改善の相関",
-            focus_metrics=['小学校', '中学校', '高等学校', '全国平均'],
-        rq1='クラウド活用と端末利活用における校種別の進捗格差はどう推移しているか。',
-        rq2='校務・授業のデジタル化の浸透スピードと学校段階間の格差構造にはいかなる要因が存在するか。',
-        group_comparison_metric='全国平均',
-        
-        analysis_method='multiple_regression',
-        regression_y='全国平均',
-        regression_x_list=['小学校', '中学校'],
-        secondary_chart_type='multiple_regression',
+            angle_name="義務教育段階（小・中学校）から高等学校への教育情報化波及構造",
+            title_theme="小中学校のGIGAスクール改革は高校をどう変えたか：校種間ICT整備・指導力の連動分析",
+            focus_metrics=['小学校', '中学校', '高等学校'],
+            rq1='小学校、中学校、および高等学校における教育情報化指標の進捗水準はどう推移しているか。',
+            rq2='義務教育段階（小学校・中学校）のデジタル化進展と高等学校の情報化水準との間にはどのような重回帰連動構造が存在するか。',
+            group_comparison_metric='高等学校',
+            
+            analysis_method='multiple_regression',
+            regression_y='高等学校',
+            regression_x_list=['小学校', '中学校'],
+            secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1850,43 +1854,47 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"],
         DatasetAcademicContext(
             dataset_id="oecd_pisa_math_ict",
-            academic_topic="OECD PISAにおける生徒の社会経済的背景 (ESCS) とデジタル学習機会の格差勾配",
-            theoretical_framework="Bourdieuの文化資本理論，デジタル・キャピタル理論 (Digital Capital Theory)",
+            academic_topic="OECD PISAにおける国家全体の数学的リテラシー到達水準と男女得点差（ジェンダー・ギャップ）の統計的独立性の検証",
+            theoretical_framework="Spencerのステレオタイプ脅威理論 (Stereotype Threat)，Hydeのジェンダー類似性仮説 (Gender Similarities Hypothesis)，比較教育制度論",
             core_research_problems=(
-                "学校での端末配備にもかかわらず，家庭の社会経済的背景（ESCS）が生徒のデジタル自己効力感や"
-                "数学的リテラシーに与える格差勾配（Socioeconomic Gradient）の国際的構造を計量的に解明する．"
+                "国家全体の数学的リテラシー平均得点（数学得点）が高い教育システムほど男女得点差も自然に縮小するのか，"
+                "あるいは全体的な学力到達水準と男女間のジェンダー・ギャップ（男女得点差）は統計的に独立した別個の制度的次元であるのかをベイズ無相関検定（BF₀₁）により解明する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].banned_cliches,
-            specific_prompt_guidance="家庭環境格差（ESCS）とデジタル学習機会、文化資本の再生産に焦点を当てて論じること．",
+            specific_prompt_guidance="必ず収録指標（数学得点・男子得点・女子得点・男女得点差）に基づき，国家全体の数学到達水準（数学得点）とジェンダー格差（男女得点差）の統計的独立性（無相関仮説H₀のベイズ検証）に焦点を当てて論じること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].curated_references,
-            fallback_title="OECD PISAにおける家庭背景 (ESCS) とデジタル数学リテラシーの格差勾配に関する計量分析†",
-            fallback_subtitle="国際比較データに見る文化資本とデジタル格差の非対称性",
-            fallback_keywords=["OECD PISA", "ESCS", "文化資本", "デジタル格差", "数学リテラシー"],
+            fallback_title="OECD PISAにおける数学的リテラシー到達水準と男女得点差の統計的独立性に関するベイズ検証†",
+            fallback_subtitle="主要国時系列データに基づく全体学力水準とジェンダー・ギャップの無相関分析",
+            fallback_keywords=["OECD PISA", "男女得点差", "ジェンダー類似性仮説", "無相関分析", "ベイズファクター"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_background,
-            fallback_objectives="本研究の目的は，PISA調査における家庭背景とデジタル数学到達度の国際的連動性を検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，PISA調査における各国の数学的リテラシー全体得点（数学得点）と男女得点差の統計的独立性（無相関仮説H₀）をベイズファクター（BF₀₁）により検証することである．\n\n"
+                "・RQ1: 各国の数学得点，男子得点，女子得点，および男女得点差の国際的分布水準にはどのような格差パターンが存在するか．\n"
+                "・RQ2: 各国の全体的な数学到達水準（数学得点）と男女得点差との間には線形相関が存在するか，それとも両者は統計的に独立（無相関）であるか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_questions_to_authors,
-            title_en="Socioeconomic Gradients and Digital Mathematical Literacy in OECD PISA",
+            title_en="Bayesian Independence Analysis of Overall Mathematical Literacy and Gender Score Gaps in OECD PISA",
             source_en=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].metrics_en,
-            fallback_keywords_en=["OECD PISA", "SOCIOECONOMIC GRADIENT", "DIGITAL CAPITAL", "MATHEMATICS LITERACY"],
+            fallback_keywords_en=["OECD PISA", "GENDER SCORE GAP", "BAYESIAN NULL HYPOTHESIS", "MATHEMATICS LITERACY"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_summary_en,
             angle_id="pisa_socioeconomic_gradient",
-            angle_name="社会経済的背景（ESCS）とデジタル学習機会の格差勾配",
-            title_theme="デジタル時代の教育格差：PISAデータが示す家庭環境とデジタル学習レジリエンスの国際格差",
-            focus_metrics=['数学得点', '男子得点', '女子得点'],
-        rq1='各国の男子得点と女子得点の国際的分布水準にはどのような格差パターンが存在するか。',
-        rq2='各国における男子の認知的達成と女子の認知的達成との共変関係はどうなっているか。',
-        scatter_x_metric='男子得点',
-        scatter_y_metric='女子得点',
-        
-        analysis_method='no_correlation',
-        no_corr_x='男女得点差',
-        no_corr_y='数学得点',
-        secondary_chart_type='no_correlation_scatter',
+            angle_name="PISA数学的リテラシー到達水準と男女得点差の統計的独立性検証",
+            title_theme="高学力国ほど男女格差は小さいのか？：PISAデータが示す全体到達水準とジェンダーギャップの独立性",
+            focus_metrics=['数学得点', '男子得点', '女子得点', '男女得点差'],
+            rq1='各国の男子得点、女子得点、および男女得点差の国際的分布水準にはどのような格差パターンが存在するか。',
+            rq2='国家全体の数学的リテラシー到達水準（数学得点）と男女得点差との間には統計的独立性（無相関）が認められるか。',
+            scatter_x_metric='数学得点',
+            scatter_y_metric='男女得点差',
+            
+            analysis_method='no_correlation',
+            no_corr_x='数学得点',
+            no_corr_y='男女得点差',
+            secondary_chart_type='no_correlation_scatter',
         ),
     ],
 
@@ -1895,43 +1903,55 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"],
         DatasetAcademicContext(
             dataset_id="unesco_world_ict_skills",
-            academic_topic="世界主要国における女性のICTスキル習得動態とジェンダー・デジタル格差",
-            theoretical_framework="フェミニスト科学技術論，UNESCOジェンダー平等指標，能力アプローチ (Capabilities Approach)",
+            academic_topic="UNESCO/ITU国際統計におけるオフィス表現スキル（表計算・プレゼン）からプログラミング能力への認知的跳躍（Cognitive Leap）に関する重回帰検証",
+            theoretical_framework="Wingの計算論的思考論 (Computational Thinking)，Andersonのスキル獲得理論 (ACT-R)，SDG 4.4.1スキル階層モデル",
             core_research_problems=(
-                "基礎的なICT操作スキルにおける男女差の縮小と対照的に，プログラミングやアルゴリズム作成等の"
-                "高度デジタルスキル領域において依然として残存するジェンダー不均衡の国際構造を計量解明する．"
+                "表計算ソフトの数式利用やプレゼンテーション資料作成といった汎用オフィススキルの普及が，"
+                "直ちにテキスト型プログラミング言語によるアルゴリズム構築能力へと連続的に接続するのか，"
+                "あるいは両者の間に質的な『認知的跳躍（Cognitive Leap）』が存在するのかを重回帰モデルにより国際比較検証する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].banned_cliches,
-            specific_prompt_guidance="ジェンダー・デジタル格差と高度スキル領域のジェンダー・ギャップに焦点を当てて論じること．",
+            specific_prompt_guidance=(
+                "必ず『SDG 4.4.1における汎用オフィススキル（表計算高度利用率・プレゼン作成スキル保有率）とプログラミングスキル保有率の階層構造および認知的跳躍』に焦点を当てて論じること．"
+                "データセットに存在しない男女別・ジェンダー別の数値は一切扱わず，3つの収録指標（プログラミングスキル保有率・表計算高度利用率・プレゼン作成スキル保有率）の重回帰構造を厳密に分析すること．"
+            ),
             curated_references=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].curated_references,
-            fallback_title="UNESCO統計に見る高度デジタルスキル習得におけるジェンダー格差の国際比較計量分析†",
-            fallback_subtitle="SDG 4.4.1指標に基づく基礎操作とプログラミングスキルの構造的分離",
-            fallback_keywords=["UNESCO", "ジェンダー格差", "プログラミングスキル", "SDG 4.4.1", "デジタルスキル"],
+            fallback_title="UNESCO/ITU国際指標における汎用オフィススキルとプログラミング能力の階層構造に関する重回帰分析†",
+            fallback_subtitle="SDG 4.4.1に基づく表計算・プレゼン作成スキルからアルゴリズム構築への認知的跳躍の検証",
+            fallback_keywords=["UNESCO", "プログラミングスキル", "表計算高度利用", "SDG 4.4.1", "計算論的思考"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_background,
-            fallback_objectives="本研究の目的は，UNESCOデータにおける男女別デジタルスキル習得率の国際的格差を計量検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，UNESCO/ITU国際統計データに基づき，表計算高度利用率およびプレゼン作成スキル保有率がプログラミングスキル保有率をどの程度説明し得るかを重回帰分析によって検証することである．\n\n"
+                "・RQ1: 対象15カ国におけるプレゼン作成スキル保有率，表計算高度利用率，およびプログラミングスキル保有率の分布水準にはどのような階層差が存在するか．\n"
+                "・RQ2: 表計算高度利用率とプレゼン作成スキル保有率を説明変数とした重回帰モデルにおいて，プログラミングスキル保有率に対するそれぞれの独立した寄与度（β）はどう評価されるか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_questions_to_authors,
-            title_en="Gender Disparities in Advanced ICT Skills: A Cross-National Empirical Study Using UNESCO Indicators",
+            title_en="Hierarchical Transition from Office Productivity Skills to Programming Competency: A Cross-National Multiple Regression Study Using UNESCO Indicators",
             source_en=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].source_en,
-            metrics_en=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].metrics_en,
-            fallback_keywords_en=["UNESCO", "GENDER DIGITAL DIVIDE", "PROGRAMMING SKILLS", "SDG 4.4.1", "CAPABILITIES APPROACH"],
+            metrics_en={
+                "プログラミングスキル保有率": "Programming Skill Acquisition Rate",
+                "表計算高度利用率": "Advanced Spreadsheet Utilization Rate",
+                "プレゼン作成スキル保有率": "Presentation Creation Skill Rate",
+            },
+            fallback_keywords_en=["UNESCO", "COMPUTATIONAL THINKING", "PROGRAMMING SKILLS", "SDG 4.4.1", "SKILL HIERARCHY"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["unesco_world_ict_skills"].fallback_summary_en,
             angle_id="unesco_gender_disparity_in_skills",
-            angle_name="世界主要国における女性のICTスキル習得動態",
-            title_theme="デジタルスキルにおけるジェンダー平等の現在地：ユネスコデータに見る各国の女性ICT習熟度",
+            angle_name="SDG 4.4.1におけるオフィス表現スキルからプログラミング能力への認知的跳躍と階層構造",
+            title_theme="オフィスソフトが使えればコードも書けるのか？：ユネスコ国際統計に見るICTスキルの階層構造と認知的跳躍",
             focus_metrics=['プレゼン作成スキル保有率', 'プログラミングスキル保有率', '表計算高度利用率'],
-        rq1='プレゼンテーション作成等の表現系スキルとプログラミングスキルの世界的格差はどう分布しているか。',
-        rq2='表現系スキルの普及と構造化論理思考を要するコーディングスキルとの連動構造はどうなっているか。',
-        scatter_x_metric='プレゼン作成スキル保有率',
-        scatter_y_metric='プログラミングスキル保有率',
-        
-        analysis_method='multiple_regression',
-        regression_y='プログラミングスキル保有率',
-        regression_x_list=['表計算高度利用率', 'プレゼン作成スキル保有率'],
-        secondary_chart_type='multiple_regression',
+            rq1='プレゼンテーション作成や表計算高度利用等のオフィススキルとプログラミングスキルの世界的分布はどう階層化しているか。',
+            rq2='表計算高度利用率およびプレゼン作成スキル保有率を説明変数とした重回帰モデルにおいて、プログラミングスキル保有率はどのように予測されるか。',
+            scatter_x_metric='プレゼン作成スキル保有率',
+            scatter_y_metric='プログラミングスキル保有率',
+            
+            analysis_method='multiple_regression',
+            regression_y='プログラミングスキル保有率',
+            regression_x_list=['表計算高度利用率', 'プレゼン作成スキル保有率'],
+            secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -1947,13 +1967,17 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
                 "教員数や実験設備等の大学側キャパシティ制約によって需要に追いついていない構造的ボトルネックを解明する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["japan_stem_cs_enrollment"].banned_cliches,
-            specific_prompt_guidance="高等教育機関の定員受け入れ容量と産業界の高度IT人材需要の需給ギャップに焦点を当てて論じること．",
+            specific_prompt_guidance="高等教育機関の定員受け入れ容量と男女別の入学者実数（男性入学者数・女性入学者数）の推移と連動に焦点を当てて論じること．入学者総数と女性比率の直接相関（比率擬似相関）は避け，男性入学者数と女性入学者数の関係を分析すること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["japan_stem_cs_enrollment"].curated_references,
-            fallback_title="大学情報科学・工学系学部における入学者数推移と高等教育定員受容容量の計量分析†",
+            fallback_title="大学情報科学・工学系学部における男女別入学者数推移と高等教育定員受容容量の計量分析†",
             fallback_subtitle="学校基本調査データに基づく高度IT人材育成キャパシティの構造検証",
             fallback_keywords=["学校基本調査", "情報科学", "入学者数", "定員制約", "高等教育政策"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["japan_stem_cs_enrollment"].fallback_background,
-            fallback_objectives="本研究の目的は，情報系学科入学者数の推移と高等教育機関の受容キャパシティを計量的に検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，情報系・理工系学科における男女別入学者数の推移と高等教育機関の受容キャパシティを計量的に検証することである．\n\n"
+                "・RQ1: 情報・理工系学部における男性入学者数および女性入学者数の経年推移と分布特性はどうなっているか．\n"
+                "・RQ2: 定員拡充が進む中で，男性入学者数の拡大ペースと女性入学者数の増加にはどのような連動相関が存在するか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["japan_stem_cs_enrollment"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["japan_stem_cs_enrollment"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_stem_cs_enrollment"].fallback_major_revisions,
@@ -1968,13 +1992,13 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_name="IT人材需要の急拡大と大学情報系学部の定員受容容量",
             title_theme="IT立国を目指す日本の大学定員ジレンマ：情報系学部入学者増と理数教育基盤のキャパシティ制約",
             focus_metrics=['男性入学者数', '女性入学者数', '女性比率'],
-        rq1='情報・理工系学部における受入容量（総入学者数）と女性入学者実数の経年推移はどう推移しているか。',
-        rq2='情報系学部の定員拡充が進む中で、男性入学者数の拡大ペースと女性入学者数の増加にはどのような連動相関が存在するか。',
-        scatter_x_metric='男性入学者数',
-        scatter_y_metric='女性入学者数',
-        
-        analysis_method='correlation',
-        secondary_chart_type='correlation_scatter',
+            rq1='情報・理工系学部における男性入学者数および女性入学者数の経年推移はどう推移しているか。',
+            rq2='情報系学部の定員拡充が進む中で、男性入学者数の拡大ペースと女性入学者数の増加にはどのような連動相関が存在するか。',
+            scatter_x_metric='男性入学者数',
+            scatter_y_metric='女性入学者数',
+            
+            analysis_method='correlation',
+            secondary_chart_type='correlation_scatter',
         ),
     ],
 
@@ -1983,43 +2007,47 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"],
         DatasetAcademicContext(
             dataset_id="worldbank_education_indicators",
-            academic_topic="発展途上国におけるインターネット接続普及と基礎数学習熟度のリープフロッグ効果",
+            academic_topic="新興国・主要国におけるデジタル接続基盤（インターネット利用率）と基礎数学習熟度の重回帰分析",
             theoretical_framework="リープフロッギング理論 (Leapfrogging Theory)，国際開発教育学，内生的経済成長モデル",
             core_research_problems=(
-                "公的教育財政が逼迫する新興国・途上国において，モバイル通信およびインターネット接続の急速な普及が"
-                "伝統的な学校施設投資の不足を補い，児童生徒の基礎数学習熟度を劇的に引き上げる現象を計量検証する．"
+                "公的教育財政支出（対GDP比）を統制した上でも，社会全体のインターネット接続普及率が"
+                "児童生徒の基礎数学習熟度達成率（SDG 4.1.1）を有意に押し上げるかを重回帰分析により国際比較検証する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].banned_cliches,
-            specific_prompt_guidance="途上国におけるインターネット普及と教育インフラのリープフロッグ効果に焦点を当てて論じること．",
+            specific_prompt_guidance="教育支出対GDP比を統制した上でのインターネット利用率の数学最低習熟度達成率への正の寄与（重回帰分析）に焦点を当てて論じること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].curated_references,
-            fallback_title="発展途上国におけるデジタルインフラ接続と数学最低習熟度のリープフロッグ効果に関する実証分析†",
-            fallback_subtitle="世界銀行EdStatsオープンデータに基づく国際比較計量経済分析",
-            fallback_keywords=["世界銀行", "インターネット普及率", "数学習熟度", "リープフロッグ", "開発教育学"],
+            fallback_title="世界銀行データに基づくデジタルインフラ接続と数学最低習熟度の重回帰分析†",
+            fallback_subtitle="公的教育支出対GDP比を統制した情報通信基盤の学習成果寄与度の検証",
+            fallback_keywords=["世界銀行", "インターネット利用率", "数学最低習熟度達成率", "重回帰分析", "開発教育学"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_background,
-            fallback_objectives="本研究の目的は，公的支出水準を統制した上でインターネット普及率が数学習熟度に与える効果を解明することである．",
+            fallback_objectives=(
+                "本研究の目的は，世界銀行EdStatsデータに基づき，公的教育支出対GDP比を統制した上でインターネット利用率が数学最低習熟度達成率に与える独立した効果を重回帰分析により解明することである．\n\n"
+                "・RQ1: 対象16カ国におけるインターネット利用率，教育支出対GDP比，および数学最低習熟度達成率の分布水準はどうなっているか．\n"
+                "・RQ2: インターネット利用率および教育支出対GDP比を説明変数とした重回帰モデルにおいて，数学最低習熟度達成率に対する各要因の標準化偏回帰係数（β）はどう評価されるか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_questions_to_authors,
-            title_en="Digital Connectivity and Leapfrogging in Minimum Mathematics Proficiency: Evidence from The World Bank",
+            title_en="Digital Connectivity and Minimum Mathematics Proficiency: A Cross-National Multiple Regression Analysis Using World Bank Data",
             source_en=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].metrics_en,
-            fallback_keywords_en=["THE WORLD BANK", "LEAPFROGGING", "INTERNET CONNECTIVITY", "MATHEMATICS PROFICIENCY", "DEVELOPMENT ECONOMICS"],
+            fallback_keywords_en=["THE WORLD BANK", "LEAPFROGGING", "INTERNET CONNECTIVITY", "MATHEMATICS PROFICIENCY", "MULTIPLE REGRESSION"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_summary_en,
             angle_id="wb_internet_leapfrogging",
-            angle_name="発展途上国におけるインターネット接続と教育成果の飛躍",
-            title_theme="教育インフラのリープフロッグ：世界銀行データに見るデジタル接続が途上国の基礎学力を底上げする力",
+            angle_name="デジタルインフラ接続（インターネット利用率）と基礎数学習熟度の重回帰構造",
+            title_theme="教育インフラのリープフロッグ：世界銀行データに見るデジタル接続が基礎学力を底上げする力",
             focus_metrics=['インターネット利用率', '数学最低習熟度達成率', '教育支出対GDP比'],
-        rq1='インターネットインフラ普及率と教育成果水準の世界的な階層構造はどう分布しているか。',
-        rq2='デジタルインフラの接続進展が学習到達度（数学習熟度）の飛躍にどの程度寄与しているか。',
-        scatter_x_metric='インターネット利用率',
-        scatter_y_metric='数学最低習熟度達成率',
-        
-        analysis_method='no_correlation',
-        no_corr_x='教育支出対GDP比',
-        no_corr_y='インターネット利用率',
-        secondary_chart_type='no_correlation_scatter',
+            rq1='世界16カ国におけるインターネット利用率、教育支出対GDP比、および数学最低習熟度達成率の分布はどうなっているか。',
+            rq2='教育支出対GDP比を統制した重回帰モデルにおいて、インターネット利用率は数学最低習熟度達成率にどの程度寄与しているか。',
+            scatter_x_metric='インターネット利用率',
+            scatter_y_metric='数学最低習熟度達成率',
+            
+            analysis_method='multiple_regression',
+            regression_y='数学最低習熟度達成率',
+            regression_x_list=['インターネット利用率', '教育支出対GDP比'],
+            secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -2028,44 +2056,48 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"],
         DatasetAcademicContext(
             dataset_id="japan_teacher_workload_survey",
-            academic_topic="中学校における部活動指導負担と持ち帰り仕事の日常化が教員ウェルビーイングに及ぼす影響",
+            academic_topic="校種・職階間における部活動指導負担の構造的格差と持ち帰り仕事時間の二要因分散分析",
             theoretical_framework="感情労働論 (Hochschild)，ワーク・ライフ・バランス論，部活動地域移行政策モデル",
             core_research_problems=(
-                "中学校教員の平日在校等時間を押し上げる最大要因である部活動指導負担と，日常化する持ち帰り仕事時間の構造を解明し，"
-                "休日部活動の地域移行政策が教員の自律的研究時間の回復に果たすべき実証的効果を検証する．"
+                "小・中学校および職階（教諭・主幹教諭等）の間で構造的に偏在する部活動指導負担と，日常化する持ち帰り仕事時間の推移を二要因分散分析により解明し，"
+                "部活動の地域移行政策が教員の自律的研究時間の回復に果たすべき実証的効果を検証する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].banned_cliches,
-            specific_prompt_guidance="中学校の部活動指導負担と持ち帰り仕事の日常化、地域移行の緊急性に焦点を当てて論じること．",
+            specific_prompt_guidance="校種・職階別の部活動指導負担と持ち帰り仕事の日常化、地域移行の緊急性に焦点を当てて論じること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].curated_references,
-            fallback_title="中学校教員における部活動指導負担と持ち帰り仕事時間の構造的連動に関する計量分析†",
-            fallback_subtitle="教員勤務実態調査データに基づく感情労働と時間外勤務の検証",
-            fallback_keywords=["教員勤務実態調査", "部活動指導", "持ち帰り仕事", "地域移行", "教員ウェルビーイング"],
+            fallback_title="公立小・中学校の校種・職階別における部活動指導負担と持ち帰り仕事時間の計量分析†",
+            fallback_subtitle="教員勤務実態調査データに基づく二要因分散分析と時間外負担の検証",
+            fallback_keywords=["教員勤務実態調査", "部活動指導", "持ち帰り仕事", "二要因分散分析", "地域移行"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_background,
-            fallback_objectives="本研究の目的は，中学校教員の部活動指導時間と持ち帰り仕事時間の相互関係を計量的に検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，校種・職階および調査年を要因とする二要因分散分析により，部活動指導時間および持ち帰り仕事時間の構造的格差を検証することである．\n\n"
+                "・RQ1: 校種・職階別における部活動指導時間および持ち帰り仕事時間の分布水準はどう推移しているか．\n"
+                "・RQ2: 校種・職階要因および調査年要因は部活動指導負担にどのような統計的主効果をもたらしているか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_questions_to_authors,
-            title_en="Extracurricular Guidance and Take-Home Workloads in Lower Secondary Schools",
+            title_en="Extracurricular Guidance and Take-Home Workloads Across School Types and Job Ranks in Japan",
             source_en=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].metrics_en,
-            fallback_keywords_en=["TEACHER WORKLOAD", "EXTRACURRICULAR GUIDANCE", "TAKE-HOME WORK", "LOWER SECONDARY", "WELLBEING"],
+            fallback_keywords_en=["TEACHER WORKLOAD", "EXTRACURRICULAR GUIDANCE", "TAKE-HOME WORK", "TWO-WAY ANOVA", "WELLBEING"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["japan_teacher_workload_survey"].fallback_summary_en,
             angle_id="workload_extracurricular_burden",
-            angle_name="中学校における部活動指導負担と持ち帰り仕事の日常化",
+            angle_name="校種・職階別における部活動指導負担と持ち帰り仕事の構造的格差",
             title_theme="中学校教員を追い詰める部活動指導の呪縛：勤務実態調査データが語る地域移行の急務",
-            focus_metrics=['部活動指導時間', '持ち帰り仕事時間', '在校等時間'],
-        rq1='中学校における部活動指導時間と持ち帰り仕事時間の分布水準はどうなっているか。',
-        rq2='部活動指導負担の多寡が教員の持ち帰り仕事や総勤務時間の延長とどう連動しているか。',
-        scatter_x_metric='部活動指導時間',
-        scatter_y_metric='持ち帰り仕事時間',
-        
-        analysis_method='two_way_anova',
-        anova_dv='在校等時間',
-        anova_factor_a='校種',
-        anova_factor_b='調査年',
-        secondary_chart_type='anova_interaction',
+            focus_metrics=['部活動指導時間', '持ち帰り仕事時間', '授業準備時間'],
+            rq1='校種・職階別における部活動指導時間と持ち帰り仕事時間の分布水準はどうなっているか。',
+            rq2='校種・職階要因および調査年要因は部活動指導負担にどのような主効果および変動をもたらしているか。',
+            scatter_x_metric='部活動指導時間',
+            scatter_y_metric='授業準備時間',
+            
+            analysis_method='two_way_anova',
+            anova_dv='部活動指導時間',
+            anova_factor_a='校種・職階',
+            anova_factor_b='調査年',
+            secondary_chart_type='anova_interaction',
         ),
     ],
 
@@ -2087,7 +2119,11 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             fallback_subtitle="文部科学省実態調査データに基づく人的支援リソース配分の検証",
             fallback_keywords=["特別支援教育支援員", "ユニバーサルデザイン", "通常学級", "リソース配分", "インクルーシブ教育"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["japan_special_needs_education"].fallback_background,
-            fallback_objectives="本研究の目的は，特別支援教育支援員配置数の推移と通常学級支援効果を計量的に検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，特別支援教育支援員配置数および特別支援学級在籍数の推移と通級指導児童生徒数との連動を重回帰分析により検証することである．\n\n"
+                "・RQ1: 特別支援学級在籍数，通級指導児童生徒数，および特別支援教育支援員数の推移はどうなっているか．\n"
+                "・RQ2: 特別支援学級在籍数および特別支援教育支援員数を説明変数とした重回帰モデルにおいて，通級指導児童生徒数の増加はどう説明されるか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["japan_special_needs_education"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["japan_special_needs_education"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_special_needs_education"].fallback_major_revisions,
@@ -2102,15 +2138,15 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_name="特別支援教育支援員の配置格差と通常学級ユニバーサルデザイン",
             title_theme="インクルーシブ教育の最前線：支援員配置数とICT端末活用がもたらす通常学級の質的変容",
             focus_metrics=['特別支援教育支援員数', '特別支援学級在籍数', '端末支援活用率'],
-        rq1='特別支援学級在籍生徒数の急伸長に対し、特別支援教育支援員の配置数はどう推移しているか。',
-        rq2='人的支援配置（支援員数）と生徒数の増大との間にはどのような需給相関構造が存在するか。',
-        scatter_x_metric='特別支援教育支援員数',
-        scatter_y_metric='特別支援学級在籍数',
-        
-        analysis_method='multiple_regression',
-        regression_y='通級指導児童生徒数',
-        regression_x_list=['特別支援学級在籍数', '特別支援教育支援員数'],
-        secondary_chart_type='multiple_regression',
+            rq1='特別支援学級在籍生徒数の急伸長に対し、特別支援教育支援員の配置数はどう推移しているか。',
+            rq2='人的支援配置（支援員数）と生徒数の増大との間にはどのような需給重回帰構造が存在するか。',
+            scatter_x_metric='特別支援教育支援員数',
+            scatter_y_metric='特別支援学級在籍数',
+            
+            analysis_method='multiple_regression',
+            regression_y='通級指導児童生徒数',
+            regression_x_list=['特別支援学級在籍数', '特別支援教育支援員数'],
+            secondary_chart_type='multiple_regression',
         ),
     ],
 
@@ -2123,16 +2159,20 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             theoretical_framework="Ecclesのステージ・エンバイロメント・フィット理論 (Stage-Environment Fit Theory)，生徒指導体制論",
             core_research_problems=(
                 "小学校から中学校への移行に伴い不登校率が3倍以上に跳ね上がる「中1ギャップ」のメカニズムを，"
-                "教科担任制への移行、定期考査による相対評価、および部活動等の規律強化がもたらす環境不適合の視点から計量解明する．"
+                "学校種要因と年度要因の二要因分散分析（ANOVA）に基づき計量的に解明する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["japan_school_absenteeism_bullying"].banned_cliches,
-            specific_prompt_guidance="小学校から中学校への学校種移行（中1ギャップ）における不登校率急増と環境適合ストレスに焦点を当てて論じること．",
+            specific_prompt_guidance="小学校から中学校への学校種移行（中1ギャップ）における千人あたり不登校率の急増と二要因分散分析結果に焦点を当てて論じること．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["japan_school_absenteeism_bullying"].curated_references,
-            fallback_title="小・中学校学校種移行期における不登校率急増動態の計量分析†",
-            fallback_subtitle="生徒指導要録調査データに見る中1ギャップと学習環境適合の検証",
-            fallback_keywords=["中1ギャップ", "不登校率", "ステージ・エンバイロメント・フィット", "学校種移行", "生徒指導"],
+            fallback_title="小・中学校学校種移行期における不登校率急増動態の二要因分散分析†",
+            fallback_subtitle="生徒指導諸課題調査データに見る中1ギャップと学習環境適合の検証",
+            fallback_keywords=["中1ギャップ", "不登校率", "ステージ・エンバイロメント・フィット", "二要因分散分析", "生徒指導"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["japan_school_absenteeism_bullying"].fallback_background,
-            fallback_objectives="本研究の目的は，小・中学校の不登校率推移における移行期ギャップを計量的に検証することである．",
+            fallback_objectives=(
+                "本研究の目的は，小・中学校の千人あたり不登校率推移における学校種差および年度効果を二要因分散分析により検証することである．\n\n"
+                "・RQ1: 小学校と中学校の間における千人あたり不登校率の水準差および経年拡大傾向はどのように推移しているか．\n"
+                "・RQ2: 学校種要因（小学校・中学校）および年度要因は千人あたり不登校率にどのような主効果および交互作用をもたらしているか．"
+            ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["japan_school_absenteeism_bullying"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["japan_school_absenteeism_bullying"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_school_absenteeism_bullying"].fallback_major_revisions,
@@ -2147,14 +2187,15 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             angle_name="小学校から中学校への学校種移行期（中1ギャップ）における不登校率急上昇",
             title_theme="なぜ中学校で不登校が3倍に跳ね上がるのか？：問題行動・不登校調査データが暴く中1ギャップの構造",
             focus_metrics=['千人あたり不登校率', '不登校児童生徒数'],
-        rq1='小学校と中学校の間における千人あたり不登校率の水準差および経年拡大傾向はどのように推移しているか。',
-        rq2='学校段階の移行（中1ギャップ）に伴う不登校率の急上昇構造に対し、学校種ごとの支援体制はどう連動しているか。',
-        group_comparison_metric='千人あたり不登校率',
-        
-        analysis_method='no_correlation',
-        no_corr_x='ICT出席扱い生徒数',
-        no_corr_y='千人あたり不登校率',
-        secondary_chart_type='no_correlation_scatter',
+            rq1='小学校と中学校の間における千人あたり不登校率の水準差および経年拡大傾向はどのように推移しているか。',
+            rq2='学校段階の移行（中1ギャップ）と年度推移は千人あたり不登校率にどのような二要因分散分析効果（主効果・交互作用）を示しているか。',
+            group_comparison_metric='千人あたり不登校率',
+            
+            analysis_method='two_way_anova',
+            anova_dv='千人あたり不登校率',
+            anova_factor_a='学校種',
+            anova_factor_b='年度',
+            secondary_chart_type='anova_interaction',
         ),
     ],
 

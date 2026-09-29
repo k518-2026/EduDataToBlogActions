@@ -853,14 +853,52 @@ class EduDataAnalyzer:
             return None
 
         num_metrics = [m for m in (metrics or list(df.columns)) if m in df.columns and pd.api.types.is_numeric_dtype(df[m])]
-        if len(num_metrics) < 3:
+        if len(num_metrics) < 2:
             return None
 
         target_y = y_col if (y_col and y_col in df.columns) else num_metrics[0]
-        target_xs = [x for x in (x_cols or num_metrics[1:3]) if x in df.columns and x != target_y]
+        raw_xs = x_cols if x_cols else [m for m in num_metrics if m != target_y]
+        target_xs = [
+            x for x in raw_xs
+            if x in df.columns and x != target_y and not is_collinear_or_redundant_pair(target_y, x)
+        ]
+
+        # If target_y was a total/composite that got all predictors filtered out, pick the first non-composite metric
+        if not target_xs:
+            for cand_y in num_metrics:
+                cand_xs = [
+                    x for x in num_metrics
+                    if x != cand_y and not is_collinear_or_redundant_pair(cand_y, x)
+                ]
+                if cand_xs:
+                    target_y = cand_y
+                    target_xs = cand_xs[:2]
+                    break
 
         if len(target_xs) < 1:
             return None
+
+        # Avoid extreme predictor-predictor multicollinearity (|r| > 0.96)
+        if len(target_xs) > 1:
+            filtered_xs = [target_xs[0]]
+            for cand_x in target_xs[1:]:
+                is_redundant_pred = False
+                for kept_x in filtered_xs:
+                    if is_collinear_or_redundant_pair(kept_x, cand_x):
+                        is_redundant_pred = True
+                        break
+                    pair_df = df[[kept_x, cand_x]].dropna()
+                    if len(pair_df) >= 4:
+                        try:
+                            r_xx, _ = stats.pearsonr(pair_df[kept_x], pair_df[cand_x])
+                            if abs(r_xx) > 0.96:
+                                is_redundant_pred = True
+                                break
+                        except Exception:
+                            pass
+                if not is_redundant_pred:
+                    filtered_xs.append(cand_x)
+            target_xs = filtered_xs[:3]
 
         cols_needed = [target_y] + target_xs
         sub = df[cols_needed].dropna().copy()
@@ -995,8 +1033,8 @@ class EduDataAnalyzer:
                 if target_pair and ((col_x, col_y) == target_pair or (col_y, col_x) == target_pair):
                     target_res = item
                 else:
-                    # In auto-discovery, only keep pairs where null hypothesis is supported (p >= 0.05 or bf01 >= 1.0)
-                    if p_val >= 0.05 or bf01 >= 1.0:
+                    # In auto-discovery, only keep genuine null-correlation candidates (small effect size |r| < 0.35 and p >= 0.10 or bf01 >= 1.0)
+                    if abs(r) < 0.35 and (p_val >= 0.10 or bf01 >= 1.0):
                         auto_res.append(item)
 
         auto_res.sort(key=lambda x: -x.bf01)
@@ -1139,11 +1177,18 @@ class EduDataAnalyzer:
             p_str = format_apa_p(nc.p_val)
             bf10_disp = format_bayes_factor(nc.bf10)
             bf01_disp = format_bayes_factor(nc.bf01)
-            if nc.p_val >= 0.05 or nc.bf01 >= 1.0:
+            if abs(nc.pearson_r) < 0.30 and (nc.p_val >= 0.05 or nc.bf01 >= 1.0):
                 insights.append(
                     f"⚡ 意外な非連動・真の独立性検証（無相関分析）: 「{nc.metric_x}」と「{nc.metric_y}」の間には統計的に有意な線形相関が認められず"
                     f"（r = {r_str}, t({nc.df}) = {nc.t_val}, p {p_str}）、対立仮説支持の BF₁₀ = {bf10_disp} に対し、"
                     f"帰無仮説（真の無相関・独立性）を支持するベイズファクター BF₀₁ = {bf01_disp}（{nc.bf_interpretation}）が算出されました。"
+                )
+            elif nc.p_val >= 0.05:
+                insights.append(
+                    f"🔍 無相関仮説（独立性）の検証結果: 「{nc.metric_x}」と「{nc.metric_y}」の無相関仮説（独立性）を検証したところ、"
+                    f"相関係数は r = {r_str}（{nc.interpretation}）の連動傾向が示唆されたものの、"
+                    f"標本規模の制約により有意水準には達せず（p {p_str}）、"
+                    f"帰無仮説支持 BF₀₁ = {bf01_disp}（{nc.bf_interpretation}）にとどまりました。"
                 )
             else:
                 insights.append(
@@ -1215,11 +1260,19 @@ class EduDataAnalyzer:
             bf_info = f", ベイズファクター BF₁₀ = {format_bayes_factor(cr.bf10)} [{cr.bf_interpretation}]" if cr.bf10 is not None else ""
             r_apa = format_apa_stat(cr.pearson_r, bounded=True)
             p_apa = format_apa_p(cr.p_value)
-            if cr.p_value >= 0.05 or abs(cr.pearson_r) < 0.2:
-                insights.append(
-                    f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、統計的に有意な線形相関は認められませんでした"
-                    f"（相関係数 r = {r_apa}, p {p_apa}{bf_info}）。"
-                )
+            if cr.p_value >= 0.05:
+                if abs(cr.pearson_r) >= 0.35:
+                    insights.append(
+                        f"🔗 潜在的連動傾向: 「{cr.metric_x}」と「{cr.metric_y}」の間には、"
+                        f"相関係数 r = {r_apa}（{cr.interpretation}）の連動傾向が示唆されたものの、"
+                        f"標本規模の制約により有意水準（p < .05）には達しませんでした（p {p_apa}{bf_info}）。"
+                        f"確定的な判断にはより大規模なデータでの検証が必要です。"
+                    )
+                else:
+                    insights.append(
+                        f"⚡ 意外な非連動（独立性）: 「{cr.metric_x}」と「{cr.metric_y}」の間には、"
+                        f"統計的に有意な線形相関は認められませんでした（相関係数 r = {r_apa}, p {p_apa}{bf_info}）。"
+                    )
             else:
                 insights.append(
                     f"{corr_tag}: 「{cr.metric_x}」と「{cr.metric_y}」の間には、統計的に有意な{cr.interpretation}が認められました"
