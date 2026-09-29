@@ -1182,5 +1182,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-09-29T05:10:09.153604+09:00",
     "date": "2026-09-29"
+  },
+  {
+    "dataset_id": "japan_timss_math_science",
+    "angle_id": "timss_instrumental_utility",
+    "angle_name": "実利主義的価値観と内発的動機づけの葛藤構造",
+    "title": "【TIMSS】小・中学生の算数・数学到達度と学習意欲の推移：「役に立つから学ぶ」は学力を伸ばすか？：数学の実利主義的価値認識と内発的動機の対立構造 (2026年09月29日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "JAPAN",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-09-29T22:18:01.435099+09:00",
+    "date": "2026-09-29"
   }
 ]
