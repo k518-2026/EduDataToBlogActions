@@ -1305,5 +1305,25 @@
     "platform": "wordpress_rest",
     "posted_at": "2026-10-03T05:10:08.915937+09:00",
     "date": "2026-10-03"
+  },
+  {
+    "dataset_id": "oecd_pisa_math_ict",
+    "angle_id": "pisa_math_resilience_and_ict",
+    "angle_name": "PISA国際比較に見る数学的リテラシーの経年レジリエンスと男女得点差の国際構造",
+    "title": "【OECD PISA】主要国の数学的リテラシー得点と男女得点差の国際比較：PISA国際比較が示す日本の数学的リテラシーの頑健性とジェンダー得点差の構造的持続 (2026年10月04日)",
+    "categories": [
+      "教育データ分析",
+      "算数数学教育",
+      "STEM教育"
+    ],
+    "tags": [
+      "オープンデータ",
+      "統計分析",
+      "GLOBAL",
+      "算数数学"
+    ],
+    "platform": "wordpress_rest",
+    "posted_at": "2026-10-04T11:37:46.840761+09:00",
+    "date": "2026-10-04"
   }
 ]
