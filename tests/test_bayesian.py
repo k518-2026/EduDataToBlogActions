@@ -232,7 +232,7 @@ def test_pdf_secondary_table_includes_bayes_factor():
         raw_df=pd.DataFrame(),
     )
     caption, table, note = generator._build_secondary_table(dataset, analysis_trend)
-    assert "ベイズ分析" in caption
+    assert "BF分析" in caption
     assert "BF₁₀" in note
 
     # Correlation case
