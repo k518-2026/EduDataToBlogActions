@@ -21,7 +21,7 @@ from src.academic_paper import AcademicPaper
 from src.analyzer import AnalysisResult, is_collinear_or_redundant_pair
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import LLMGenerationError, extract_anthropic_text, resolve_anthropic_model
+from src.utils import LLMGenerationError, anthropic_thinking_options, extract_anthropic_text, resolve_anthropic_model
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -468,6 +468,7 @@ class PeerReviewGenerator:
             "system": "You are a senior academic reviewer for an educational research journal. Review thoroughly and provide critical scholarly evaluations.",
             "messages": [{"role": "user", "content": prompt}],
         }
+        payload.update(anthropic_thinking_options(resolved_model))
 
         req = urllib.request.Request(
             url,

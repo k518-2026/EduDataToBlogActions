@@ -1,14 +1,36 @@
 from __future__ import annotations
 
+import json
 import logging
+import os
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.config import CATALOG_DIR
 from src.fetchers.base import EducationDataset
 from src.fetchers.japan_edu_data import JapanEduDataFetcher
 from src.fetchers.oecd_unesco_data import OECDUnescoFetcher
 from src.fetchers.world_bank_data import WorldBankFetcher
 
 logger = logging.getLogger(__name__)
+
+
+class DataNotVerifiedError(RuntimeError):
+    """The requested data has not been checked against its published source."""
+
+
+def verification_status(dataset_id: str) -> str:
+    """'verified' only if data/catalog/<id>.json has verification.status == 'verified'."""
+    path = CATALOG_DIR / f"{dataset_id}.json"
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return str((json.load(f).get("verification") or {}).get("status", "unverified"))
+    except (OSError, ValueError):
+        return "unverified"
+
+
+def unverified_allowed() -> bool:
+    """Escape hatch for tests and local experiments. Never set it where articles are published."""
+    return os.getenv("ALLOW_UNVERIFIED_DATA", "").strip().lower() in ("1", "true", "yes")
 
 
 class DatasetCatalog:
@@ -19,8 +41,18 @@ class DatasetCatalog:
         self.oecd_unesco_fetcher = OECDUnescoFetcher()
         self.world_bank_fetcher = WorldBankFetcher()
 
-    def get_all_datasets(self) -> List[EducationDataset]:
-        """Loads and returns all available datasets."""
+    def get_all_datasets(self, include_unverified: bool = False) -> List[EducationDataset]:
+        """Loads and returns the datasets that may be used. Unverified data is excluded unless allowed."""
+        datasets = self._load_all()
+        if include_unverified or unverified_allowed():
+            return datasets
+        usable = [d for d in datasets if verification_status(d.id) == "verified"]
+        skipped = [d.id for d in datasets if d not in usable]
+        if skipped:
+            logger.info(f"検証済みでないデータは使いません: {', '.join(skipped)}")
+        return usable
+
+    def _load_all(self) -> List[EducationDataset]:
         datasets = [
             # 1. Japan Math
             self.japan_fetcher.get_national_assessment_math(),
@@ -49,9 +81,9 @@ class DatasetCatalog:
         ]
         return [ds for ds in datasets if ds is not None]
 
-    def get_by_id(self, dataset_id: str) -> Optional[EducationDataset]:
+    def get_by_id(self, dataset_id: str, include_unverified: bool = False) -> Optional[EducationDataset]:
         """Finds a dataset by its unique ID."""
-        for ds in self.get_all_datasets():
+        for ds in self.get_all_datasets(include_unverified=include_unverified):
             if ds.id == dataset_id:
                 return ds
         return None
@@ -69,6 +101,11 @@ class DatasetCatalog:
         """
         posted_history_ids = posted_history_ids or []
         all_ds = self.get_all_datasets()
+        if not all_ds:
+            raise DataNotVerifiedError(
+                "検証済みのデータセットがありません。data/catalog/*.json の verification.status が "
+                "'verified' のものだけを使います（docs/DATA_VERIFICATION_2026-10-05.md）。"
+            )
 
         # Filter by category
         if topic in ("math", "算数", "数学"):
@@ -157,6 +194,12 @@ class DatasetCatalog:
 
         # 1. Select Dataset
         if dataset_id:
+            requested = self.get_by_id(dataset_id, include_unverified=True)
+            if requested and not unverified_allowed() and verification_status(requested.id) != "verified":
+                raise DataNotVerifiedError(
+                    f"データセット '{dataset_id}' は検証済みではないため使えません"
+                    f"（verification.status = {verification_status(requested.id)}）。"
+                )
             dataset = self.get_by_id(dataset_id)
             if not dataset:
                 logger.warning(f"Requested dataset '{dataset_id}' not found. Rotating.")

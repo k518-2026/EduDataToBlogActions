@@ -16,6 +16,7 @@ from src.utils import LLMGenerationError
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "no_template_standin: do not substitute templates for failed LLM calls")
+    config.addinivalue_line("markers", "verified_gate: run with the verified-data gate enabled")
 
 
 @pytest.fixture(autouse=True)
@@ -52,3 +53,12 @@ def template_standin(request, monkeypatch):
     monkeypatch.setattr(GeminiInsightGenerator, "generate_insights", insights)
     monkeypatch.setattr(AcademicPaperGenerator, "generate_paper", paper)
     monkeypatch.setattr(PeerReviewGenerator, "generate_review", review)
+
+
+@pytest.fixture(autouse=True)
+def allow_unverified_data(request, monkeypatch):
+    """Most tests exercise code with the (unverified) catalog entries; the gate tests opt out."""
+    if request.node.get_closest_marker("verified_gate"):
+        monkeypatch.delenv("ALLOW_UNVERIFIED_DATA", raising=False)
+    else:
+        monkeypatch.setenv("ALLOW_UNVERIFIED_DATA", "true")

@@ -18,7 +18,7 @@ class WorldBankFetcher:
     """
 
     INDICATORS = {
-        "math_proficiency": "SE.SEC.MAT.ZS",  # Lower secondary math proficiency
+        "learning_outcomes": "HD.HCI.HLOS",  # Harmonized Learning Outcomes (HLO) score
         "internet_users": "IT.NET.USER.ZS",  # Internet users % of population
         "education_expenditure": "SE.XPD.TOTL.GD.ZS",  # Public edu expenditure % GDP
     }
@@ -84,26 +84,4 @@ class WorldBankFetcher:
             except Exception as e:
                 logger.error(f"Error loading World Bank cached dataset: {e}")
 
-        # Fallback minimal dataframe if file missing
-        df_fallback = pd.DataFrame([
-            {"年": 2023, "国名": "日本", "数学最低習熟度達成率": 91.2, "教育支出対GDP比": 3.4, "インターネット利用率": 93.3},
-            {"年": 2023, "国名": "シンガポール", "数学最低習熟度達成率": 94.5, "教育支出対GDP比": 2.9, "インターネット利用率": 92.8},
-            {"年": 2023, "国名": "エストニア", "数学最低習熟度達成率": 88.7, "教育支出対GDP比": 5.8, "インターネット利用率": 93.1},
-            {"年": 2023, "国名": "韓国", "数学最低習熟度達成率": 89.6, "教育支出対GDP比": 5.1, "インターネット利用率": 97.2},
-            {"年": 2023, "国名": "アメリカ", "数学最低習熟度達成率": 73.2, "教育支出対GDP比": 5.4, "インターネット利用率": 91.8},
-        ])
-        return EducationDataset(
-            id="worldbank_education_indicators",
-            title="【世界銀行 EdStats】世界各国の数学的習熟度と公的教育支出の国際比較",
-            category="math",
-            region="global",
-            source_name="World Bank Open Data",
-            source_url="https://databank.worldbank.org/",
-            description="世界銀行オープンデータによる主要国の数学習熟度および教育支出比率データ。",
-            df=df_fallback,
-            metrics=["数学最低習熟度達成率", "教育支出対GDP比"],
-            time_col="年",
-            group_col="国名",
-            recommended_chart="correlation_scatter",
-            unit="%",
-        )
+        raise FileNotFoundError(f"World Bank のカタログが読み込めません: {self.cache_file}（代わりの数値は使いません）")

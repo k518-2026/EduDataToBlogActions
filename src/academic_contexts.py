@@ -1018,13 +1018,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
     # 8. World Bank Education Indicators: Public Expenditure & Production Function
     "worldbank_education_indicators": DatasetAcademicContext(
         dataset_id="worldbank_education_indicators",
-        academic_topic="世界銀行オープンデータに基づく教育公支出（対GDP比）と初等中等数学習熟度の計量経済学的検証",
+        academic_topic="世界銀行のオープンデータによる、教育への公的支出（対GDP比）と学習到達度（HLO）の国際比較",
         theoretical_framework="Hanushekの教育生産関数 (Educational Production Function)，Schultz/Beckerの人的資本理論 (Human Capital Theory)，資源配分効率性フロンティア",
         core_research_problems=(
-            "持続可能な開発目標（SDG 4.1.1）において，初等・中等教育における数学最低習熟度の達成は最優先課題である．"
-            "しかし，政府の教育支出対GDP比（%）の多寡と習熟度達成率の間には単純な正の比例関係が成立せず，"
-            "シンガポールや日本のように中位の支出比率で世界最高水準の習熟度を達成する国と，高支出でも低迷する国が存在する『教育支出パラドックス』を"
-            "計量経済学的に検証する．"
+            "世界銀行が公表する16か国の教育支出（対GDP比，2021年），調和済み学習到達度スコア（HLO，2020年），インターネット利用率（2021年）を比べ，"
+            "教育支出の大小と学習到達度の関係がどのような形をしているかを，公表された数値に基づいて確かめる．"
+            "横断データであり，因果関係や支出の効果は示せないことを前提に，示せる範囲を述べる．"
         ),
         banned_cliches=[
             "近年のSociety 5.0の進展に伴い",
@@ -1034,9 +1033,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "情報化社会の急速な進展に伴い",
         ],
         specific_prompt_guidance=(
-            "必ず『世界銀行教育統計（EdStats）における各国の教育公支出（対GDP比）と初等中等数学習熟度の国際比較』から論述を開始すること．"
-            "Hanushek (1986) の教育生産関数（Educational Production Function）や人的資本理論に触れ，"
-            "金銭的投入量（インプット）と学習到達度（アウトプット）の非線形性，および教育資源の配分効率性の差異を計量的に論じること．"
+            "世界銀行Open Dataの16か国の数値（教育支出は2021年，HLOは2020年，インターネット利用率は2021年）だけを根拠に述べること．"
+            "HLOは国際学力調査を共通の尺度にそろえた得点で，数学だけの得点ではない．「数学の習熟度」とは書かないこと．"
+            "支出と学習到達度の関係は，分析結果の相関係数・信頼区間・ベイズファクターが示す範囲で述べ，因果や支出の効果は断定しないこと．"
         ),
         curated_references=[
             "BECKER, G. S. (1964) Human capital: A theoretical and empirical analysis, with special reference to education. National Bureau of Economic Research.",
@@ -1066,9 +1065,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "単なる予算規模の増減を超えて，教育投資の質的転換と効率的配分を構想する上で不可欠な実証的エビデンスをもたらす．"
         ),
         fallback_objectives=(
-            "本研究の目的は，世界銀行の公的統計オープンデータに基づき，主要国における教育公支出対GDP比，数学最低習熟度達成率，およびインターネット普及率の"
+            "本研究の目的は，世界銀行の公的統計オープンデータに基づき，主要国における教育公支出対GDP比，調和済み学習到達度スコア(HLO)，およびインターネット普及率の"
             "相互連関構造を計量的に解明し，教育投資の有効性に関する実証的示唆を提示することである．具体的には，以下の2つのリサーチクエスチョン（RQ）を設定する：\n\n"
-            "・RQ1: 対象主要国における主要指標（数学最低習熟度達成率・教育支出対GDP比等）の分布特性および中心傾向の水準差はどのような構造を有しているか．\n"
+            "・RQ1: 対象主要国における主要指標（調和済み学習到達度スコア(HLO)・教育支出対GDP比等）の分布特性および中心傾向の水準差はどのような構造を有しているか．\n"
             "・RQ2: 指標間の相関分析および回帰トレンドにおいて，教育財政支出やデジタル環境の普及と数学習熟度との間にどのような連動性が認められるか．"
         ),
         fallback_discussion=(
@@ -1076,7 +1075,7 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "【RQ1に関する考察：数学習熟度水準の分布と支出比率の多様性】\n"
             "RQ1で明らかとなった各国の指標水準および散布度に関して考察する．小林 (2020) は，OECDおよび世界銀行データに基づき，"
             "教育支出のGDP比率は各国の財政構造や私費負担の割合によって多様な分布を示すことを論じている．本研究の実測データにおいて，"
-            "数学最低習熟度達成率の平均値・中央値が高水準を示す一方で，教育支出対GDP比が2%台から6%超まで広い散布度（IQR）を記録した点は，"
+            "調和済み学習到達度スコア(HLO)の平均値・中央値が高水準を示す一方で，教育支出対GDP比が2%台から6%超まで広い散布度（IQR）を記録した点は，"
             "小林 (2020) の比較財政分析と完全に整合的である（同じところ）．"
             "また，赤林 (2019) が指摘する学校教育資源の多様性とも一致している．"
             "しかし，シンガポール（2.9%）や日本（3.4%）のように公財政支出が比較的抑制されている国が，高支出国を上回る最高峰の習熟度を記録している事実は，"
@@ -1095,7 +1094,7 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "今後は時系列パネルデータを用いた計量経済学的因果分析が求められる．"
         ),
         fallback_review_critique=(
-            "本稿は、世界銀行の公的統計オープンデータを用い、各国の政府教育支出対GDP比、初等中等数学最低習熟度達成率（SDG 4.1.1）、"
+            "本稿は、世界銀行の公的統計オープンデータを用い、各国の政府教育支出対GDP比、初等中等調和済み学習到達度スコア(HLO)（SDG 4.1.1）、"
             "およびインターネット利用率の相関構造を教育生産関数の視座から計量的に検証したショートレターである。"
             "投入と成果の単純比例を疑い、資源配分効率の重要性に光を当てた論理構成は教育経済学的に極めて堅牢であり、"
             "散布図上の95%信頼区間の提示を含め完成度は高い。"
@@ -1121,10 +1120,10 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 教育支出の「量」から「質」への転換において、教員給与、施設設備費、ICT環境整備費の配分比率が習熟度にどう影響するとお考えか。",
             "2. デジタル接続（インターネット利用率）が数学習熟度と正の相関を示したメカニズムとして、家庭環境（SES）の代理変数となっている可能性について著者の見解を伺いたい。",
         ],
-        title_en="Public Educational Expenditure and Minimum Mathematics Proficiency: A Cross-National Education Production Function Analysis",
+        title_en="Public Expenditure on Education and Harmonized Learning Outcomes: A Cross-National Comparison Using World Bank Open Data",
         source_en="The World Bank",
         metrics_en={
-            "数学最低習熟度達成率": "Minimum Mathematics Proficiency Rate",
+            "調和済み学習到達度スコア(HLO)": "Harmonized Learning Outcomes (HLO) Score",
             "教育支出対GDP比": "Government Expenditure on Education (% of GDP)",
             "インターネット利用率": "Internet Usage Rate",
         },
@@ -1139,17 +1138,17 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "for transitioning from quantitative financial expansion to qualitative resource efficacy."
         ),
         angle_id="wb_education_expenditure_efficiency",
-        angle_name="世界銀行データに見る教育公支出GDP比と学習到達度の非連動（Hanushekの教育支出パラドックス）",
-        title_theme="教育予算を増やせば学力は向上するか？：世界銀行データが示す公教育投資と学習到達度の独立性検証",
-        focus_metrics=['教育支出対GDP比', '数学最低習熟度達成率', 'インターネット利用率'],
-        rq1='世界主要国における公的教育支出（対GDP比）と数学最低習熟度達成率の分布水準はどう分布しているか。',
-        rq2='国家の教育公財政支出の規模（対GDP比）と数学最低習熟度達成率との間には線形連動性が存在するか、それとも独立（無相関）であるか。',
+        angle_name="教育への公的支出（対GDP比）と学習到達度（HLO）の関係の国際比較",
+        title_theme="教育にお金をかけると学力は上がるのか：世界銀行の公表データで16か国を比べる",
+        focus_metrics=['教育支出対GDP比', '調和済み学習到達度スコア(HLO)', 'インターネット利用率'],
+        rq1='16か国の教育支出（対GDP比）と学習到達度（HLO）は、それぞれどのような水準と散らばりを示しているか。',
+        rq2='教育支出（対GDP比）と学習到達度（HLO）の間には、この16か国のデータで関連が認められるか（因果は問わない）。',
         scatter_x_metric='教育支出対GDP比',
-        scatter_y_metric='数学最低習熟度達成率',
+        scatter_y_metric='調和済み学習到達度スコア(HLO)',
         
         analysis_method='no_correlation',
         no_corr_x='教育支出対GDP比',
-        no_corr_y='数学最低習熟度達成率',
+        no_corr_y='調和済み学習到達度スコア(HLO)',
         secondary_chart_type='no_correlation_scatter',
     ),
 
@@ -1407,13 +1406,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
     # 11. Japan School Absenteeism & Bullying (MEXT)
     "japan_school_absenteeism_bullying": DatasetAcademicContext(
         dataset_id="japan_school_absenteeism_bullying",
-        academic_topic="公立小・中学校における不登校児童生徒数の時系列動態と自宅等ICT学習出席扱い制度の構造検証",
+        academic_topic="公立小・中学校における不登校児童生徒数の長期推移（平成26〜令和6年度）と学校種による違い",
         theoretical_framework="Kearneyの包括的出席問題モデル (Transdiagnostic Model)，Havikの学校エンゲージメント理論，教育機会確保法とオルタナティブ教育論",
         core_research_problems=(
-            "公立小・中学校における不登校児童生徒数は約30万人規模に達し，千人あたり不登校比率も過去最高を更新し続けている．"
-            "特に小学校から中学校への移行期（中1ギャップ）における不登校率の急上昇が深刻な構造的課題となっている．"
-            "文部科学省の通知に基づく「自宅等におけるICTを活用した学習活動を出席扱いとする制度」の急速な普及実態と，"
-            "登校復帰のみを目標としない多様な学びのセーフティネットの形成過程を計量的に解明する．"
+            "文部科学省の調査によれば，公立小・中学校の不登校児童生徒数は平成26年度から令和6年度まで増加が続いている．"
+            "小学校と中学校では千人あたりの水準が大きく異なり，その差が年度とともにどう変化したかを，公表された数値に基づいて整理する．"
+            "原因の断定や制度の効果の評価はせず，データが示す範囲の事実と，示せないことを区別して述べる．"
         ),
         banned_cliches=[
             "近年のSociety 5.0の進展に伴い",
@@ -1423,9 +1421,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "情報化社会の急速な進展に伴い",
         ],
         specific_prompt_guidance=(
-            "必ず『不登校児童生徒数の高止まりとICTを活用した学びのセーフティネットの形成』から論述を開始すること．"
-            "Kearneyの出席問題モデルや保坂の教育社会学的視座を引用し，"
-            "中1ギャップの激化と自宅等ICT学習出席扱い制度の意義を学術的に論じること．"
+            "分析結果に出ている数値だけを根拠に，不登校児童生徒数と千人あたり不登校率の長期推移を述べること．"
+            "データに含まれない事柄（原因，ICTを活用した学習の出席扱いの実施状況，支援策の効果など）は，"
+            "数値の裏付けなしに断定せず，今後の課題として書くこと．"
         ),
         curated_references=[
             "文部科学省 (2023) 令和4年度児童生徒の問題行動・不登校等生徒指導上の諸課題に関する調査結果の概要. 文部科学省.",
@@ -1501,7 +1499,6 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         metrics_en={
             "不登校児童生徒数": "Number of Absentee Students",
             "千人あたり不登校率": "Absenteeism Rate per 1,000 Students",
-            "ICT出席扱い生徒数": "Students with ICT Home-Learning Recognized as Attendance",
         },
         fallback_keywords_en=["SCHOOL ABSENTEEISM", "ICT HOME LEARNING", "COMPULSORY EDUCATION", "ATTENDANCE RECOGNITION", "STUDENT WELLBEING"],
         fallback_summary_en=(
@@ -1512,17 +1509,18 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "GIGA school initiative. We discuss the transition from traditional school attendance mandates toward diversified hybrid safety nets that safeguard "
             "learning rights and student wellbeing."
         ),
-        angle_id="absenteeism_ict_safetynet",
-        angle_name="不登校児童生徒数の急増と自宅等におけるICT学習出席扱い制度の変容",
-        title_theme="不登校30万人時代の学びの保障：自宅等ICT学習の出席扱い制度が拓く新しいセーフティネット",
-        focus_metrics=['不登校児童生徒数', 'ICT出席扱い生徒数'],
-        rq1='公立小・中学校における不登校児童生徒数および自宅ICT学習出席扱い生徒数は2018年度から2022年度にかけてどのように推移したか。',
-        rq2='不登校児童生徒数の急激な増加に対し、自宅ICT学習出席扱い制度はどの程度追従・連動しているか（相関構造と制度的普及の課題）。',
-        scatter_x_metric='不登校児童生徒数',
-        scatter_y_metric='ICT出席扱い生徒数',
-        
-        analysis_method='correlation',
-        secondary_chart_type='correlation_scatter',
+        angle_id="absenteeism_long_term_trend",
+        angle_name="不登校児童生徒数の長期推移（平成26〜令和6年度）と学校種による違い",
+        title_theme="不登校の児童生徒は10年でどう増えたか：文部科学省の調査データから小学校と中学校を比べる",
+        focus_metrics=['不登校児童生徒数', '千人あたり不登校率'],
+        rq1='小学校と中学校の不登校児童生徒数は、平成26年度から令和6年度にかけてどのように推移したか。',
+        rq2='学校種（小学校・中学校）と年度は、不登校児童生徒数にどのような主効果と交互作用を示しているか。',
+        group_comparison_metric='不登校児童生徒数',
+        analysis_method='two_way_anova',
+        anova_dv='不登校児童生徒数',
+        anova_factor_a='学校種',
+        anova_factor_b='年度',
+        secondary_chart_type='anova_interaction',
     ),
 
     # 12. OECD TALIS Teacher Survey
@@ -2007,45 +2005,45 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"],
         DatasetAcademicContext(
             dataset_id="worldbank_education_indicators",
-            academic_topic="新興国・主要国におけるデジタル接続基盤（インターネット利用率）と基礎数学習熟度の重回帰分析",
+            academic_topic="インターネット利用率と学習到達度（HLO）の国際比較（教育支出を考慮した重回帰）",
             theoretical_framework="リープフロッギング理論 (Leapfrogging Theory)，国際開発教育学，内生的経済成長モデル",
             core_research_problems=(
-                "公的教育財政支出（対GDP比）を統制した上でも，社会全体のインターネット接続普及率が"
-                "児童生徒の基礎数学習熟度達成率（SDG 4.1.1）を有意に押し上げるかを重回帰分析により国際比較検証する．"
+                "教育支出（対GDP比）を考慮しても，インターネット利用率と学習到達度（HLO）の間に関連が残るかを，"
+                "16か国の横断データの重回帰分析で確かめる．国の豊かさなど他の要因は統制できず，因果は示せない．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].banned_cliches,
-            specific_prompt_guidance="教育支出対GDP比を統制した上でのインターネット利用率の数学最低習熟度達成率への正の寄与（重回帰分析）に焦点を当てて論じること．",
+            specific_prompt_guidance="教育支出（対GDP比）を説明変数に加えた重回帰分析の結果の範囲で，インターネット利用率と学習到達度（HLO）の関連を述べること．HLOは数学だけの得点ではない．因果や「底上げ」などの効果は断定しないこと．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].curated_references,
             fallback_title="世界銀行データに基づくデジタルインフラ接続と数学最低習熟度の重回帰分析†",
             fallback_subtitle="公的教育支出対GDP比を統制した情報通信基盤の学習成果寄与度の検証",
-            fallback_keywords=["世界銀行", "インターネット利用率", "数学最低習熟度達成率", "重回帰分析", "開発教育学"],
+            fallback_keywords=["世界銀行", "インターネット利用率", "調和済み学習到達度スコア(HLO)", "重回帰分析", "開発教育学"],
             fallback_background=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_background,
             fallback_objectives=(
-                "本研究の目的は，世界銀行EdStatsデータに基づき，公的教育支出対GDP比を統制した上でインターネット利用率が数学最低習熟度達成率に与える独立した効果を重回帰分析により解明することである．\n\n"
-                "・RQ1: 対象16カ国におけるインターネット利用率，教育支出対GDP比，および数学最低習熟度達成率の分布水準はどうなっているか．\n"
-                "・RQ2: インターネット利用率および教育支出対GDP比を説明変数とした重回帰モデルにおいて，数学最低習熟度達成率に対する各要因の標準化偏回帰係数（β）はどう評価されるか．"
+                "本研究の目的は，世界銀行EdStatsデータに基づき，公的教育支出対GDP比を統制した上でインターネット利用率が調和済み学習到達度スコア(HLO)に与える独立した効果を重回帰分析により解明することである．\n\n"
+                "・RQ1: 対象16カ国におけるインターネット利用率，教育支出対GDP比，および調和済み学習到達度スコア(HLO)の分布水準はどうなっているか．\n"
+                "・RQ2: インターネット利用率および教育支出対GDP比を説明変数とした重回帰モデルにおいて，調和済み学習到達度スコア(HLO)に対する各要因の標準化偏回帰係数（β）はどう評価されるか．"
             ),
             fallback_discussion=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_discussion,
             fallback_review_critique=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_review_critique,
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_questions_to_authors,
-            title_en="Digital Connectivity and Minimum Mathematics Proficiency: A Cross-National Multiple Regression Analysis Using World Bank Data",
+            title_en="Internet Use and Harmonized Learning Outcomes Across Countries: A Multiple Regression Using World Bank Data",
             source_en=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].metrics_en,
             fallback_keywords_en=["THE WORLD BANK", "LEAPFROGGING", "INTERNET CONNECTIVITY", "MATHEMATICS PROFICIENCY", "MULTIPLE REGRESSION"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["worldbank_education_indicators"].fallback_summary_en,
             angle_id="wb_internet_leapfrogging",
-            angle_name="デジタルインフラ接続（インターネット利用率）と基礎数学習熟度の重回帰構造",
-            title_theme="教育インフラのリープフロッグ：世界銀行データに見るデジタル接続が基礎学力を底上げする力",
-            focus_metrics=['インターネット利用率', '数学最低習熟度達成率', '教育支出対GDP比'],
-            rq1='世界16カ国におけるインターネット利用率、教育支出対GDP比、および数学最低習熟度達成率の分布はどうなっているか。',
-            rq2='教育支出対GDP比を統制した重回帰モデルにおいて、インターネット利用率は数学最低習熟度達成率にどの程度寄与しているか。',
+            angle_name="インターネット利用率と学習到達度（HLO）の関連（教育支出を考慮した重回帰）",
+            title_theme="インターネットの普及と学習到達度に関連はあるか：世界銀行の公表データで16か国を比べる",
+            focus_metrics=['インターネット利用率', '調和済み学習到達度スコア(HLO)', '教育支出対GDP比'],
+            rq1='世界16カ国におけるインターネット利用率、教育支出対GDP比、および調和済み学習到達度スコア(HLO)の分布はどうなっているか。',
+            rq2='教育支出対GDP比を統制した重回帰モデルにおいて、インターネット利用率は調和済み学習到達度スコア(HLO)にどの程度寄与しているか。',
             scatter_x_metric='インターネット利用率',
-            scatter_y_metric='数学最低習熟度達成率',
+            scatter_y_metric='調和済み学習到達度スコア(HLO)',
             
             analysis_method='multiple_regression',
-            regression_y='数学最低習熟度達成率',
+            regression_y='調和済み学習到達度スコア(HLO)',
             regression_x_list=['インターネット利用率', '教育支出対GDP比'],
             secondary_chart_type='multiple_regression',
         ),

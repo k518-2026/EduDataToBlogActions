@@ -33,7 +33,7 @@ from src.utils import (
     clean_text_spaces,
     contains_japanese,
     format_bayes_factor,
-    extract_anthropic_text,
+    anthropic_thinking_options, extract_anthropic_text,
     LLMGenerationError,
     resolve_anthropic_model,
     resolve_metric_unit,
@@ -1133,6 +1133,7 @@ class AcademicPaperGenerator:
             "max_tokens": 32000,
             "messages": [{"role": "user", "content": prompt}],
         }
+        payload.update(anthropic_thinking_options(resolved_model))
 
         req = urllib.request.Request(
             url,

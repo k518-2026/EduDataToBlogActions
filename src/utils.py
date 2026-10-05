@@ -499,3 +499,14 @@ def extract_anthropic_text(res_data: dict) -> str:
 
 class LLMGenerationError(RuntimeError):
     """All language models failed. The pipeline must stop instead of publishing template text."""
+
+
+def anthropic_thinking_options(model: str) -> dict:
+    """Request options that keep Sonnet 5.x from spending max_tokens on thinking before the JSON.
+
+    Checked against the API on 2026-10-05: claude-sonnet-5-5 accepts {"type": "between_tools"} and then
+    uses no thinking tokens; claude-opus-5-5 rejects it (400), so other models get no option.
+    """
+    if (model or "").startswith("claude-sonnet-5"):
+        return {"thinking": {"type": "between_tools"}}
+    return {}

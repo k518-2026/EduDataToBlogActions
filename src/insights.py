@@ -18,7 +18,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import LLMGenerationError, clean_insight_text, extract_anthropic_text, resolve_anthropic_model, resolve_metric_unit
+from src.utils import LLMGenerationError, clean_insight_text, anthropic_thinking_options, extract_anthropic_text, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -336,6 +336,7 @@ class GeminiInsightGenerator:
             "system": "You are an expert Japanese educational policy and statistical analyst specializing in uncovering surprising data paradoxes. Always respond strictly in valid JSON without markdown fences or preambles.",
             "messages": [{"role": "user", "content": prompt}],
         }
+        payload.update(anthropic_thinking_options(resolved_model))
 
         req = urllib.request.Request(
             url,
