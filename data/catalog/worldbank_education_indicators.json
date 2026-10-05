@@ -5,6 +5,7 @@
   "region": "global",
   "source_name": "World Bank（世界銀行）",
   "source_url": "https://data.worldbank.org/topic/education",
+  "verification": {"status": "incorrect", "checked_on": "2026-10-05", "note": "World Bank API（SE.XPD.TOTL.GD.ZS、IT.NET.USER.ZS）と照合。日本のインターネット利用率は94に対し最新値85.5、フィンランドの教育支出対GDP比は5.9に対し6.4〜6.7、シンガポールは2.9に対し2.1〜2.8。調査年の記載なし。「数学最低習熟度達成率」の出典は不明。"},
   "description": "世界銀行（World Bank Open Data / EdStats）に基づく、世界主要16カ国における政府教育支出（対GDP比：%）、中等教育段階の数学最低習熟度達成率（%）、およびインターネット利用率（%）の横断比較データ。教育投資と学習成果の費用対効果検証。",
   "unit": "%",
   "group_col": "国名",

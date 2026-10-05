@@ -5,6 +5,7 @@
   "region": "global",
   "source_name": "UNESCO Institute for Statistics / ITU",
   "source_url": "https://tcg.uis.unesco.org/",
+  "verification": {"status": "unverified", "checked_on": "2026-10-05", "note": "出典URLはUNESCOのデータ委員会トップページ。数値・調査年の記載なし。未照合。"},
   "description": "UNESCO統計局（UIS）および国際電気通信連合（ITU）のSDG 4.4.1指標に基づく、各国の若年・成人層における「プログラミング言語でプログラムを作成した割合」「表計算ソフトで高度な数式を利用した割合」「プレゼンテーション資料を作成した割合」の国際比較データ。",
   "unit": "%",
   "group_col": "国名",

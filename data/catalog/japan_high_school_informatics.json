@@ -5,6 +5,7 @@
   "region": "japan",
   "source_name": "文部科学省・全国高等学校情報教育研究会",
   "source_url": "https://www.mext.go.jp/a_menu/shotou/zyouhou/detail/1416756.htm",
+  "verification": {"status": "source_invalid", "checked_on": "2026-10-05", "note": "出典URLは「情報Ⅰ 教員研修用教材」のページで、調査データではない。「全国高等学校情報教育研究会」による該当調査は確認できなかった。Python活用率などの出典不明。"},
   "description": "新学習指導要領における高等学校「情報I」必修化に伴う、各高校でのプログラミング言語（Python/JavaScript）の活用率、大学入学共通テスト「情報」に向けた対策実施率、および1人1台端末を活用した探究的演習の導入率の年次推移データ。",
   "unit": "%",
   "time_col": "年度",

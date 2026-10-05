@@ -5,6 +5,7 @@
   "region": "japan",
   "source_name": "文部科学省「特別支援教育に関する総合的な実態調査」",
   "source_url": "https://www.mext.go.jp/a_menu/shotou/tokubetu/001.htm",
+  "verification": {"status": "unverified", "checked_on": "2026-10-05", "note": "出典URLは制度改正のページで、数値の出典ではない。数値は未照合。"},
   "description": "文部科学省の公的統計に基づく、小・中学校の通常学級に在籍しながら通級指導を受ける児童生徒数、特別支援学級在籍数、特別支援教育支援員配置数、および1人1台端末による学習支援活用率の年次推移データ。",
   "unit": "人",
   "time_col": "年度",

@@ -5,6 +5,7 @@
   "region": "global",
   "source_name": "OECD（経済協力開発機構）TALIS国際指導環境調査",
   "source_url": "https://www.oecd.org/education/talis/",
+  "verification": {"status": "unverified", "checked_on": "2026-10-05", "note": "出典URLはTALISのトップページ。数値は未照合。"},
   "description": "OECD国際指導環境調査（TALIS）における、主要参加国の中学校教員による「生徒の批判的思考を促す指導自己効力感肯定率」「授業でのICT利活用肯定率」「教員間の共同指導・授業見学実施率」の国際比較データ。",
   "unit": "%",
   "time_col": "調査年",

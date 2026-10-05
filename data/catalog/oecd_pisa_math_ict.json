@@ -5,6 +5,7 @@
   "region": "global",
   "source_name": "OECD（経済協力開発機構）",
   "source_url": "https://www.oecd.org/pisa/",
+  "verification": {"status": "unverified", "checked_on": "2026-10-05", "note": "数学得点の総合値は私の記憶にある公表値と一致するが、出典（OECD）との照合は未了。男女別得点・男女差は未照合。"},
   "description": "OECD生徒の学習到達度調査（PISA）における15歳児の数学的リテラシー平均得点の年次推移（2012年〜2022年）および主要国（日本・シンガポール・エストニア・韓国・カナダ・英国・米国・OECD平均）の比較データ。",
   "unit": "点",
   "time_col": "調査年",

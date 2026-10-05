@@ -5,6 +5,7 @@
   "region": "japan",
   "source_name": "文部科学省",
   "source_url": "https://www.mext.go.jp/b_menu/toukei/chousa01/kihon/1267995.htm",
+  "verification": {"status": "unverified", "checked_on": "2026-10-05", "note": "出典URLは学校基本調査のトップページのみ。「情報科学・工学」という区分が公式統計の区分と一致するか確認できない。数値が丸く（28400, 29100, 30200…）、実際の公表値かどうか確認できていない。"},
   "description": "日本の大学学部（情報科学・工学系および理学・数理科学系）における入学者総数、女性入学者数、男性入学者数、および女性比率の推移（2015〜2024年度）。IT国家戦略および理数系女子育成施策の成果検証データ。",
   "unit": "人",
   "time_col": "年度",

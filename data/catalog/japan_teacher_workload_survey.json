@@ -5,6 +5,7 @@
   "region": "japan",
   "source_name": "文部科学省「教員勤務実態調査」",
   "source_url": "https://www.mext.go.jp/a_menu/shotou/gyouseki/detail/1416756.htm",
+  "verification": {"status": "source_invalid", "checked_on": "2026-10-05", "note": "出典URLが404（高校情報教育のURLと番号が同じで別パス）。調査年（2006/2016/2022）は実在するが、数値は未照合。"},
   "description": "文部科学省が実施する公立小・中学校教員の勤務実態調査に基づく、平日1日あたりの授業時間、授業準備時間、事務・校務処理時間、部活動指導時間、および持ち帰り仕事時間の推移データ。校務負担と授業研究時間の構造的トレードオフを検証する。",
   "unit": "時間",
   "time_col": "調査年",
