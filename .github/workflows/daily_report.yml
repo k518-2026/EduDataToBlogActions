@@ -4,9 +4,9 @@ on:
   # Scheduled runs (JST = UTC + 9)
   # 1. 毎朝 05:00 JST (20:00 UTC) - 恒常運用
   # 2. 夜 22:00 JST (13:00 UTC) - 2026年9月30日まで1日2回運用
-  schedule:
-    - cron: '0 20 * * *'
-    - cron: '0 13 * * *'
+  # schedule:  # 2026-10-05 WordPress 異議申し立ての結果待ちのため一時停止。再開は # を外す
+    # - cron: '0 20 * * *'
+    # - cron: '0 13 * * *'
 
   # Manual execution from GitHub Actions UI
   workflow_dispatch:
