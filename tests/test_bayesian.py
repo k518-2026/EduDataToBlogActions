@@ -258,7 +258,7 @@ def test_pdf_secondary_table_includes_bayes_factor():
         raw_df=pd.DataFrame(),
     )
     caption_c, table_c, note_c = generator._build_secondary_table(dataset, analysis_corr)
-    assert "ベイズファクター" in caption_c
+    assert "BF一覧" in caption_c
     assert "BF₁₀" in note_c
 
 
