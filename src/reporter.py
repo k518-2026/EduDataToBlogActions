@@ -20,7 +20,7 @@ from src.analyzer import AnalysisResult, format_apa_p, format_apa_stat
 from src.config import Config
 from src.fetchers.base import EducationDataset
 from src.insights import EducationalInsights
-from src.utils import clean_insight_text, format_bayes_factor
+from src.utils import clean_insight_text, format_bayes_factor, sanitize_html_for_wordpress
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -1110,10 +1110,10 @@ plt.show()
 > 学会誌査読委員の視点を模した生成AI（Generative AI）により，生態学的誤謬の回避や交絡因子の統制など厳しい学術基準で審査した「査読報告書（条件付採録）」を公開しています（学生教育・推敲支援目的）。
 > [📥 査読報告書PDFを直接ダウンロード（PDF）]({peer_review_pdf_url})
 """
-            review_btn_html = f"""
-                <a href="{peer_review_pdf_url}" target="_blank" rel="noopener noreferrer" download style="background-color:#475569; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); margin-top:8px;">
-                  📥 査読報告書PDFを直接ダウンロード
-                </a>
+            review_btn_html = """
+                <span style="background-color:#475569; color:#ffffff; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); margin-top:8px;">
+                  📋 査読報告書PDF同時公開中
+                </span>
 """
 
         if pdf_url:
@@ -1125,7 +1125,7 @@ plt.show()
 ---
 """
             pdf_banner_html = f"""
-          <!-- Academic Thesis PDF Download Callout -->
+          <!-- Academic Thesis PDF Callout -->
           <div style="background:linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border:1px solid #bae6fd; border-left:5px solid #0284c7; border-radius:8px; padding:16px 20px; margin-bottom:26px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
               <div style="max-width:540px;">
@@ -1136,11 +1136,10 @@ plt.show()
                 </p>
               </div>
               <div style="text-align:right;">
-                <a href="{pdf_url}" target="_blank" rel="noopener noreferrer" download style="background-color:#0284c7; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12); transition:background-color 0.2s;">
-                  📥 学術論文PDFを直接ダウンロード
-                </a><br/>
+                <span style="background-color:#0284c7; color:#ffffff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.12);">
+                  📄 学術論文PDF公開中
+                </span><br/>
                 {review_btn_html}
-                <div style="font-size:11px; color:#64748b; margin-top:4px;">※直接PDFファイルをダウンロードして閲覧いただけます</div>
               </div>
             </div>
           </div>
@@ -1318,7 +1317,7 @@ plt.show()
           {pdf_banner_html}
           <!-- Open Data Source Details -->
           <div style="background-color:#edf2f4; padding:12px 18px; border-radius:6px; margin-bottom:25px; font-size:13px; color:#495057;">
-            <b>データ出典:</b> <a href="{dataset.source_url}" target="_blank" style="color:#1d3557; text-decoration:underline;">{dataset.source_name}</a><br/>
+            <b>データ出典:</b> <span style="color:#1d3557; font-weight:bold;">{dataset.source_name}</span><br/>
             <b>調査概要:</b> {dataset.description}
           </div>
 
@@ -1367,7 +1366,7 @@ plt.show()
             </div>
           </div>
 
-          <!-- Python Analysis Script Link Section -->
+          <!-- Python Analysis Script Section -->
           <div style="background-color:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #3b82f6; border-radius:6px; padding:16px 20px; margin-top:35px; margin-bottom:30px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
               <div style="max-width:540px;">
@@ -1379,9 +1378,9 @@ plt.show()
                 </p>
               </div>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <a href="{raw_py_url}" download="{py_filename}" style="background-color:#2563eb; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:6px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1); transition:background-color 0.2s;">
-                  📥 .pyファイルをダウンロード
-                </a>
+                <span style="background-color:#2563eb; color:#ffffff; padding:10px 18px; border-radius:6px; font-size:13px; font-weight:bold; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                  📥 .pyファイルをダウンロード（{py_filename}）
+                </span>
               </div>
             </div>
           </div>
@@ -1401,6 +1400,9 @@ plt.show()
 [tags {tag_str}]
 [status {wp_status}]
 """
+
+        # Final safety net: strip any <a href="..."> links and convert DOI URLs to plain 'DOI: 10.xxxx/...'
+        html_content = sanitize_html_for_wordpress(html_content)
 
         return GeneratedReport(
             title=title,

@@ -8,6 +8,7 @@ import requests
 from src.config import Config
 from src.publishers.base import BasePublisher
 from src.reporter import GeneratedReport
+from src.utils import sanitize_html_for_wordpress
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +106,8 @@ class WordPressRestPublisher(BasePublisher):
         headers = self._get_auth_header()
         headers["Content-Type"] = "application/json"
 
-        # Clean email-specific shortcodes from HTML content for web display
-        content = report.html_content
+        # Clean email-specific shortcodes and strip any <a href="..."> links from HTML content for web display
+        content = sanitize_html_for_wordpress(report.html_content)
         if "<!-- WordPress Post by Email Shortcodes" in content:
             content = content.split("<!-- WordPress Post by Email Shortcodes")[0].rstrip()
 

@@ -156,7 +156,7 @@ def test_reporter_integrates_pdf_link(tmp_path):
 
     assert report.pdf_url == dummy_pdf_url
     assert report.pdf_path == dummy_pdf_path
-    assert dummy_pdf_url in report.html_content
+    assert "<a " not in report.html_content
     assert "学術論文形式の完全版レポート" in report.html_content
     assert dummy_pdf_url in report.markdown_content
     assert "学術論文形式PDF" in report.markdown_content

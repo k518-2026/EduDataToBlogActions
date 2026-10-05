@@ -136,5 +136,8 @@ def test_reporter_builds_dual_tables_and_figures(tmp_path):
     assert "基本記述統計量一覧" in report.html_content
     assert "表2: 重回帰分析推定量" in report.html_content
     assert report.html_content.count("data:image/png;base64,") >= 2
+    assert "<a " not in report.html_content
+    assert "</a>" not in report.html_content
+
 
 

@@ -8,6 +8,7 @@ from typing import Optional
 from src.config import Config
 from src.publishers.base import BasePublisher
 from src.reporter import GeneratedReport
+from src.utils import sanitize_html_for_wordpress
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,9 @@ class WordPressMailPublisher(BasePublisher):
         plain_text = "この投稿を表示するにはHTML対応のメールクライアントが必要です。"
         alt_part.attach(MIMEText(plain_text, "plain", "utf-8"))
 
-        # HTML content
-        alt_part.attach(MIMEText(report.html_content, "html", "utf-8"))
+        # HTML content (ensure all <a href="..."> links are stripped and DOIs are plain text)
+        safe_html = sanitize_html_for_wordpress(report.html_content)
+        alt_part.attach(MIMEText(safe_html, "html", "utf-8"))
 
         # Attach chart image
         if report.chart_path and report.chart_path.exists():

@@ -253,10 +253,77 @@ def format_title_two_lines(title: str) -> str:
     return clean
 
 
+def sanitize_html_for_wordpress(html_text: str) -> str:
+    """
+    Sanitizes HTML and text content for WordPress posts (both Post by Email and REST API):
+    1. Converts <a href="https://doi.org/10.xxxx/...">...</a> to plain text 'DOI: 10.xxxx/...'.
+    2. Converts <a href="...">DOI: 10.xxxx/...</a> to 'DOI: 10.xxxx/...'.
+    3. Strips all remaining <a href="...">...</a> tags while preserving their inner text.
+    4. Converts Markdown links [text](https://doi.org/10.xxxx/...) to 'DOI: 10.xxxx/...' and [text](url) to 'text'.
+    5. Converts bare DOI URLs (https://doi.org/10.xxxx/...) to plain text 'DOI: 10.xxxx/...'.
+    6. Deduplicates accidental 'DOI: DOI: ' prefixes.
+    """
+    if not html_text:
+        return ""
+
+    cleaned = str(html_text)
+
+    # 1. Convert <a href="...doi.org/10.xxx">...</a> to DOI: 10.xxx
+    cleaned = re.sub(
+        r'<a\b[^>]*href=["\']https?://(?:dx\.)?doi\.org/(10\.[^"\'\s>]+)["\'][^>]*>.*?</a>',
+        r"DOI: \1",
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    # 2. Convert <a href="...">DOI: 10.xxx</a> or <a href="...">10.xxx</a> to DOI: 10.xxx
+    cleaned = re.sub(
+        r"<a\b[^>]*>\s*(?:DOI:\s*)?(10\.\d{4,9}/[^\s<]+)\s*</a>",
+        r"DOI: \1",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+
+    # 3. Strip any remaining <a ...>...</a> tags, preserving inner text
+    cleaned = re.sub(
+        r"<a\b[^>]*>(.*?)</a>",
+        r"\1",
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    # 4. Convert Markdown DOI links [text](https://doi.org/10.xxx) -> DOI: 10.xxx
+    cleaned = re.sub(
+        r"(?<!\!)\[[^\]]*\]\(\s*https?://(?:dx\.)?doi\.org/(10\.[^\s\)]+)\s*\)",
+        r"DOI: \1",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    # Strip other Markdown links [text](http...) -> text (preserving ![alt](img))
+    cleaned = re.sub(
+        r"(?<!\!)\[([^\]]+)\]\(\s*https?://[^\s\)]+\s*\)",
+        r"\1",
+        cleaned,
+    )
+
+    # 5. Convert bare DOI URLs (https://doi.org/10.xxxx) to plain 'DOI: 10.xxxx'
+    cleaned = re.sub(
+        r"(?:DOI:\s*)?https?://(?:dx\.)?doi\.org/(10\.[^\s<>\"\'\)\]】』，．]+)",
+        r"DOI: \1",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+
+    # 6. Clean up any accidental duplicate "DOI: DOI: "
+    cleaned = re.sub(r"(?:DOI:\s*){2,}", "DOI: ", cleaned, flags=re.IGNORECASE)
+
+    return cleaned
+
+
 def clean_insight_text(text: str) -> str:
     """
     Sanitizes educational insight text to guarantee no raw JSON keys, braces,
-    escaped quotes, or trailing fragments appear in blog posts or markdown documents.
+    escaped quotes, <a href="..."> links, or trailing fragments appear in blog posts or markdown documents.
     """
     if not text:
         return ""
@@ -283,7 +350,11 @@ def clean_insight_text(text: str) -> str:
 
     # Clean unescaped sequences
     t = t.replace(r'\r\n', '\n').replace(r'\n', '\n').replace(r'\"', '"').replace(r'\/', '/')
+
+    # Strip <a href="..."> links and normalize DOI URLs to plain 'DOI: 10.xxxx/...'
+    t = sanitize_html_for_wordpress(t)
     return t.strip()
+
 
 
 

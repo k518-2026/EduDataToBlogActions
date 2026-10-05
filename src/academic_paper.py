@@ -35,6 +35,7 @@ from src.utils import (
     format_bayes_factor,
     resolve_anthropic_model,
     resolve_metric_unit,
+    sanitize_html_for_wordpress,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,11 +44,13 @@ logger = logging.getLogger(__name__)
 def normalize_jset_text(text: str) -> str:
     """
     Normalizes Japanese punctuation to Japan Society for Educational Technology (JSET) standards:
+    - Strips any <a href="..."> HTML links and converts DOI URLs to plain 'DOI: 10.xxxx/...'
     - Replaces full-width comma '、' with '，'
     - Replaces full-width period '。' with '．'
     """
     if not text:
         return ""
+    text = sanitize_html_for_wordpress(text)
     # Avoid replacing periods in URLs (e.g. https://doi.org/10...)
     parts = text.split("http")
     normalized_parts = []
@@ -361,12 +364,13 @@ def normalize_jset_reference(ref: str) -> str:
     """
     Normalizes a single reference entry into JSET compliant typography:
     - Strips leading numbers, brackets, bullets (e.g. '[1]', '1.', '・', '-')
+    - Strips any <a href="..."> links and converts DOI URLs to plain 'DOI: 10.xxxx/...'
     - Surnames of foreign authors in ALL CAPS (e.g. 'Mullis, I. V. S.' -> 'MULLIS, I. V. S.')
     - Replaces '&' with 'and' before the last author
     - Full-width colon before page ranges ('：15-24')
     - Journal volume in bold '<b>巻</b> (号)'
     """
-    s = ref.strip()
+    s = sanitize_html_for_wordpress(ref).strip()
     if not s:
         return ""
 
@@ -708,6 +712,15 @@ def sanitize_academic_paper(
     else:
         paper.keywords_en = cleaned_keywords
 
+    # 5. Strip any <a href="..."> tags and convert DOI URLs to plain 'DOI: 10.xxxx/...' across all fields
+    paper.abstract = sanitize_html_for_wordpress(paper.abstract)
+    paper.background = sanitize_html_for_wordpress(paper.background)
+    paper.objectives = sanitize_html_for_wordpress(paper.objectives)
+    paper.methodology = sanitize_html_for_wordpress(paper.methodology)
+    paper.results_text = sanitize_html_for_wordpress(paper.results_text)
+    paper.discussion = sanitize_html_for_wordpress(paper.discussion)
+    paper.references = [sanitize_html_for_wordpress(r) for r in paper.references]
+
     return paper
 
 
@@ -973,6 +986,7 @@ class AcademicPaperGenerator:
      2. 【著者名表記】外国人著者の苗字（姓）はすべて大文字（ALL CAPS、例: MULLIS, I. V. S.、WING, J. M.、GODA, Y.）とし、共著者間の接続は「and」を用いること（「&」は不可）。
      3. 【雑誌・書誌書式】著者名 (西暦年) 題目. 雑誌名, <b>巻数</b> (号数) ：始め-終わりページ. （※巻数は太字<b> </b>、ページ範囲の前は全角コロン「：」とすること）。
      4. ※特定の学会名（「日本教育工学会」等）は含めないこと。各文献の先頭に「[1]」「1.」「・」等の番号・記号は付けないこと。
+     5. 【リンクタグ禁止・DOIプレーン表記】本文および参考文献に `<a href="...">` 等のHTMLリンクタグや生のDOI URL（`https://doi.org/10.xxxx/...`）は絶対に含めず、DOIを記載する場合は必ずプレーンな文字表記（`DOI: 10.xxxx/...`）とすること。
     - **title_en**: 英語論文タイトル（日本語・全角文字一切禁止）。推奨英文題目: "{ctx.title_en}"
     - **authors_en**: 英語著者所属（例: "EduData Research Group*1 and Educational Data Science Team*2"）。
     - **summary_en**: 英文抄録（Summary，100〜150語）。

@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 import pandas as pd
 from src.insights import parse_insights_json, EducationalInsights
 from src.utils import clean_insight_text
@@ -115,3 +115,29 @@ def test_reporter_sanitizes_corrupted_insights(tmp_path):
         assert "端末利用率は劇的に向上しました。" in content
         assert "授業内での対話的活動を深める必要があります。" in content
         assert "地域間格差の是正が求められます。" in content
+
+
+def test_sanitize_html_for_wordpress_strips_links_and_formats_doi():
+    from src.utils import sanitize_html_for_wordpress
+    from src.academic_paper import normalize_jset_reference
+
+    raw_html = (
+        '先行研究（<a href="https://doi.org/10.1007/s10648-019-09465-5" target="_blank">Sweller et al., 2019</a>）'
+        'および <a href="https://example.com/report.pdf">文部科学省レポート</a> によれば、'
+        'https://doi.org/10.1787/5f07c754-en や [OECD (2023)](https://doi.org/10.1787/d888f926-en) が示す通りである。'
+    )
+    sanitized = sanitize_html_for_wordpress(raw_html)
+    assert "<a " not in sanitized
+    assert "</a>" not in sanitized
+    assert "https://doi.org/" not in sanitized
+    assert "DOI: 10.1007/s10648-019-09465-5" in sanitized
+    assert "文部科学省レポート" in sanitized
+    assert "DOI: 10.1787/5f07c754-en" in sanitized
+    assert "DOI: 10.1787/d888f926-en" in sanitized
+
+    ref = 'OECD (2023) PISA 2022 Results. OECD Publishing. <a href="https://doi.org/10.1787/53f23881-en">https://doi.org/10.1787/53f23881-en</a>'
+    norm_ref = normalize_jset_reference(ref)
+    assert "<a " not in norm_ref
+    assert "https://doi.org/" not in norm_ref
+    assert "DOI: 10.1787/53f23881-en" in norm_ref
+
