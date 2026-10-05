@@ -21,7 +21,7 @@ from src.academic_paper import AcademicPaper
 from src.analyzer import AnalysisResult, is_collinear_or_redundant_pair
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import resolve_anthropic_model
+from src.utils import extract_anthropic_text, resolve_anthropic_model
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -461,8 +461,7 @@ class PeerReviewGenerator:
         }
         payload = {
             "model": resolved_model,
-            "max_tokens": 4096,
-            "temperature": 0.3,
+            "max_tokens": 16000,
             "system": "You are a senior academic reviewer for an educational research journal. Review thoroughly and provide critical scholarly evaluations.",
             "messages": [{"role": "user", "content": prompt}],
         }
@@ -473,10 +472,10 @@ class PeerReviewGenerator:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=90) as resp:
+        with urllib.request.urlopen(req, timeout=600) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
 
-        raw_text = res_data["content"][0]["text"].strip()
+        raw_text = extract_anthropic_text(res_data)
         json_match = re.search(r"\{[\s\S]*\}", raw_text)
         if json_match:
             raw_text = json_match.group(0)

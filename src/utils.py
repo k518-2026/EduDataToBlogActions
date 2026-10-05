@@ -480,3 +480,18 @@ def resolve_anthropic_model(api_key: str, preferred_model: str = "") -> str:
     return models[0]
 
 
+
+
+def extract_anthropic_text(res_data: dict) -> str:
+    """Return the text of a Messages API response.
+
+    Newer models can put a thinking block before the text block, so content[0] is not always
+    the text. A reply cut off by max_tokens is an error (the JSON would be truncated).
+    """
+    if res_data.get("stop_reason") == "max_tokens":
+        raise ValueError("Claude の応答が max_tokens で途中で切れました")
+    parts = [b.get("text", "") for b in res_data.get("content", []) if b.get("type") == "text"]
+    text = "".join(parts).strip()
+    if not text:
+        raise ValueError("Claude の応答に text ブロックがありません: " + str([b.get("type") for b in res_data.get("content", [])]))
+    return text

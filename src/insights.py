@@ -18,7 +18,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import clean_insight_text, resolve_anthropic_model, resolve_metric_unit
+from src.utils import clean_insight_text, extract_anthropic_text, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -336,8 +336,7 @@ class GeminiInsightGenerator:
         }
         payload = {
             "model": resolved_model,
-            "max_tokens": 4096,
-            "temperature": 0.3,
+            "max_tokens": 16000,
             "system": "You are an expert Japanese educational policy and statistical analyst specializing in uncovering surprising data paradoxes. Always respond strictly in valid JSON without markdown fences or preambles.",
             "messages": [{"role": "user", "content": prompt}],
         }
@@ -348,10 +347,10 @@ class GeminiInsightGenerator:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=600) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
 
-        raw_text = res_data["content"][0]["text"].strip()
+        raw_text = extract_anthropic_text(res_data)
         parsed = parse_insights_json(raw_text)
         fallback = self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
 

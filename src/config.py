@@ -30,7 +30,7 @@ class Config:
 
     # Anthropic Claude AI settings (Optional high-grade thesis writer)
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5").strip()
+    ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5-5").strip()
 
     # Blog publishing mode: 'wordpress_mail', 'wordpress_rest', or 'markdown_only'
     # Temporarily paused WordPress posting -> defaults to 'markdown_only'

@@ -33,6 +33,7 @@ from src.utils import (
     clean_text_spaces,
     contains_japanese,
     format_bayes_factor,
+    extract_anthropic_text,
     resolve_anthropic_model,
     resolve_metric_unit,
     sanitize_html_for_wordpress,
@@ -1123,8 +1124,7 @@ class AcademicPaperGenerator:
         }
         payload = {
             "model": resolved_model,
-            "max_tokens": 4096,
-            "temperature": 0.35,
+            "max_tokens": 32000,
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -1134,10 +1134,10 @@ class AcademicPaperGenerator:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=600) as resp:
             res_data = json.loads(resp.read().decode("utf-8"))
 
-        raw_text = res_data["content"][0]["text"].strip()
+        raw_text = extract_anthropic_text(res_data)
         json_match = re.search(r"\{[\s\S]*\}", raw_text)
         if json_match:
             raw_text = json_match.group(0)
@@ -1163,7 +1163,7 @@ class AcademicPaperGenerator:
         if not title.endswith("†"):
             title += "†"
 
-        logger.info("Successfully generated academic paper via Claude 3.5 Sonnet!")
+        logger.info("Successfully generated academic paper via Claude!")
         paper = AcademicPaper(
             title=title,
             subtitle=clean_text_spaces(normalize_jset_text(data.get("subtitle", "公的オープンデータに基づく教育構造の定量的解明"))),
