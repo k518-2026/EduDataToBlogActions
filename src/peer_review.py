@@ -21,7 +21,7 @@ from src.academic_paper import AcademicPaper
 from src.analyzer import AnalysisResult, is_collinear_or_redundant_pair
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import extract_anthropic_text, resolve_anthropic_model
+from src.utils import LLMGenerationError, extract_anthropic_text, resolve_anthropic_model
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -245,6 +245,7 @@ class PeerReviewGenerator:
         )
 
         report = None
+        errors = []
         # 1. Prefer Claude if ANTHROPIC_API_KEY is configured
         if self.anthropic_api_key:
             try:
@@ -254,6 +255,7 @@ class PeerReviewGenerator:
                 )
             except Exception as e:
                 logger.warning(f"Claude peer review generation failed: {e}. Trying Gemini...")
+                errors.append(f"Claude: {e}")
 
         # 2. Use Gemini if available
         if not report and self.gemini_client:
@@ -263,13 +265,14 @@ class PeerReviewGenerator:
                     paper, dataset, analysis, selected_angle=selected_angle, audit_issues=audit_issues
                 )
             except Exception as e:
-                logger.warning(f"Gemini peer review generation failed: {e}. Falling back to domain template.")
+                logger.warning(f"Gemini peer review generation failed: {e}")
+                errors.append(f"Gemini: {e}")
 
-        # 3. Fallback to domain-specific peer review template
+        # 3. No template text is ever published: fail loudly
         if not report:
-            logger.info("Using domain-specific academic peer review template fallback.")
-            report = self._generate_template_fallback(
-                paper, dataset, analysis, selected_angle=selected_angle, audit_issues=audit_issues
+            raise LLMGenerationError(
+                "査読報告を生成できませんでした（テンプレートでは代替しません）: "
+                + (" / ".join(errors) if errors else "ANTHROPIC_API_KEY も GEMINI_API_KEY も未設定")
             )
 
         # 4. Enforce strict rejection if fatal flaws exist

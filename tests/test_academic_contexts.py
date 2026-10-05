@@ -9,7 +9,9 @@ from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS, get_academic_contex
 from src.academic_paper import AcademicPaperGenerator
 from src.analyzer import EduDataAnalyzer
 from src.fetchers.catalog import DatasetCatalog
+from src.insights import GeminiInsightGenerator
 from src.peer_review import PeerReviewGenerator
+from src.utils import LLMGenerationError
 
 
 def test_academic_contexts_completeness_for_all_datasets():
@@ -65,40 +67,56 @@ def test_academic_contexts_completeness_for_all_datasets():
         assert len(ctx.fallback_questions_to_authors) >= 2
 
 
-def test_claude_generation_graceful_fallback():
-    """Verifies that if Claude API fails, AcademicPaperGenerator gracefully falls back to Gemini or template."""
+@pytest.mark.no_template_standin
+def test_claude_failure_without_gemini_raises_instead_of_template():
+    """If Claude fails and Gemini is unavailable, paper generation fails loudly (no template text)."""
     catalog = DatasetCatalog()
     dataset = catalog.get_by_id("japan_national_assessment_math")
-    analyzer = EduDataAnalyzer()
-    analysis = analyzer.analyze(dataset)
+    analysis = EduDataAnalyzer().analyze(dataset)
 
-    # Initialize generator with dummy Anthropic key
-    gen = AcademicPaperGenerator(anthropic_api_key="dummy-sk-ant-key")
-
-    # Mock Claude failure (e.g. invalid key 401 HTTP error)
+    gen = AcademicPaperGenerator(anthropic_api_key="dummy-sk-ant-key", gemini_api_key="")
+    gen.gemini_client = None
     with patch.object(gen, "_generate_with_claude", side_effect=Exception("Anthropic 401 Unauthorized")):
-        paper = gen.generate_paper(dataset, analysis)
-        assert paper is not None
-        assert len(paper.title) > 0
-        assert len(paper.background) >= 400
+        with pytest.raises(LLMGenerationError, match="Anthropic 401"):
+            gen.generate_paper(dataset, analysis)
 
 
-def test_peer_review_claude_graceful_fallback():
-    """Verifies that if Claude API fails, PeerReviewGenerator gracefully falls back to Gemini or template."""
+@pytest.mark.no_template_standin
+def test_peer_review_claude_failure_raises_instead_of_template():
+    """Peer review fails loudly too when no language model answers."""
     catalog = DatasetCatalog()
     dataset = catalog.get_by_id("japan_high_school_informatics")
-    analyzer = EduDataAnalyzer()
-    analysis = analyzer.analyze(dataset)
+    analysis = EduDataAnalyzer().analyze(dataset)
+    paper = AcademicPaperGenerator()._generate_template_fallback(dataset, analysis)
 
-    paper_gen = AcademicPaperGenerator()
-    paper = paper_gen.generate_paper(dataset, analysis)
-
-    rev_gen = PeerReviewGenerator(anthropic_api_key="dummy-sk-ant-key")
+    rev_gen = PeerReviewGenerator(anthropic_api_key="dummy-sk-ant-key", gemini_api_key="")
+    rev_gen.gemini_client = None
     with patch.object(rev_gen, "_generate_with_claude", side_effect=Exception("Anthropic 401 Unauthorized")):
-        review = rev_gen.generate_review(paper, dataset, analysis)
-        assert review is not None
-        assert "条件付採録" in review.decision
-        assert len(review.major_revisions) >= 3
+        with pytest.raises(LLMGenerationError, match="Anthropic 401"):
+            rev_gen.generate_review(paper, dataset, analysis)
+
+
+@pytest.mark.no_template_standin
+def test_insights_without_any_key_raise():
+    """No API key at all is an error, not a silent template."""
+    catalog = DatasetCatalog()
+    dataset = catalog.get_by_id("japan_national_assessment_math")
+    analysis = EduDataAnalyzer().analyze(dataset)
+    gen = GeminiInsightGenerator(gemini_api_key="", anthropic_api_key="")
+    gen.gemini_client = None
+    with pytest.raises(LLMGenerationError):
+        gen.generate_insights(dataset, analysis)
+
+
+@pytest.mark.no_template_standin
+def test_insights_missing_fields_are_an_error():
+    """A model reply that lacks a field is rejected instead of being patched with template text."""
+    with pytest.raises(LLMGenerationError):
+        GeminiInsightGenerator._require_insight_fields({"executive_summary": "x" * 30}, "Claude")
+    ok = GeminiInsightGenerator._require_insight_fields(
+        {"executive_summary": "a" * 30, "counter_intuitive_finding": "b" * 30,
+         "pedagogical_implications": "c" * 30, "future_challenges_and_policy": "d" * 30}, "Claude")
+    assert len(ok) == 4
 
 
 def test_resolve_anthropic_model_logic():

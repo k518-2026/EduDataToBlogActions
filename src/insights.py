@@ -18,7 +18,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import clean_insight_text, extract_anthropic_text, resolve_anthropic_model, resolve_metric_unit
+from src.utils import LLMGenerationError, clean_insight_text, extract_anthropic_text, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +127,7 @@ class GeminiInsightGenerator:
         past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> EducationalInsights:
         """Generates educational insights from statistical analysis results."""
+        errors: List[str] = []
         # 1. Prefer Claude if configured
         if self.anthropic_api_key:
             try:
@@ -136,6 +137,7 @@ class GeminiInsightGenerator:
                 )
             except Exception as e:
                 logger.warning(f"Claude insight generation failed: {e}. Trying Gemini...")
+                errors.append(f"Claude: {e}")
 
         # 2. Use Gemini if available
         if self.gemini_client:
@@ -145,11 +147,14 @@ class GeminiInsightGenerator:
                     dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
                 )
             except Exception as e:
-                logger.warning(f"Gemini API call failed, falling back to template engine: {e}")
+                logger.warning(f"Gemini API call failed: {e}")
+                errors.append(f"Gemini: {e}")
 
-        # 3. Fallback to template engine
-        logger.info("Using domain-specific educational insight template fallback.")
-        return self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
+        # 3. No template text is ever published: fail loudly
+        raise LLMGenerationError(
+            "インサイトを生成できませんでした（テンプレートでは代替しません）: "
+            + (" / ".join(errors) if errors else "ANTHROPIC_API_KEY も GEMINI_API_KEY も未設定")
+        )
 
     def _build_insight_prompt(
         self,
@@ -290,16 +295,7 @@ class GeminiInsightGenerator:
 
         raw_text = response.text.strip()
         parsed = parse_insights_json(raw_text)
-        fallback = self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
-
-        exec_summary = parsed.get("executive_summary") or fallback.executive_summary
-        paradox = parsed.get("counter_intuitive_finding") or fallback.counter_intuitive_finding
-        pedagogy = parsed.get("pedagogical_implications") or fallback.pedagogical_implications
-        policy = parsed.get("future_challenges_and_policy") or fallback.future_challenges_and_policy
-
-        if not exec_summary or len(exec_summary) < 20:
-            logger.warning("Parsed Gemini insights had insufficient executive_summary. Using template fallback.")
-            return fallback
+        exec_summary, paradox, pedagogy, policy = self._require_insight_fields(parsed, "Gemini")
 
         return EducationalInsights(
             executive_summary=clean_insight_text(exec_summary),
@@ -352,16 +348,7 @@ class GeminiInsightGenerator:
 
         raw_text = extract_anthropic_text(res_data)
         parsed = parse_insights_json(raw_text)
-        fallback = self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
-
-        exec_summary = parsed.get("executive_summary") or fallback.executive_summary
-        paradox = parsed.get("counter_intuitive_finding") or fallback.counter_intuitive_finding
-        pedagogy = parsed.get("pedagogical_implications") or fallback.pedagogical_implications
-        policy = parsed.get("future_challenges_and_policy") or fallback.future_challenges_and_policy
-
-        if not exec_summary or len(exec_summary) < 20:
-            logger.warning("Parsed Claude insights had insufficient executive_summary. Using template fallback.")
-            return fallback
+        exec_summary, paradox, pedagogy, policy = self._require_insight_fields(parsed, "Claude")
 
         logger.info(f"Successfully generated educational insights via Claude ({resolved_model})!")
         return EducationalInsights(
@@ -370,6 +357,21 @@ class GeminiInsightGenerator:
             pedagogical_implications=clean_insight_text(pedagogy),
             future_challenges_and_policy=clean_insight_text(policy),
         )
+
+    @staticmethod
+    def _require_insight_fields(parsed: dict, source: str):
+        """All four fields must come from the model. Missing or too-short ones are an error."""
+        keys = (
+            "executive_summary",
+            "counter_intuitive_finding",
+            "pedagogical_implications",
+            "future_challenges_and_policy",
+        )
+        values = [str(parsed.get(k) or "").strip() for k in keys]
+        bad = [k for k, v in zip(keys, values) if len(v) < 20]
+        if bad:
+            raise LLMGenerationError(f"{source} の応答に必要な項目がありません、または短すぎます: {', '.join(bad)}")
+        return values
 
     def _generate_template_fallback(
         self,

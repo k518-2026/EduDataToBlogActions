@@ -34,6 +34,7 @@ from src.utils import (
     contains_japanese,
     format_bayes_factor,
     extract_anthropic_text,
+    LLMGenerationError,
     resolve_anthropic_model,
     resolve_metric_unit,
     sanitize_html_for_wordpress,
@@ -774,6 +775,7 @@ class AcademicPaperGenerator:
         past_topics: Optional[List[Dict[str, str]]] = None,
     ) -> AcademicPaper:
         """Generates academic thesis content grounded in dataset and statistical analysis."""
+        errors = []
         # 1. Prefer Claude if ANTHROPIC_API_KEY is configured
         if self.anthropic_api_key:
             try:
@@ -783,6 +785,7 @@ class AcademicPaperGenerator:
                 )
             except Exception as e:
                 logger.warning(f"Claude academic paper generation failed: {e}. Trying Gemini...")
+                errors.append(f"Claude: {e}")
 
         # 2. Use Gemini if available
         if self.gemini_client:
@@ -792,11 +795,14 @@ class AcademicPaperGenerator:
                     dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
                 )
             except Exception as e:
-                logger.warning(f"Gemini academic paper generation failed: {e}. Falling back to template.")
+                logger.warning(f"Gemini academic paper generation failed: {e}")
+                errors.append(f"Gemini: {e}")
 
-        # 3. Fallback to domain-specific academic template
-        logger.info("Using domain-specific academic template fallback for paper generation.")
-        return self._generate_template_fallback(dataset, analysis, selected_angle=selected_angle)
+        # 3. No template text is ever published: fail loudly
+        raise LLMGenerationError(
+            "論文本文を生成できませんでした（テンプレートでは代替しません）: "
+            + (" / ".join(errors) if errors else "ANTHROPIC_API_KEY も GEMINI_API_KEY も未設定")
+        )
 
     def _build_academic_prompt(
         self,

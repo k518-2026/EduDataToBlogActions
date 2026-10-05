@@ -495,3 +495,7 @@ def extract_anthropic_text(res_data: dict) -> str:
     if not text:
         raise ValueError("Claude の応答に text ブロックがありません: " + str([b.get("type") for b in res_data.get("content", [])]))
     return text
+
+
+class LLMGenerationError(RuntimeError):
+    """All language models failed. The pipeline must stop instead of publishing template text."""
