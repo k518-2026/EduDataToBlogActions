@@ -1,0 +1,3415 @@
+{
+ "url": "https://api.uis.unesco.org/api/public/data/indicators?indicator=ICTSKILLPCPR&indicator=ICTSKILLPCPR.F&indicator=ICTSKILLPCPR.M&indicator=ICTSKILLARSP&indicator=ICTSKILLARSP.F&indicator=ICTSKILLARSP.M&indicator=ICTSKILLEPRS&indicator=ICTSKILLEPRS.F&indicator=ICTSKILLEPRS.M&start=2021&end=2021&version=20260507-91260335&format=json",
+ "version": "20260507-91260335",
+ "year": 2021,
+ "records": [
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 84.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "AZE",
+   "year": 2021,
+   "value": 24.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 44.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 14.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BHR",
+   "year": 2021,
+   "value": 46.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BIH",
+   "year": 2021,
+   "value": 18,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 18.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 12.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 5.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 49.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 19.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "CYP",
+   "year": 2021,
+   "value": 39.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 36.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 34,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 48.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 41.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "EST",
+   "year": 2021,
+   "value": 41.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "FIN",
+   "year": 2021,
+   "value": 53,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "GEO",
+   "year": 2021,
+   "value": 9.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "GRC",
+   "year": 2021,
+   "value": 36.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 40.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 46.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 3.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "ISL",
+   "year": 2021,
+   "value": 66.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 7.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 50.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 39.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 53.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 38.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 39.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 44.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "LVA",
+   "year": 2021,
+   "value": 33.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 34.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 23.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 24.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 44.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 33.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MNG",
+   "year": 2021,
+   "value": 20.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 43.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 54,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 28.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 37.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "ROU",
+   "year": 2021,
+   "value": 5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 22.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 75.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 41.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "SRB",
+   "year": 2021,
+   "value": 23.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 40.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 33.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "SWE",
+   "year": 2021,
+   "value": 41.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 14.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 11.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 14.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP",
+   "geoUnit": "VNM",
+   "year": 2021,
+   "value": 15.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 80.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "AZE",
+   "year": 2021,
+   "value": 24.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 39.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 12.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "BHR",
+   "year": 2021,
+   "value": 48.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 19.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 10.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 4.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 42.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 19.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 34.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 28.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 40.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 38.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "GEO",
+   "year": 2021,
+   "value": 10.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 39,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 43.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 2.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 8.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 43,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 40.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 48,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 37.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 40.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 36.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 34,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 21.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 23.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 42.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 32.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 34.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 47.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 28.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 36.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 24.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 75,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 37.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "SRB",
+   "year": 2021,
+   "value": 21.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 37.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 30.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "SWE",
+   "year": 2021,
+   "value": 36.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 11.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.F",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 13.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 85.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "AZE",
+   "year": 2021,
+   "value": 25.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 48.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 15.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "BHR",
+   "year": 2021,
+   "value": 44.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 17.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 15.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 6.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 57.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 19.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 38.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 39.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 55.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 44.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 41.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 49.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 4.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 5.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 59.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 39.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 59.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 38.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 38.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 52.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 35.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 25.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 26,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 47.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 33.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 52.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 60,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 28.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 38.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 20.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 75.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 44.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "SRB",
+   "year": 2021,
+   "value": 25.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 43,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 35.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "SWE",
+   "year": 2021,
+   "value": 47,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 12.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLARSP.M",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 15.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "ALB",
+   "year": 2021,
+   "value": 14.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 56.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "AZE",
+   "year": 2021,
+   "value": 7.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 45.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BGR",
+   "year": 2021,
+   "value": 20,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BHR",
+   "year": 2021,
+   "value": 38.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BIH",
+   "year": 2021,
+   "value": 16.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 10.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 10.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 5.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 40.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 20.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 16.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 24.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 57.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 47.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "EST",
+   "year": 2021,
+   "value": 36.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "FIN",
+   "year": 2021,
+   "value": 49.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "FRA",
+   "year": 2021,
+   "value": 45,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "GEO",
+   "year": 2021,
+   "value": 9.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "GRC",
+   "year": 2021,
+   "value": 30.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 30.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 26.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "HUN",
+   "year": 2021,
+   "value": 25.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 5.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "ISL",
+   "year": 2021,
+   "value": 47.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 7.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 33.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 23.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 46.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 31.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 32.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 47.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 32.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 20.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 26.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 39.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 34.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MNG",
+   "year": 2021,
+   "value": 11,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 43.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 61,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 33.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 43.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "ROU",
+   "year": 2021,
+   "value": 24.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 10.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 61.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 42.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 36,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 38.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 16.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 9.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 7.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS",
+   "geoUnit": "VNM",
+   "year": 2021,
+   "value": 18.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "ALB",
+   "year": 2021,
+   "value": 15.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 53.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "AZE",
+   "year": 2021,
+   "value": 7.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 42.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 0.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BGR",
+   "year": 2021,
+   "value": 20,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BHR",
+   "year": 2021,
+   "value": 48.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BIH",
+   "year": 2021,
+   "value": 15,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 10.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 9.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 37.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 20.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 14.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 22.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 54,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 46.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "FRA",
+   "year": 2021,
+   "value": 43.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "GEO",
+   "year": 2021,
+   "value": 11.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 29.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 30,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "HUN",
+   "year": 2021,
+   "value": 25.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 5.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 8.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 26.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 22.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 41.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 40.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 33.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 31.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 18,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 25.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 39.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 35.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 34.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 57.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 33.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 43.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 11.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 63,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 39.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 34.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 13.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 9.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.F",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 6.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "ALB",
+   "year": 2021,
+   "value": 14.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 57.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "AZE",
+   "year": 2021,
+   "value": 7.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 47.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 1.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BGR",
+   "year": 2021,
+   "value": 20.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BHR",
+   "year": 2021,
+   "value": 33.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BIH",
+   "year": 2021,
+   "value": 17.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 10,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 10.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 44,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 20.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 18.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 26.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 61.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 49.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "FRA",
+   "year": 2021,
+   "value": 46.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 32,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 23.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "HUN",
+   "year": 2021,
+   "value": 26.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 5.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 5.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 41.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 23.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 51.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 25.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 31.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 33.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 23.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 28.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 38.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 33.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 51.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 64,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 34.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 43.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 9.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 60.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 46,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 37.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 18.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 9.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLEPRS.M",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 8.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "ALB",
+   "year": 2021,
+   "value": 5.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 22.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "AUT",
+   "year": 2021,
+   "value": 9.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 4.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 0.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BGR",
+   "year": 2021,
+   "value": 1.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BIH",
+   "year": 2021,
+   "value": 2.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 1.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 2.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 1.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "CYP",
+   "year": 2021,
+   "value": 5.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 4.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 4.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 10.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 7.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "EST",
+   "year": 2021,
+   "value": 5.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "FIN",
+   "year": 2021,
+   "value": 8.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "FRA",
+   "year": 2021,
+   "value": 5.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "GEO",
+   "year": 2021,
+   "value": 1.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "GRC",
+   "year": 2021,
+   "value": 3.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 3.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "HUN",
+   "year": 2021,
+   "value": 4.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 1.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "ISL",
+   "year": 2021,
+   "value": 9.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "JAM",
+   "year": 2021,
+   "value": 1.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "JPN",
+   "year": 2021,
+   "value": 5.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "KAZ",
+   "year": 2021,
+   "value": 6.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 10.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 15.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 8.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "LVA",
+   "year": 2021,
+   "value": 4.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 5.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 10.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 6.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 8.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MNG",
+   "year": 2021,
+   "value": 2.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 16.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 12,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 5.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 7.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 0.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 25.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 10.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "SRB",
+   "year": 2021,
+   "value": 1.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 4.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 5.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "SWE",
+   "year": 2021,
+   "value": 9.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 2.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 1.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 1.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR",
+   "geoUnit": "VNM",
+   "year": 2021,
+   "value": 1.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "ALB",
+   "year": 2021,
+   "value": 5.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 23.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "AUT",
+   "year": 2021,
+   "value": 4.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 1.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 0.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "BGR",
+   "year": 2021,
+   "value": 0.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 0.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 1.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 0.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 2.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 4.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 2.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 2.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 7.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 4.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "FRA",
+   "year": 2021,
+   "value": 3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 0.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 2.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "HUN",
+   "year": 2021,
+   "value": 1.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 8.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 14.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 2.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 3.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "LVA",
+   "year": 2021,
+   "value": 3.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 3.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 7.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 7.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 4.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 14.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 7.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 3.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 4.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 0.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 24.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 6.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "SRB",
+   "year": 2021,
+   "value": 0.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 1.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 2.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "SWE",
+   "year": 2021,
+   "value": 3.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 1.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 0.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.F",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 1.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "ALB",
+   "year": 2021,
+   "value": 5.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "ARE",
+   "year": 2021,
+   "value": 21.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "AUT",
+   "year": 2021,
+   "value": 15.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "BEL",
+   "year": 2021,
+   "value": 8.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "BGD",
+   "year": 2021,
+   "value": 0.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "BGR",
+   "year": 2021,
+   "value": 1.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "BLR",
+   "year": 2021,
+   "value": 2.3,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "BRA",
+   "year": 2021,
+   "value": 3.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "BTN",
+   "year": 2021,
+   "value": 2.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "CHE",
+   "year": 2021,
+   "value": 13.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "COL",
+   "year": 2021,
+   "value": 5.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "CZE",
+   "year": 2021,
+   "value": 7.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "DEU",
+   "year": 2021,
+   "value": 7.2,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "DNK",
+   "year": 2021,
+   "value": 14.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "ESP",
+   "year": 2021,
+   "value": 10.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "FRA",
+   "year": 2021,
+   "value": 8.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "HKG",
+   "year": 2021,
+   "value": 1.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "HRV",
+   "year": 2021,
+   "value": 4.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "HUN",
+   "year": 2021,
+   "value": 7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "IRN",
+   "year": 2021,
+   "value": 1.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "KOR",
+   "year": 2021,
+   "value": 11.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "KWT",
+   "year": 2021,
+   "value": 15.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "LTU",
+   "year": 2021,
+   "value": 7.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "LUX",
+   "year": 2021,
+   "value": 13.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "LVA",
+   "year": 2021,
+   "value": 6.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "MAC",
+   "year": 2021,
+   "value": 6.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "MAR",
+   "year": 2021,
+   "value": 12.9,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "MEX",
+   "year": 2021,
+   "value": 7.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "MLT",
+   "year": 2021,
+   "value": 10,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "MNE",
+   "year": 2021,
+   "value": 8.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "MYS",
+   "year": 2021,
+   "value": 17.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "NOR",
+   "year": 2021,
+   "value": 16,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "POL",
+   "year": 2021,
+   "value": 6.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "PRT",
+   "year": 2021,
+   "value": 10.4,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "RUS",
+   "year": 2021,
+   "value": 1.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "SAU",
+   "year": 2021,
+   "value": 25.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "SGP",
+   "year": 2021,
+   "value": 15.1,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "SRB",
+   "year": 2021,
+   "value": 2.6,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "SVK",
+   "year": 2021,
+   "value": 7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "SVN",
+   "year": 2021,
+   "value": 8.5,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "SWE",
+   "year": 2021,
+   "value": 14.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "TUR",
+   "year": 2021,
+   "value": 3.7,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "UKR",
+   "year": 2021,
+   "value": 1.8,
+   "magnitude": null,
+   "qualifier": null
+  },
+  {
+   "indicatorId": "ICTSKILLPCPR.M",
+   "geoUnit": "UZB",
+   "year": 2021,
+   "value": 1.3,
+   "magnitude": null,
+   "qualifier": null
+  }
+ ]
+}

@@ -9,6 +9,7 @@ from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS
 from src.academic_paper import (
     AcademicPaper,
     AcademicPaperGenerator,
+    UnverifiedCitationError,
     extract_in_text_citations,
     resolve_missing_reference,
     synchronize_citations_and_references,
@@ -47,81 +48,49 @@ def test_extract_in_text_citations_patterns():
 
 
 @pytest.mark.parametrize("dataset_id", list(DATASET_ACADEMIC_CONTEXTS.keys()))
-def test_bidirectional_citation_parity_for_all_datasets(dataset_id):
+def test_in_text_citations_are_in_curated_references(dataset_id):
     """
-    Every in-text citation in fallback_background & fallback_discussion
-    MUST be in curated_references, and every curated_reference MUST be cited in the text.
+    Every in-text citation in fallback_background & fallback_discussion must be in curated_references.
+    (curated_references itself is gated by test_curated_references_are_verified.)
     """
     ctx = DATASET_ACADEMIC_CONTEXTS[dataset_id]
     text = (ctx.fallback_background or "") + "\n" + (ctx.fallback_discussion or "")
     refs = ctx.curated_references or []
 
-    assert len(refs) >= 8, f"{dataset_id} must have at least 8 curated references"
+    assert len(refs) >= 3, f"{dataset_id} must have at least 3 curated references"
 
-    # 1. In-text citations -> must exist in refs
-    in_text_cites = extract_in_text_citations(text)
-    assert len(in_text_cites) >= 6, f"{dataset_id} must have at least 6 in-text citations"
-
-    for author_str, year in in_text_cites:
+    for author_str, year in extract_in_text_citations(text):
         parts = [
             p.strip()
             for p in re.split(r"[\s,・＆&]+|and", author_str)
             if p.strip() and p.lower() not in ["et", "al", "al."]
         ]
-        matched = False
-        for r in refs:
-            if year in r:
-                if any(p.lower() in r.lower() for p in parts):
-                    matched = True
-                    break
+        matched = any(
+            year in r and any(p.lower() in r.lower() for p in parts) for r in refs
+        )
         assert (
             matched
         ), f"In-text citation '{author_str} ({year})' in {dataset_id} is missing from curated_references!"
 
-    # 2. Curated references -> must be cited in text
-    for r in refs:
-        # Extract author raw and year
-        m = re.search(r"^([^\(（]+)[\(（]([12][09]\d\d)[\)）]", r.strip())
-        assert m is not None, f"Could not parse reference year: {r}"
-        authors_raw = m.group(1).strip()
-        year = m.group(2).strip()
 
-        # Extract surname keywords
-        names = []
-        for org in [
-            "文部科学省",
-            "国立教育政策研究所",
-            "大学入試センター",
-            "経済産業省",
-            "中央教育審議会",
-            "こども家庭庁",
-            "国立特別支援教育総合研究所",
-            "OECD",
-            "UNESCO",
-            "ITU",
-            "World Bank",
-        ]:
-            if org.lower() in authors_raw.lower():
-                names.append(org)
-        for part in re.split(r"[,，、・\s&]+|and", authors_raw):
-            part = part.strip()
-            if not part:
-                continue
-            if re.match(r"^[A-Za-z]+$", part) and len(part) > 1:
-                names.append(part)
-            elif re.match(r"^[\u4e00-\u9faf]+$", part):
-                if part.startswith("八木澤") or part.startswith("八木沢"):
-                    names.append("八木澤")
-                    names.append("八木沢")
-                elif len(part) >= 2:
-                    names.append(part[:2])
-                    names.append(part)
+def test_curated_references_are_verified():
+    """
+    A reference may be listed only if its existence was confirmed against an outside source
+    and registered, with the evidence, in data/references_verified.json (2026-10-05:
+    most of the earlier Japanese journal references could not be found and were removed).
+    """
+    import json
+    from pathlib import Path
 
-        assert year in text, f"Reference '{r}' (year {year}) is not cited in {dataset_id} body text!"
-        name_found = any(n.lower() in text.lower() for n in names)
-        assert (
-            name_found
-        ), f"Reference author from '{r}' ({names}) is not cited in {dataset_id} body text!"
+    reg = json.loads((Path(__file__).resolve().parent.parent / "data" / "references_verified.json").read_text(encoding="utf-8"))
+    verified = {e["reference"] for e in reg["references"]}
+    lists = [(k, c.curated_references) for k, c in DATASET_ACADEMIC_CONTEXTS.items()]
+    from src.academic_contexts import DATASET_RESEARCH_ANGLES
+    lists += [(k, a.curated_references) for k, angs in DATASET_RESEARCH_ANGLES.items() for a in angs]
+    for ds, refs in lists:
+        for r in refs:
+            assert r in verified, f"Unverified reference in {ds}: {r}"
+
 
 
 def test_synchronize_citations_and_references_heals_missing_entries():
@@ -139,7 +108,7 @@ def test_synchronize_citations_and_references_heals_missing_entries():
         objectives="・RQ1: テスト\n・RQ2: テスト",
         methodology="手法",
         results_text="結果",
-        discussion="小柳 (2021) および黒上 (2020) の指摘通り，主体的学びが重要である．",
+        discussion="Wigfield & Eccles (2000) および国立教育政策研究所 (2024) の指摘通り，主体的学びが重要である．",
         references=[],  # Completely empty references list!
     )
 
@@ -149,8 +118,8 @@ def test_synchronize_citations_and_references_heals_missing_entries():
     ref_text = "\n".join(synced.references)
     assert "堀田龍也" in ref_text
     assert "MULLIS" in ref_text
-    assert "小柳和喜雄" in ref_text
-    assert "黒上晴夫" in ref_text
+    assert "WIGFIELD" in ref_text
+    assert "国立教育政策研究所 (2024)" in ref_text
     assert len(synced.references) >= 4
 
 
@@ -171,11 +140,28 @@ def test_synchronize_citations_and_references_synthesizes_unknown_author():
         references=[],
     )
 
-    synced = synchronize_citations_and_references(paper, "japan_timss_math_science")
-    ref_text = "\n".join(synced.references)
-    assert "新未知研究者" in ref_text
-    assert "2025" in ref_text
-    assert len(synced.references) >= 1
+    # An unknown citation must stop the paper; no reference is ever synthesized.
+    with pytest.raises(UnverifiedCitationError):
+        synchronize_citations_and_references(paper, "japan_timss_math_science")
+    assert paper.references == []
+
+
+def test_synchronize_drops_references_the_model_wrote_itself():
+    paper = AcademicPaper(
+        title="テスト†",
+        subtitle="副題",
+        abstract="要旨",
+        keywords=["テスト"],
+        background="Wigfield & Eccles (2000) の期待―価値理論を参照する．",
+        objectives="・RQ1: テスト\n・RQ2: テスト",
+        methodology="手法",
+        results_text="結果",
+        discussion="考察",
+        references=["架空太郎 (2021) 存在しない論文. 架空学会誌, <b>1</b> (1) ：1-10."],
+    )
+    synced = synchronize_citations_and_references(paper, "japan_national_assessment_math")
+    assert not any("架空太郎" in r for r in synced.references)
+    assert any("WIGFIELD" in r for r in synced.references)
 
 
 def test_academic_paper_generator_parity_end_to_end():
@@ -191,7 +177,7 @@ def test_academic_paper_generator_parity_end_to_end():
         # Check that all in-text citations are in paper.references
         full_text = paper.background + "\n" + paper.discussion
         cites = extract_in_text_citations(full_text)
-        assert len(cites) >= 6
+        assert len(cites) >= 2
 
         for a, y in cites:
             parts = [

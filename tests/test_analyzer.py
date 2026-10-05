@@ -100,6 +100,12 @@ def test_is_collinear_or_redundant_pair():
     assert is_collinear_or_redundant_pair("正答率", "活用率") is False
     assert is_collinear_or_redundant_pair("小学校", "中学校") is False
 
+    # The same quantity at two time points, or a change computed from its own levels
+    assert is_collinear_or_redundant_pair("平日・小学校・平成28年度", "平日・小学校・令和4年度") is True
+    assert is_collinear_or_redundant_pair("平日・小学校・平成28年度", "平日・小学校・増減") is True
+    assert is_collinear_or_redundant_pair("平日・小学校・増減", "平日・中学校・増減") is False
+    assert is_collinear_or_redundant_pair("平日・中学校・増減", "土日・中学校・増減") is False
+
 
 def test_analyzer_rq_alignment_and_metadata():
     from src.academic_contexts import get_academic_context

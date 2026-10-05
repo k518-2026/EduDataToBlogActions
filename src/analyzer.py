@@ -384,6 +384,30 @@ def is_collinear_or_redundant_pair(col_x: str, col_y: str) -> bool:
     if col_x == col_y:
         return True
 
+    # The same quantity at two points in time, or a change computed from its own two levels
+    # (e.g. "平日・小学校・平成28年度" / "…令和4年度" / "…増減"): the correlation is trivial or built in.
+    for suffixes in (("・平成28年度", "・令和4年度", "・増減"),):
+        base_x = next((col_x[: -len(s)] for s in suffixes if col_x.endswith(s)), None)
+        base_y = next((col_y[: -len(s)] for s in suffixes if col_y.endswith(s)), None)
+        if base_x is not None and base_x == base_y:
+            return True
+
+    # A male-minus-female difference and the male or female value it is computed from
+    if ("男女差" in col_x and ("女性" in col_y or "男性" in col_y)) or ("男女差" in col_y and ("女性" in col_x or "男性" in col_x)):
+        return True
+
+    # A total ("…（総数）") and one of its parts that name the same quantity
+    # (e.g. "全体の通級指導児童生徒数（総数）" vs "小学校の通級指導児童生徒数"): the part is inside the total.
+    def part_core(col: str) -> str:
+        c = col.replace("（総数）", "")
+        for prefix in ("全体の", "小学校の", "中学校の", "高等学校の"):
+            if c.startswith(prefix):
+                c = c[len(prefix):]
+        return c
+
+    if ("（総数）" in col_x) != ("（総数）" in col_y) and part_core(col_x) == part_core(col_y):
+        return True
+
     # Strip common prefixes/suffixes to find core root
     def extract_root(col: str) -> str:
         s = col

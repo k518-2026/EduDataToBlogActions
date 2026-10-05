@@ -11,7 +11,7 @@ def test_japan_fetcher():
     math_ds = fetcher.get_national_assessment_math()
     assert math_ds.id == "japan_national_assessment_math"
     assert len(math_ds.df) > 0
-    assert "平均正答率" in math_ds.metrics
+    assert "小学校算数の平均正答率" in math_ds.metrics
 
     ict_ds = fetcher.get_ict_informatization()
     assert ict_ds.id == "japan_mext_ict_informatization"
@@ -72,7 +72,8 @@ def test_catalog_rotation_cycles_through_all():
 
     # Verify that in a full cycle of len(all_ds) selections, every dataset is chosen
     selected_ids = []
-    for _ in range(len(all_ds)):
+    # (categories alternate and math/info are not equally many, so allow two cycles)
+    for _ in range(2 * len(all_ds)):
         picked = catalog.select_dataset(topic="all", posted_history_ids=sim_history)
         selected_ids.append(picked.id)
         sim_history.append(picked.id)

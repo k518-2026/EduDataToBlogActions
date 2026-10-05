@@ -1,0 +1,423 @@
+{
+ "checked_on": "2026-10-05",
+ "note": "curated_references に載せてよいのは、ここに証拠付きで登録された文献だけ。tests/test_academic_citations.py が照合する。",
+ "references": [
+  {
+   "reference": "BANDURA, A. (1997) Self-efficacy: The exercise of control. W. H. Freeman and Company.",
+   "evidence": "書籍（W. H. Freeman）。書誌は標準的なもの。Crossref では書評のみ確認",
+   "datasets": [
+    "japan_timss_math_science",
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "国立教育政策研究所 (2021) 算数・数学教育／理科教育の国際比較：TIMSS 2019 国際数学・理科教育動向調査の2019年調査報告書. 明石書店.",
+   "evidence": "NDL サーチ: 明石書店 2021.4, 364p",
+   "datasets": [
+    "japan_timss_math_science"
+   ]
+  },
+  {
+   "reference": "MULLIS, I. V. S., MARTIN, M. O., FOY, P., KELLY, D. L. and FISHBEIN, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
+   "evidence": "Boston College TIMSS & PIRLS ISC の刊行物ページ（timssandpirls.bc.edu/timss2019/international-results/）",
+   "datasets": [
+    "japan_national_assessment_math",
+    "japan_timss_math_science",
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "PEKRUN, R. (2006) The control-value theory of achievement emotions: Assumptions, corollaries, and implications for educational research and practice. Educational Psychology Review, <b>18</b> (4) ：315-341.",
+   "evidence": "Crossref DOI 10.1007/s10648-006-9029-9",
+   "datasets": [
+    "japan_timss_math_science",
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2018) 小学校学習指導要領（平成29年告示）解説 算数編. 日本文教出版.",
+   "evidence": "NDL サーチ: 日本文教出版 2018.2, 401p",
+   "datasets": [
+    "japan_national_assessment_math",
+    "japan_timss_math_science"
+   ]
+  },
+  {
+   "reference": "大学入試センター (2023) 令和7年度大学入学者選抜に係る大学入学共通テスト問題作成方針. 独立行政法人大学入試センター.",
+   "evidence": "大学入試センター公式サイトの『令和7年度大学入学者選抜に係る大学入学共通テスト問題作成方針』（2023-06 文部科学省通知に基づく）",
+   "datasets": [
+    "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "MISHRA, P. and KOEHLER, M. J. (2006) Technological pedagogical content knowledge: A framework for teacher knowledge. Teachers College Record, <b>108</b> (6) ：1017-1054.",
+   "evidence": "Crossref DOI 10.1111/j.1467-9620.2006.00684.x",
+   "datasets": [
+    "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2019) 高等学校学習指導要領（平成30年告示）解説 情報編. 開隆堂出版.",
+   "evidence": "NDL サーチ: 開隆堂出版 2019.2, 265p",
+   "datasets": [
+    "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2022) 高等学校情報科担当教員の配置状況及び指導体制の充実に向けて（令和4年11月）. 文部科学省初等中等教育局学校デジタル化PT.",
+   "evidence": "文部科学省 PDF（令和4年11月 初等中等教育局学校デジタル化PT）",
+   "datasets": [
+    "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35.",
+   "evidence": "Crossref DOI 10.1145/1118178.1118215",
+   "datasets": [
+    "japan_high_school_informatics",
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "文部科学省・国立教育政策研究所 (2025) 令和7年度 全国学力・学習状況調査の結果（概要）のポイント. 文部科学省・国立教育政策研究所.",
+   "evidence": "文部科学省・国立教育政策研究所の公表資料（令和7年7月）を取得し、概要PDFの該当ページを画像で確認",
+   "datasets": [
+    "japan_national_assessment_math"
+   ]
+  },
+  {
+   "reference": "国立教育政策研究所 (2024) 令和6年度 全国学力・学習状況調査 報告書. 国立教育政策研究所.",
+   "evidence": "NDL サーチ: 国立教育政策研究所 2024-08",
+   "datasets": [
+    "japan_national_assessment_math"
+   ]
+  },
+  {
+   "reference": "堀田龍也 (2021) 初等中等教育のデジタルトランスフォーメーションの動向と課題. 日本教育工学会論文誌, <b>45</b> (3) ：261-271.",
+   "evidence": "CiNii Research / JaLC DOI 10.15077/jjet.45140（日本教育工学会論文誌 45(3) 261-271）",
+   "datasets": [
+    "japan_mext_ict_informatization",
+    "japan_national_assessment_math"
+   ]
+  },
+  {
+   "reference": "WIGFIELD, A. and ECCLES, J. S. (2000) Expectancy-value theory of achievement motivation. Contemporary Educational Psychology, <b>25</b> (1) ：68-81.",
+   "evidence": "Crossref DOI 10.1006/ceps.1999.1015",
+   "datasets": [
+    "japan_national_assessment_math",
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2024) 令和5年度 学校における教育の情報化の実態等に関する調査結果. 文部科学省.",
+   "evidence": "文部科学省ページ（2024-10-31 公表）",
+   "datasets": [
+    "japan_mext_ict_informatization"
+   ]
+  },
+  {
+   "reference": "OECD (2023) Education at a Glance 2023: OECD Indicators. OECD Publishing, Paris. DOI: 10.1787/e13bef63-en",
+   "evidence": "Crossref DOI 10.1787/e13bef63-en",
+   "datasets": [
+    "japan_mext_ict_informatization",
+    "japan_stem_cs_enrollment"
+   ]
+  },
+  {
+   "reference": "ROGERS, E. M. (2003) Diffusion of innovations (5th ed.). Free Press.",
+   "evidence": "書籍（Free Press, 5th ed., 2003）。Crossref は初版の書評のみ。標準的な書誌",
+   "datasets": [
+    "japan_mext_ict_informatization"
+   ]
+  },
+  {
+   "reference": "TSCHANNEN-MORAN, M. and HOY, A. W. (2001) Teacher efficacy: Capturing an elusive construct. Teaching and Teacher Education, <b>17</b> (7) ：783-805.",
+   "evidence": "Crossref DOI 10.1016/s0742-051x(01)00036-1",
+   "datasets": [
+    "japan_mext_ict_informatization"
+   ]
+  },
+  {
+   "reference": "UNESCO (2023) Global Education Monitoring Report 2023: Technology in Education - A Tool on Whose Terms? UNESCO Publishing, Paris. DOI: 10.54676/aatw1274",
+   "evidence": "Crossref DOI 10.54676/aatw1274",
+   "datasets": [
+    "japan_mext_ict_informatization",
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "OECD (2023) PISA 2022 Results (Volume I): The State of Learning and Equity in Education. OECD Publishing, Paris. DOI: 10.1787/53f23881-en",
+   "evidence": "Crossref DOI 10.1787/53f23881-en",
+   "datasets": [
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "OECD (2023) PISA 2022 Results (Volume II): Learning During – and From – Disruption. OECD Publishing, Paris. DOI: 10.1787/a97db61c-en",
+   "evidence": "Crossref DOI 10.1787/a97db61c-en。副題は OECD 公式ページで確認",
+   "datasets": [
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, <b>35</b> (1) ：4-28.",
+   "evidence": "Crossref DOI 10.1006/jesp.1998.1373",
+   "datasets": [
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "SWELLER, J. (1988) Cognitive load during problem solving: Effects on learning. Cognitive Science, <b>12</b> (2) ：257-285.",
+   "evidence": "Crossref DOI 10.1207/s15516709cog1202_4",
+   "datasets": [
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "ITU (2023) Measuring digital development: Facts and figures 2023. International Telecommunication Union, Geneva.",
+   "evidence": "ITU 公式ページ（itu.int/itu-d/reports/statistics/facts-figures-2023/）",
+   "datasets": [
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "RAGNEDDA, M. (2018) Conceptualizing digital capital. Telematics and Informatics, <b>35</b> (8) ：2366-2375.",
+   "evidence": "Crossref DOI 10.1016/j.tele.2018.10.006",
+   "datasets": [
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "VAN DIJK, J. (2020) The digital divide. Polity Press, Cambridge.",
+   "evidence": "書籍（Polity, 2020）。Crossref の書評 10.1515/commun-2020-0026 で確認",
+   "datasets": [
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, <b>17</b> (4) ：369-386.",
+   "evidence": "Crossref DOI 10.1080/09540250500145072",
+   "datasets": [
+    "japan_stem_cs_enrollment"
+   ]
+  },
+  {
+   "reference": "経済産業省 (2019) IT人材需給に関する調査 調査報告書. 経済産業省.",
+   "evidence": "経済産業省公表（2019-03、みずほ情報総研委託）。報告書は meti.go.jp/policy/it_policy/jinzai/houkokusyo.pdf",
+   "datasets": [
+    "japan_stem_cs_enrollment"
+   ]
+  },
+  {
+   "reference": "LENT, R. W., BROWN, S. D. and HACKETT, G. (1994) Toward a unifying social cognitive theory of career and academic interest, choice, and performance. Journal of Vocational Behavior, <b>45</b> (1) ：79-122.",
+   "evidence": "Crossref DOI 10.1006/jvbe.1994.1027",
+   "datasets": [
+    "japan_stem_cs_enrollment"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2025) 学校基本調査 令和7年度 統計表『関係学科別 大学入学状況』. 政府統計の総合窓口（e-Stat）.",
+   "evidence": "e-Stat（政府統計の総合窓口）の令和7年度の統計表ファイル（表番号15、statInfId=000040392734）を取得して確認",
+   "datasets": [
+    "japan_stem_cs_enrollment"
+   ]
+  },
+  {
+   "reference": "BECKER, G. S. (1964) Human capital: A theoretical and empirical analysis, with special reference to education. National Bureau of Economic Research.",
+   "evidence": "書籍（NBER, 1964）。書評 Crossref 10.2307/2229541 で確認",
+   "datasets": [
+    "worldbank_education_indicators"
+   ]
+  },
+  {
+   "reference": "HANUSHEK, E. A. (1986) The economics of schooling: Production and efficiency in public schools. Journal of Economic Literature, <b>24</b> (3) ：1141-1177.",
+   "evidence": "IDEAS/RePEc と Stanford 公式ページ（J. Economic Literature 24(3), 1141-1177）",
+   "datasets": [
+    "worldbank_education_indicators"
+   ]
+  },
+  {
+   "reference": "HANUSHEK, E. A. and WOESSMANN, L. (2015) The knowledge capital of nations: Education and the economics of growth. MIT Press.",
+   "evidence": "Crossref DOI 10.7551/mitpress/9780262029179.001.0001",
+   "datasets": [
+    "worldbank_education_indicators"
+   ]
+  },
+  {
+   "reference": "SCHULTZ, T. W. (1961) Investment in human capital. The American Economic Review, <b>51</b> (1) ：1-17.",
+   "evidence": "IDEAS/ERIC 等の複数の書誌（AER 51(1), 1-17）",
+   "datasets": [
+    "worldbank_education_indicators"
+   ]
+  },
+  {
+   "reference": "World Bank (2023) World Development Report 2023: Migrants, Refugees, and Societies. World Bank, Washington, DC.",
+   "evidence": "Crossref DOI 10.1596/39696",
+   "datasets": [
+    "worldbank_education_indicators"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2023) 教員勤務実態調査（令和4年度）【速報値】について. 文部科学省.",
+   "evidence": "文部科学省ページ（2023-04-28 公表）",
+   "datasets": [
+    "japan_teacher_workload_survey"
+   ]
+  },
+  {
+   "reference": "中央教育審議会 (2019) 新しい時代の教育に向けた持続可能な学校指導・運営体制の構築のための学校における働き方改革に関する総合的な方策について（答申）. 文部科学省.",
+   "evidence": "文部科学省答申（2019-01-25）。CiNii の週刊教育資料にも題名が載る",
+   "datasets": [
+    "japan_teacher_workload_survey"
+   ]
+  },
+  {
+   "reference": "妹尾昌俊 (2019) 「忙しいのは当たり前」への挑戦：こうすれば、学校は変わる！学校の働き方改革の教科書. 教育開発研究所.",
+   "evidence": "NDL サーチ: 教育開発研究所 2019.6",
+   "datasets": [
+    "japan_teacher_workload_survey"
+   ]
+  },
+  {
+   "reference": "OECD (2020) TALIS 2018 Results (Volume II): Teachers and School Leaders as Valued Professionals. OECD Publishing, Paris. DOI: 10.1787/19cf08df-en",
+   "evidence": "Crossref DOI 10.1787/19cf08df-en",
+   "datasets": [
+    "japan_teacher_workload_survey",
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "KYRIACOU, C. (2001) Teacher stress: Directions for future research. Educational Review, <b>53</b> (1) ：27-35.",
+   "evidence": "Crossref DOI 10.1080/00131910120033628",
+   "datasets": [
+    "japan_teacher_workload_survey"
+   ]
+  },
+  {
+   "reference": "BAKKER, A. B. and DEMEROUTI, E. (2007) The Job Demands-Resources model: State of the art. Journal of Managerial Psychology, <b>22</b> (3) ：309-328.",
+   "evidence": "Crossref DOI 10.1108/02683940710733115",
+   "datasets": [
+    "japan_teacher_workload_survey"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2022) 通常の学級に在籍する特別な教育的支援を必要とする児童生徒に関する調査結果（令和4年）について. 文部科学省.",
+   "evidence": "文部科学省ページ（2022-12 公表）",
+   "datasets": [
+    "japan_special_needs_education"
+   ]
+  },
+  {
+   "reference": "中央教育審議会 (2012) 共生社会の形成に向けたインクルーシブ教育システム構築のための特別支援教育の推進（報告）. 文部科学省.",
+   "evidence": "文部科学省ページ（報告、2012-07-23）",
+   "datasets": [
+    "japan_special_needs_education"
+   ]
+  },
+  {
+   "reference": "UNESCO (2020) Global Education Monitoring Report 2020: Inclusion and education: All means all. UNESCO Publishing.",
+   "evidence": "Crossref DOI 10.54676/jjnk6989",
+   "datasets": [
+    "japan_special_needs_education"
+   ]
+  },
+  {
+   "reference": "AINSCOW, M. (2020) Promoting inclusion and equity in education: lessons from international experiences. Nordic Journal of Studies in Educational Policy, <b>6</b> (1) ：7-16.",
+   "evidence": "Crossref DOI 10.1080/20020317.2020.1729587",
+   "datasets": [
+    "japan_special_needs_education"
+   ]
+  },
+  {
+   "reference": "FLORIAN, L. and BLACK-HAWKINS, K. (2011) Exploring inclusive pedagogy. British Educational Research Journal, <b>37</b> (5) ：813-828.",
+   "evidence": "Crossref DOI 10.1080/01411926.2010.501096",
+   "datasets": [
+    "japan_special_needs_education"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2023) 令和4年度 児童生徒の問題行動・不登校等生徒指導上の諸課題に関する調査結果について. 文部科学省.",
+   "evidence": "文部科学省 PDF（令和5年10月4日）",
+   "datasets": [
+    "japan_school_absenteeism_bullying"
+   ]
+  },
+  {
+   "reference": "文部科学省 (2023) 誰一人取り残されない学びの保障に向けた不登校対策（COCOLOプラン）. 文部科学省.",
+   "evidence": "文部科学省 PDF（令和5年3月31日取りまとめ）",
+   "datasets": [
+    "japan_school_absenteeism_bullying"
+   ]
+  },
+  {
+   "reference": "保坂亨 (2000) 学校を欠席する子どもたち：長期欠席・不登校から学校教育を考える. 東京大学出版会.",
+   "evidence": "NDL サーチ: 東京大学出版会 2000",
+   "datasets": [
+    "japan_school_absenteeism_bullying"
+   ]
+  },
+  {
+   "reference": "KEARNEY, C. A. (2008) School absenteeism and school refusal behavior in youth: A contemporary review. Clinical Psychology Review, <b>28</b> (3) ：451-471.",
+   "evidence": "Crossref DOI 10.1016/j.cpr.2007.07.012",
+   "datasets": [
+    "japan_school_absenteeism_bullying"
+   ]
+  },
+  {
+   "reference": "HAVIK, T., BRU, E. and ERTESVÅG, S. K. (2015) School factors associated with school refusal- and truancy-related reasons for school non-attendance. Social Psychology of Education, <b>18</b> (2) ：221-240.",
+   "evidence": "Crossref DOI 10.1007/s11218-015-9293-y",
+   "datasets": [
+    "japan_school_absenteeism_bullying"
+   ]
+  },
+  {
+   "reference": "OECD (2025) Results from TALIS 2024: The State of Teaching. OECD Publishing, Paris. DOI: 10.1787/90df6235-en",
+   "evidence": "Crossref DOI 10.1787/90df6235-en（2025-10-07 公開）",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "国立教育政策研究所 (2019) 教員環境の国際比較：OECD国際教員指導環境調査（TALIS）2018報告書―学び続ける教員と校長―. ぎょうせい.",
+   "evidence": "NDL サーチ: ぎょうせい 2019.6, 307p",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "佐藤学 (2012) 学校を改革する：学びの共同体の構想と実践. 岩波書店.",
+   "evidence": "NDL サーチ: 岩波書店 2012.7（岩波ブックレット）",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "FULLAN, M. (2016) The New Meaning of Educational Change. Teachers College Press.",
+   "evidence": "書籍（Teachers College Press, 5th ed.）。書評 Crossref 10.1007/s35834-026-00555-3（6th ed.）",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "VIELUF, S., KAPLAN, D., KLIEME, E. and BAYER, S. (2012) Teaching Practices and Pedagogical Innovations: Evidence from TALIS. OECD Publishing, Paris. DOI: 10.1787/9789264123540-en",
+   "evidence": "Crossref DOI 10.1787/9789264123540-en",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "VANGRIEKEN, K., DOCHY, F., RAES, E. and KYNDT, E. (2015) Teacher collaboration: A systematic review. Educational Research Review, <b>15</b> ：17-40.",
+   "evidence": "Crossref DOI 10.1016/j.edurev.2015.04.002",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "IEA (2024) TIMSS 2023 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
+   "evidence": "TIMSS 2023 公式サイト（timss2023.org/results/）の国際報告書の題名と、Exhibit のExcelを取得して確認",
+   "datasets": [
+    "timss2023_student_attitudes"
+   ]
+  }
+ ]
+}

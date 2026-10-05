@@ -18,13 +18,17 @@ def _verified_ids():
 def test_only_verified_datasets_are_offered():
     ids = {d.id for d in DatasetCatalog().get_all_datasets()}
     assert ids == _verified_ids()
-    assert ids  # the two rebuilt datasets
+    assert ids  # every catalog file is verified now
     assert {"japan_school_absenteeism_bullying", "worldbank_education_indicators"} <= ids
 
 
-def test_unverified_dataset_cannot_be_requested():
+def test_unverified_dataset_cannot_be_requested(monkeypatch):
+    # All 12 catalog files are verified now; mark one as unverified to check that it cannot be requested.
+    real = verification_status
+    monkeypatch.setattr("src.fetchers.catalog.verification_status",
+                        lambda i: "unverified" if i == "japan_national_assessment_math" else real(i))
     with pytest.raises(DataNotVerifiedError):
-        DatasetCatalog().select_dataset_and_angle(dataset_id="japan_stem_cs_enrollment")
+        DatasetCatalog().select_dataset_and_angle(dataset_id="japan_national_assessment_math")
 
 
 def test_nothing_verified_means_an_error(monkeypatch):

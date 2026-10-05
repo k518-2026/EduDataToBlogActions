@@ -78,6 +78,8 @@ class DatasetCatalog:
             self.japan_fetcher.get_school_absenteeism(),
             # 12. OECD TALIS Teacher Survey (Math/STEM)
             self.oecd_unesco_fetcher.get_talis_teacher_survey(),
+            # 13. TIMSS 2023 student attitudes (Math)
+            self.oecd_unesco_fetcher.get_timss_attitudes(),
         ]
         return [ds for ds in datasets if ds is not None]
 

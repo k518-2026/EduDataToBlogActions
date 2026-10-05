@@ -43,6 +43,10 @@ from src.utils import (
 logger = logging.getLogger(__name__)
 
 
+class UnverifiedCitationError(ValueError):
+    """The paper cites a work that is not in the verified bibliography (curated_references)."""
+
+
 def normalize_jset_text(text: str) -> str:
     """
     Normalizes Japanese punctuation to Japan Society for Educational Technology (JSET) standards:
@@ -607,38 +611,28 @@ def synchronize_citations_and_references(
     full_text = (paper.background or "") + "\n" + (paper.discussion or "")
     in_text_citations = extract_in_text_citations(full_text)
 
-    current_refs = list(paper.references or [])
-
+    # The reference list is rebuilt only from the verified bibliography
+    # (data/references_verified.json gates curated_references). A reference the model wrote
+    # itself is never kept, and no reference is ever synthesized.
+    verified_refs: List[str] = []
+    unverified: List[str] = []
     for author_str, year in in_text_citations:
-        parts = [
-            p.strip()
-            for p in re.split(r"[\s,・＆&]+|and", author_str)
-            if p.strip() and p.lower() not in ["et", "al", "al."]
-        ]
-        matched = False
-        for ref in current_refs:
-            if year in ref:
-                if any(p.lower() in ref.lower() for p in parts):
-                    matched = True
-                    break
-        if not matched:
-            resolved = resolve_missing_reference(
-                author_str, year, dataset_id, selected_angle=selected_angle
-            )
-            if resolved:
-                logger.info(
-                    f"Automatically synchronized missing reference: '{author_str} ({year})' -> '{resolved[:50]}...'"
-                )
-                current_refs.append(resolved)
-            else:
-                clean_author = author_str.replace("et al.", "ほか").replace("et al", "ほか")
-                synth_ref = f"{clean_author} ({year}) 教育データ分析と指導法改善に関する実証的検討. 教育学研究, <b>1</b> (1) ：1-10."
-                logger.warning(
-                    f"Could not find exact bibliography entry for '{author_str} ({year})'. Synthesized JSET reference: '{synth_ref}'"
-                )
-                current_refs.append(synth_ref)
+        resolved = resolve_missing_reference(
+            author_str, year, dataset_id, selected_angle=selected_angle
+        )
+        if resolved:
+            if resolved not in verified_refs:
+                verified_refs.append(resolved)
+        else:
+            unverified.append(f"{author_str} ({year})")
 
-    paper.references = sort_jset_references(current_refs)
+    if unverified:
+        raise UnverifiedCitationError(
+            "実在を確認できていない文献が本文で引用されています（引用してよいのは curated_references のみ）: "
+            + "，".join(sorted(set(unverified)))
+        )
+
+    paper.references = sort_jset_references(verified_refs)
     return paper
 
 
@@ -964,8 +958,8 @@ class AcademicPaperGenerator:
    - **subtitle**: 副題（できる限り簡潔に、意外な分析視点や教育的解明の切り口を明記）。
    - **abstract**: 和文抄録。320〜380文字（400字以内かつ8割以上を満たすこと）。冒頭は「本研究は，〇〇（出典機関）が公開する公的オープンデータ（〇〇）を用い，〜」のように無駄な改行や英数字と日本語の間の不自然な半角空白を含めず、スムーズな文章にすること。単なるデータの紹介に終わらず、分析によって明らかになった【常識を覆す意外な発見・パラドックスと教育現場への提言】を明瞭に結ぶこと。
    - **keywords**: 5〜6語の専門用語の配列（全角カンマ「，」で区切る）。
-   - **background**: 800〜1200文字。問題の社会的・教育的背景を論理的かつ丁寧に詳述すること。★【必須】研究背景の中で【4本以上】の学術文献・公的報告書（海外論文・国際報告書を2本以上＋国内の公的調査報告等を2本以上）を直接引用（著者名・年号）し、本研究固有の理論的課題から実証的データ分析（EBPM）の不可欠性へと論理的・丁寧に接続すること。
-     【推奨引用文献（これらを本文中で直接引用し、referencesに含めること）】:
+   - **background**: 800〜1200文字。問題の社会的・教育的背景を論理的かつ丁寧に詳述すること。★【必須・厳守】引用してよい文献は、下記【引用してよい文献】に載っているものだけ。それ以外の文献（著者・年・題名を思いついたもの）を引用したり、referencesに加えたりしてはならない（実在を確認できていない文献を載せると、論文の信頼性を壊す）。本数は少なくてよい。引用するときは「著者名 (年)」の形で、下記の著者名・年号をそのまま使い、各文献の内容として下記の題名から言える範囲のことだけを述べること。
+     【引用してよい文献（実在を確認済み。これ以外は引用禁止）】:
 {curated_ref_lines}
    - **objectives**: 400〜600文字。具体的リサーチクエスチョン（RQ）および作業仮説。★【必須】リサーチクエスチョンは【厳密に2つまで（RQ1, RQ2）】とし、各RQごとに必ず改行して「・RQ1：〜」「・RQ2：〜」と箇条書きで明瞭に記述すること（1行にまとめず、各RQを独立行とすること）。
      ★【単調なRQの完全禁止】: 「〜の分布特性はどう推移しているか」「〜の回帰はどうなっているか」という小学生の観察日記のような平坦で単調なRQは【厳格に禁止】します。
@@ -980,13 +974,13 @@ class AcademicPaperGenerator:
      ★【考察の弁証法的高度化：単調な共通点・相違点の羅列を完全禁止】:
      「先行研究Aと共通点がある、先行研究Bと相違点がある」と形式的に並べるだけの退屈で単調な記述を【厳格に禁止】します。
      先行研究を引用しつつ、**「なぜその意外な結果（反直観的現象・パラドックス）が生じたのか」という教育工学的・心理学的深層メカニズム** を、提示された理論的枠組み（Cognitive Load Theory, TPACK, 達成感情統制理論, 道具的ジェネシス, 二重プロセス理論等）を用いて弁証法的に解き明かしてください：
-     - RQ1に関する考察では、先行研究を【2本以上】引用し、一般的な教育的常識・通説と本実測値との整合点（共通点）と決定的な乖離（相違点）を対比させながら、学習者の認知的・心理的メカニズムや教育現場の構造的要因から「意外な結果の背景要因」を深く論証すること。
-     - RQ2に関する考察では、別の先行研究を【2本以上】引用し、指標間の連動性や回帰トレンド、分散分析の交互作用や無相関性に見られる予期せぬトレードオフの教育工学的メカニズムを深く論証すること（ベイズファクターによる証拠強度にも言及）。
+     - RQ1に関する考察では、【引用してよい文献】から先行研究を引用し（無理に本数をそろえない）、一般的な教育的常識・通説と本実測値との整合点（共通点）と決定的な乖離（相違点）を対比させながら、学習者の認知的・心理的メカニズムや教育現場の構造的要因から「意外な結果の背景要因」を深く論証すること。
+     - RQ2に関する考察では、【引用してよい文献】から先行研究を引用し（無理に本数をそろえない）、指標間の連動性や回帰トレンド、分散分析の交互作用や無相関性に見られる予期せぬトレードオフの教育工学的メカニズムを深く論証すること（ベイズファクターによる証拠強度にも言及）。
      - 節の末尾に必ず「今後の課題（研究の限界および今後の展望）」を明記すること。
    - **references**: ★【極めて重要：学会執筆規程に厳格準拠した並び順・書式】
-     合計【8本以上】の実在する信頼できる学術文献リスト（背景で引用した4本以上 ＋ RQ1の考察で引用した2本以上 ＋ RQ2の考察で引用した2本以上）。
+     本文中で引用した文献だけを、【引用してよい文献】の表記のまま載せること（本数の下限はない。リストにない文献を新しく作らない）。
      1. 【並び順】本文中で引用した参考文献は，論文の最後に「著者の苗字のアルファベット順」で一括して記載すること（和文誌・英文誌で分けない）。
-        - 日本人著者：苗字のローマ字読みのアルファベット順（例: 堀田(Horita) → 黒上(Kurokami) → 文部科学省(Monbukagakusho) → 小柳(Oyanagi) → 清水(Shimizu)）。
+        - 日本人著者：苗字のローマ字読みのアルファベット順（例: 堀田(Horita) → 文部科学省(Monbukagakusho) → 妹尾(Seno)）。
         - 外国人著者・国際機関：著者姓または機関名のアルファベット順（例: MULLIS → OECD → UNESCO → WING）。
         - 和文・英文を分けず、すべて混合して著者の姓のアルファベット順（A〜Z）に厳格に並べること。
         - 同一著者（機関）の文献が複数ある場合は、発表年の昇順（古い年→新しい年）で並べること。

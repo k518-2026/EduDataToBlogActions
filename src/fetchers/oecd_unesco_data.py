@@ -109,3 +109,7 @@ class OECDUnescoFetcher:
     def get_talis_teacher_survey(self) -> Optional[EducationDataset]:
         """Loads OECD TALIS Teacher Survey dataset."""
         return self._load_json_dataset("oecd_talis_teacher_survey.json")
+
+    def get_timss_attitudes(self) -> Optional[EducationDataset]:
+        """TIMSS 2023: students' liking of, confidence in and valuing of mathematics (country level)."""
+        return self._load_json_dataset("timss2023_student_attitudes.json")
