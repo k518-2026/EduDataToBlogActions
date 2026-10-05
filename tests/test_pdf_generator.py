@@ -599,4 +599,50 @@ def test_pdf_secondary_table_varieties():
     assert "BF₀₁" in note
 
 
+def test_pdf_title_and_line_breaks_never_orphan():
+    """Verifies that all academic titles render in at most 2 balanced lines without 1-char orphans, and opening brackets never end a line."""
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import Paragraph
+    from src.academic_contexts import DATASET_ACADEMIC_CONTEXTS, DATASET_RESEARCH_ANGLES
+    from src.pdf.pdf_generator import COL_W, PRINTABLE_W, EduPaperPdfGenerator
+    from src.utils import clean_text_spaces, format_title_two_lines
+
+    gen = EduPaperPdfGenerator()
+    for d_id, ctx in DATASET_ACADEMIC_CONTEXTS.items():
+        angles = DATASET_RESEARCH_ANGLES.get(d_id, [ctx])
+        for a in angles:
+            t = a.fallback_title or ctx.fallback_title
+            if not t:
+                continue
+            clean_title = clean_text_spaces(t)
+            title_text = clean_title if clean_title.endswith("†") else f"{clean_title}†"
+            tf = format_title_two_lines(title_text)
+            fs = 15.0
+            ld = 19.0
+            st = ParagraphStyle("DT", parent=gen.styles["PaperTitle"], fontSize=fs, leading=ld)
+            p = Paragraph(tf, st)
+            p.wrap(PRINTABLE_W, 1000)
+            while len(p.blPara.lines) > 2 and fs > 9.5:
+                fs -= 0.5
+                ld = round(fs * 1.25, 1)
+                st = ParagraphStyle("DT", parent=gen.styles["PaperTitle"], fontSize=fs, leading=ld)
+                p = Paragraph(tf, st)
+                p.wrap(PRINTABLE_W, 1000)
+
+            lines = ["".join(w.text for w in l.words) for l in p.blPara.lines]
+            assert len(lines) <= 2, f"Title wrapped to {len(lines)} lines: {lines}"
+            for line_str in lines:
+                assert len(line_str) >= 8, f"Orphan short line in title: {lines}"
+
+    # Verify single-fragment body paragraph never ends a line with opening bracket 「 or （
+    p_body = Paragraph(
+        "本研究のデータソースには，文部科学省・全国高等学校情報教育研究会により調査・公開された「「情報I」プログラミング指導とICT環境の推移」の公式データセットを採用した．",
+        gen.styles["Body"],
+    )
+    p_body.wrap(COL_W, 1000)
+    body_lines = ["".join(w.text for w in l.words) for l in p_body.blPara.lines]
+    for bl in body_lines:
+        assert not bl.endswith(("「", "（", "(")), f"Line ended with opening bracket: {bl}"
+
+
 

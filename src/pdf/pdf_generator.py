@@ -75,6 +75,7 @@ for ch in _EXTRA_CANNOT_START:
         rlp_ts.ALL_CANNOT_START += ch
 
 _ALL_CANNOT_END = "（([｛{〔「『【"
+_UNIT_COUNTER_CHARS = "点%％人台校年度回名歳万千億かヶカ箇学科時分秒倍位件本冊枚問群層"
 
 
 def _jset_cjkFragSplit(frags, maxWidths, calcBounds, encoding="utf8"):
@@ -103,7 +104,6 @@ def _jset_cjkFragSplit(frags, maxWidths, calcBounds, encoding="utf8"):
         lineBreak = hasattr(u.frag, "lineBreak")
         endLine = (widthUsed > maxWidth + _FUZZ and widthUsed > 0) or lineBreak
         if endLine:
-            extraSpace = maxWidth - widthUsed
             if not lineBreak:
                 if ord(u) < 0x3000:
                     limitCheck = (lineStartPos + i) >> 1
@@ -113,7 +113,6 @@ def _jset_cjkFragSplit(frags, maxWidths, calcBounds, encoding="utf8"):
                             k = j + 1
                             if k < i:
                                 j = k + 1
-                                extraSpace += sum(U[ii].width for ii in range(j, i))
                                 w = U[k].width
                                 u = U[k]
                                 i = j
@@ -122,19 +121,38 @@ def _jset_cjkFragSplit(frags, maxWidths, calcBounds, encoding="utf8"):
                 # Rule 1: character u cannot start line, keep on current line unless progress blocked
                 if u not in rlp_para.ALL_CANNOT_START and i > lineStartPos + 1:
                     i -= 1
-                    extraSpace += w
 
-                # Rule 2: next line (starting at U[i]) must never start with a character in ALL_CANNOT_START
-                while i > lineStartPos + 1 and i < nU and U[i] in rlp_para.ALL_CANNOT_START:
-                    i -= 1
-                    extraSpace += U[i].width
+                # Rule 2 & 3 & 4: iteratively enforce 行頭禁則, 行末禁則, and number+unit cohesion
+                changed = True
+                while changed and i > lineStartPos + 1:
+                    changed = False
+                    # Next line (starting at U[i]) must never start with ALL_CANNOT_START
+                    while i > lineStartPos + 1 and i < nU and U[i] in rlp_para.ALL_CANNOT_START:
+                        i -= 1
+                        changed = True
+                    # Current line (ending at U[i-1]) must never end with _ALL_CANNOT_END
+                    while i > lineStartPos + 1 and U[i - 1] in _ALL_CANNOT_END:
+                        i -= 1
+                        changed = True
+                    # Never split an ASCII number at the end of a line from its immediate unit/counter
+                    if (
+                        i > lineStartPos + 2
+                        and i < nU
+                        and U[i - 1] in "0123456789."
+                        and (U[i] in _UNIT_COUNTER_CHARS or U[i] in "0123456789.")
+                    ):
+                        num_start = i - 1
+                        while num_start > lineStartPos + 1 and U[num_start - 1] in "0123456789.,+-":
+                            num_start -= 1
+                        if num_start > lineStartPos + 1 and (i - num_start) <= 8:
+                            i = num_start
+                            changed = True
 
-                # Rule 3: current line (ending at U[i-1]) must never end with a character in _ALL_CANNOT_END
-                while i > lineStartPos + 1 and U[i - 1] in _ALL_CANNOT_END:
-                    i -= 1
-                    extraSpace += U[i].width
-
-            lines.append(makeCJKParaLine(U[lineStartPos:i], maxWidth, widthUsed, extraSpace, lineBreak, calcBounds))
+            actualWidthUsed = sum(ch.width for ch in U[lineStartPos:i])
+            extraSpace = maxWidth - actualWidthUsed
+            lines.append(
+                makeCJKParaLine(U[lineStartPos:i], maxWidth, actualWidthUsed, extraSpace, lineBreak, calcBounds)
+            )
             try:
                 maxWidth = maxWidths[len(lines)]
             except IndexError:
@@ -144,13 +162,43 @@ def _jset_cjkFragSplit(frags, maxWidths, calcBounds, encoding="utf8"):
             widthUsed = 0
 
     if widthUsed > 0:
-        lines.append(makeCJKParaLine(U[lineStartPos:], maxWidth, widthUsed, maxWidth - widthUsed, False, calcBounds))
+        actualWidthUsed = sum(ch.width for ch in U[lineStartPos:])
+        lines.append(
+            makeCJKParaLine(U[lineStartPos:], maxWidth, actualWidthUsed, maxWidth - actualWidthUsed, False, calcBounds)
+        )
 
     return ParaLines(kind=1, lines=lines)
 
 
-# Patch ReportLab paragraph module for bulletproof CJK typography
+def _jset_breakLinesCJK(self, maxWidths):
+    """Overrides ReportLab's breakLinesCJK so single-fragment paragraphs also obey strict 行頭・行末禁則処理."""
+    if not isinstance(maxWidths, (list, tuple)):
+        maxWidths = [maxWidths]
+    style = self.style
+    self.height = 0
+    rlp_para._handleBulletWidth(self.bulletText, style, maxWidths)
+    frags = self.frags
+    nFrags = len(frags)
+    if nFrags <= 0:
+        return ParaLines(
+            kind=0,
+            fontSize=style.fontSize,
+            fontName=style.fontName,
+            textColor=style.textColor,
+            lines=[],
+            ascent=style.fontSize,
+            descent=-0.2 * style.fontSize,
+        )
+    if hasattr(self, "blPara") and getattr(self, "_splitpara", 0):
+        return self.blPara
+    autoLeading = getattr(self, "autoLeading", getattr(style, "autoLeading", ""))
+    calcBounds = autoLeading not in ("", "off")
+    return _jset_cjkFragSplit(frags, maxWidths, calcBounds)
+
+
+# Patch ReportLab paragraph module for bulletproof CJK typography across all paragraphs
 rlp_para.cjkFragSplit = _jset_cjkFragSplit
+rlp_para.Paragraph.breakLinesCJK = _jset_breakLinesCJK
 
 # Official JSET Page Size: JIS B5 (182mm x 257mm)
 JIS_B5 = (182 * mm, 257 * mm)
@@ -608,16 +656,18 @@ class EduPaperPdfGenerator:
             data = [headers]
             effects = [anova.main_effect_a, anova.main_effect_b, anova.interaction]
             for eff in effects:
-                name_disp = str(eff.name)[:7] + "…" if len(str(eff.name)) > 8 else str(eff.name)
+                name_disp = str(eff.name)[:5] + "…" if len(str(eff.name)) > 6 else str(eff.name)
+                ss_str = f"{eff.ss:.0f}" if eff.ss >= 1000 else f"{eff.ss:.1f}"
+                ms_str = f"{eff.ms:.0f}" if eff.ms >= 1000 else f"{eff.ms:.1f}"
                 p_text = format_apa_p(eff.p_val).replace("= ", "").replace("< ", "<")
                 eta_text = format_apa_stat(eff.eta_sq_p, bounded=True)
                 bf_text = format_bayes_factor(eff.bf10)
 
                 row = [
                     Paragraph(name_disp, self.styles["TableCellLeft"]),
-                    Paragraph(f"{eff.ss:.1f}", self.styles["TableCell"]),
+                    Paragraph(ss_str, self.styles["TableCell"]),
                     Paragraph(str(eff.df), self.styles["TableCell"]),
-                    Paragraph(f"{eff.ms:.1f}", self.styles["TableCell"]),
+                    Paragraph(ms_str, self.styles["TableCell"]),
                     Paragraph(f"{eff.f_val:.1f}", self.styles["TableCell"]),
                     Paragraph(p_text, self.styles["TableCell"]),
                     Paragraph(eta_text, self.styles["TableCell"]),
@@ -626,19 +676,21 @@ class EduPaperPdfGenerator:
                 data.append(row)
 
             # Error / Residual row
+            err_ss_str = f"{anova.error_ss:.0f}" if anova.error_ss >= 1000 else f"{anova.error_ss:.1f}"
+            err_ms_str = f"{anova.error_ms:.0f}" if anova.error_ms >= 1000 else f"{anova.error_ms:.1f}"
             data.append([
                 Paragraph("誤差(Res)", self.styles["TableCellLeft"]),
-                Paragraph(f"{anova.error_ss:.1f}", self.styles["TableCell"]),
+                Paragraph(err_ss_str, self.styles["TableCell"]),
                 Paragraph(str(anova.error_df), self.styles["TableCell"]),
-                Paragraph(f"{anova.error_ms:.1f}", self.styles["TableCell"]),
+                Paragraph(err_ms_str, self.styles["TableCell"]),
                 Paragraph("-", self.styles["TableCell"]),
                 Paragraph("-", self.styles["TableCell"]),
                 Paragraph("-", self.styles["TableCell"]),
                 Paragraph("-", self.styles["TableCell"]),
             ])
 
-            col_widths = [48, 24, 16, 24, 23, 23, 23, 23]  # Sum = 204 pt
-            caption = "表２　二要因分散分析（ANOVA）およびベイズファクター一覧"
+            col_widths = [46, 26, 15, 25, 23, 23, 23, 23]  # Sum = 204 pt
+            caption = "表２　二要因分散分析（ANOVA）・BF一覧"
             bin_str = "（※要因Bは2水準にビニング済）" if anova.factor_b_is_binned else ""
             note = f"注）従属変数は{anova.dv}{bin_str}．SSは平方和，MSは平均平方，Fは検定統計量，ηₚ²は偏イータ二乗，BF₁₀はJZS/BICベイズファクター（>3で対立仮説支持）．APA 7th書式準拠．"
 
@@ -678,7 +730,7 @@ class EduPaperPdfGenerator:
                 data.append(row)
 
             col_widths = [48, 23, 22, 22, 23, 23, 20, 23]  # Sum = 204 pt
-            caption = "表２　重回帰分析推定量・多重共線性（VIF）・ベイズファクター一覧"
+            caption = "表２　重回帰分析推定量・VIF・BF一覧"
             r2_apa = format_apa_stat(mr.r_squared, bounded=True)
             adj_r2_apa = format_apa_stat(mr.adj_r_squared, bounded=True)
             note = f"注）従属変数は{mr.y_metric}．R² = {r2_apa}，調整済みR² = {adj_r2_apa}，F({mr.df_model}, {mr.df_resid}) = {mr.f_val:.1f}，p {format_apa_p(mr.p_val)}，全体BF₁₀ = {format_bayes_factor(mr.bf10)}．VIF < 5.0．APA 7th準拠．"
@@ -715,7 +767,7 @@ class EduPaperPdfGenerator:
                 data.append(row)
 
             col_widths = [45, 45, 23, 21, 23, 23, 24]  # Sum = 204 pt
-            caption = "表２　無相関仮説（H₀）検証・相関係数およびベイズファクター一覧"
+            caption = "表２　無相関仮説（H₀）検証・BF一覧"
             note = "注）rは相関係数，tは無相関検定統計量，BF₁₀はH₁支持，BF₀₁はH₀支持（無相関・独立性の積極的証拠，>3で中程度，>10で強い証拠）．APA 7th準拠．"
 
         elif analysis.trends and len(analysis.trends) > 0:
@@ -749,7 +801,7 @@ class EduPaperPdfGenerator:
                 data.append(row)
 
             col_widths = [44, 23, 23, 23, 23, 22, 23, 23]  # Sum = 204 pt
-            caption = "表２　時系列トレンド分析および回帰・ベイズ分析結果一覧"
+            caption = "表２　時系列トレンド・回帰・BF分析結果"
             note = "注）CAGRは年平均成長率，傾きは単回帰直線の勾配，R²は決定係数，BF₁₀はJZSベイズファクター（>3でH1支持，<0.33でH0支持）．"
 
         elif analysis.correlations and len(analysis.correlations) > 0:
@@ -781,7 +833,7 @@ class EduPaperPdfGenerator:
                 data.append(row)
 
             col_widths = [45, 45, 27, 27, 27, 33]  # Sum = 204 pt
-            caption = "表２　主要指標間における相関・有意確率・ベイズファクター一覧"
+            caption = "表２　主要指標間の相関・有意確率・BF一覧"
             note = "注）rはピアソン積率相関係数，p値は両側検定有意確率，BF₁₀はJZSベイズファクター（BF判定はH1対立仮説支持強度: >100で極めて強い，>3で中程度，1-3は弱い証拠/逸話的）．"
 
         else:
@@ -807,7 +859,7 @@ class EduPaperPdfGenerator:
                 data.append(row)
 
             col_widths = [54, 30, 30, 30, 30, 30]  # Sum = 204 pt
-            caption = "表２　主要指標における四分位範囲および分布形状一覧"
+            caption = "表２　四分位範囲および分布形状一覧"
             note = "注）Q1/Q3は第1/第3四分位数，IQRは四分位範囲，歪度は分布の非対称性．"
 
         table = Table(data, colWidths=col_widths, repeatRows=1)
@@ -875,9 +927,9 @@ class EduPaperPdfGenerator:
         p_title = Paragraph(title_formatted, title_style)
         _, h_title = p_title.wrap(PRINTABLE_W, 1000)
 
-        while round(h_title / title_leading) > 2 and title_font_size > 11.0:
+        while len(p_title.blPara.lines) > 2 and title_font_size > 9.5:
             title_font_size -= 0.5
-            title_leading = title_font_size * 1.25
+            title_leading = round(title_font_size * 1.25, 1)
             title_style = ParagraphStyle(
                 "DynamicPaperTitle",
                 parent=self.styles["PaperTitle"],
@@ -892,7 +944,29 @@ class EduPaperPdfGenerator:
             p_title,
         ]
         if paper.subtitle:
-            top_elements.append(self._para(paper.subtitle, self.styles["PaperSubtitle"]))
+            sub_font_size = 10.0
+            sub_leading = 13.0
+            sub_clean = clean_text_spaces(paper.subtitle).replace("\n", "")
+            sub_style = ParagraphStyle(
+                "DynamicPaperSubtitle",
+                parent=self.styles["PaperSubtitle"],
+                fontSize=sub_font_size,
+                leading=sub_leading,
+            )
+            p_sub = Paragraph(sub_clean, sub_style)
+            p_sub.wrap(PRINTABLE_W, 1000)
+            while len(p_sub.blPara.lines) > 1 and sub_font_size > 8.0:
+                sub_font_size -= 0.5
+                sub_leading = round(sub_font_size * 1.3, 1)
+                sub_style = ParagraphStyle(
+                    "DynamicPaperSubtitle",
+                    parent=self.styles["PaperSubtitle"],
+                    fontSize=sub_font_size,
+                    leading=sub_leading,
+                )
+                p_sub = Paragraph(sub_clean, sub_style)
+                p_sub.wrap(PRINTABLE_W, 1000)
+            top_elements.append(p_sub)
         top_elements.extend([
             self._para(author_jp, self.styles["AuthorMeta"]),
             self._para(affil_jp, self.styles["AffiliationMeta"]),
@@ -1059,8 +1133,12 @@ class EduPaperPdfGenerator:
                 clean_fig_title = dataset.title
                 if "】" in clean_fig_title:
                     clean_fig_title = clean_fig_title.split("】", 1)[1].strip()
-                if len(clean_fig_title) > 28:
-                    clean_fig_title = clean_fig_title[:26] + "…"
+                for suf in ("の経年推移", "の推移", "の国際比較", "の比較"):
+                    if clean_fig_title.endswith(suf):
+                        clean_fig_title = clean_fig_title[: -len(suf)]
+                        break
+                if len(clean_fig_title) > 26:
+                    clean_fig_title = clean_fig_title[:24] + "…"
 
                 figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
@@ -1085,8 +1163,12 @@ class EduPaperPdfGenerator:
                 clean_fig_title2 = dataset.title
                 if "】" in clean_fig_title2:
                     clean_fig_title2 = clean_fig_title2.split("】", 1)[1].strip()
-                if len(clean_fig_title2) > 28:
-                    clean_fig_title2 = clean_fig_title2[:26] + "…"
+                for suf in ("の経年推移", "の推移", "の国際比較", "の比較"):
+                    if clean_fig_title2.endswith(suf):
+                        clean_fig_title2 = clean_fig_title2[: -len(suf)]
+                        break
+                if len(clean_fig_title2) > 26:
+                    clean_fig_title2 = clean_fig_title2[:24] + "…"
 
                 p_method = getattr(analysis, "primary_method", "correlation")
                 if p_method == "two_way_anova" and analysis.two_way_anova is not None:

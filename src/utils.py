@@ -130,14 +130,14 @@ def clean_text_spaces(text: str) -> str:
     )
 
     # Prevent separation of numbers and units (e.g. '534.00 点' -> '534.00点')
-    text = re.sub(r"(\d+(?:\.\d+)?)\s*(点|%|％|人|校|年|度)", r"\1\2", text)
+    text = re.sub(r"(\d+(?:\.\d+)?)\s*(点|%|％|人|台|校|年|度|回|名|歳|万|千)", r"\1\2", text)
 
     # Normalize half-width commas and colons in Japanese text context to full-width
     text = re.sub(r"([一-龥ぁ-んァ-ヶ％点人校度年）\]｝」』])\s*,\s*", r"\1，", text)
     text = re.sub(r"\s*,\s*([一-龥ぁ-んァ-ヶ（［｛「『])", r"，\1", text)
     text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+,", r"\1，", text)
 
-    # Remove spaces between Japanese characters: '漢字　ひらがな' -> '漢字ひらがな'
+    # Remove spaces or stray single newlines between Japanese characters: '漢字　ひらがな' -> '漢字ひらがな'
     text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+([一-龥ぁ-んァ-ヶ])", r"\1\2", text)
     # Remove spaces between Japanese character and alphanumeric: '研究所 TIMSS' -> '研究所TIMSS', 'TIMSS 調査' -> 'TIMSS調査'
     text = re.sub(r"([一-龥ぁ-んァ-ヶ])\s+([A-Za-z0-9])", r"\1\2", text)
@@ -219,38 +219,103 @@ def clean_english_text(text: str) -> str:
 def format_title_two_lines(title: str) -> str:
     """
     Formats an academic paper title so that it cleanly breaks into at most 2 balanced lines.
-    Inserts '<br/>' before common suffix markers like 'に関する' if the title is longer than 24 chars.
+    Always finds a natural phrase boundary near the midpoint outside quotes/brackets so neither
+    line exceeds the printable width or wraps a single trailing character onto a 3rd line.
     """
     if not title:
         return ""
     clean = clean_text_spaces(title)
-    if "<br/>" in clean or "<br>" in clean:
+    clean = re.sub(r"<br\s*/?>", "", clean).replace("\n", "").strip()
+    n = len(clean)
+    if n <= 25:
         return clean
 
-    # Strip existing line breaks
-    clean = clean.replace("\n", "").strip()
+    # Track bracket depth so we never split inside quotes or parentheses
+    open_chars = set("「『（(【［[")
+    close_chars = set("」』）)】］]")
+    depth = [0] * (n + 1)
+    d = 0
+    for idx, ch in enumerate(clean):
+        if ch in open_chars:
+            d += 1
+        depth[idx] = d
+        if ch in close_chars and d > 0:
+            d -= 1
+    depth[n] = 0
 
-    # If title is short enough (<= 24 characters), keep it on 1 line
-    if len(clean) <= 24:
-        return clean
+    mid = n / 2.0
+    max_line_len = 30 if n <= 56 else (n // 2 + 4)
+    min_pos = max(8, n - max_line_len)
+    max_pos = min(n - 7, max_line_len)
+    if min_pos > max_pos:
+        min_pos, max_pos = max(8, int(n * 0.30)), min(n - 7, int(n * 0.70))
 
-    # Break before 'に関する' or 'の推移'
-    for marker in ("に関する", "における"):
-        if marker in clean:
-            parts = clean.split(marker, 1)
-            # Ensure line 1 has substantial length
-            if len(parts[0]) >= 10:
-                return f"{parts[0]}<br/>{marker}{parts[1]}"
+    candidates = []
+    # 1. Break AFTER multi-char or single-char phrase markers
+    after_markers = [
+        ("における", 0.0),
+        ("に伴う", 0.0),
+        ("に基づく", 0.0),
+        ("を通じた", 0.0),
+        ("から見た", 0.0),
+        ("：", 0.0),
+        ("―", 0.0),
+        ("—", 0.0),
+        ("および", 0.5),
+        ("ならびに", 0.5),
+        ("と", 1.0),
+        ("・", 1.5),
+        ("による", 1.5),
+        ("から", 2.0),
+        ("での", 2.0),
+        ("への", 2.0),
+        ("の", 2.5),
+        ("や", 2.5),
+    ]
+    for marker, penalty in after_markers:
+        start = 0
+        while True:
+            idx = clean.find(marker, start)
+            if idx == -1:
+                break
+            pos = idx + len(marker)
+            if min_pos <= pos <= max_pos and depth[pos - 1] == 0:
+                candidates.append((abs(pos - mid) + penalty, pos))
+            start = idx + 1
 
-    # Break after midpoint at particle
-    mid = len(clean) // 2
-    for marker in ("の推移", "の比較", "と", "・"):
-        idx = clean.find(marker, max(mid - 8, 8))
-        if idx != -1 and idx < mid + 8:
-            split_at = idx + len(marker)
-            return f"{clean[:split_at]}<br/>{clean[split_at:]}"
+    # 2. Break BEFORE relational markers (only when reasonably balanced)
+    before_markers = [
+        ("に関する", 0.0),
+        ("における", 0.5),
+        ("に伴う", 0.5),
+        ("に基づく", 0.5),
+        ("を通じた", 0.5),
+        ("および", 1.0),
+    ]
+    for marker, penalty in before_markers:
+        start = 0
+        while True:
+            idx = clean.find(marker, start)
+            if idx == -1:
+                break
+            pos = idx
+            if min_pos <= pos <= max_pos and (pos == 0 or depth[pos - 1] == 0):
+                candidates.append((abs(pos - mid) + penalty, pos))
+            start = idx + 1
 
-    return clean
+    if candidates:
+        candidates.sort(key=lambda x: x[0])
+        best_pos = candidates[0][1]
+        return f"{clean[:best_pos]}<br/>{clean[best_pos:]}"
+
+    # Fallback: split near midpoint outside brackets
+    best_pos = int(mid)
+    for offset in range(0, n // 2):
+        for cand in (int(mid) + offset, int(mid) - offset):
+            if 8 <= cand <= n - 7 and depth[cand - 1] == 0:
+                best_pos = cand
+                return f"{clean[:best_pos]}<br/>{clean[best_pos:]}"
+    return f"{clean[:best_pos]}<br/>{clean[best_pos:]}"
 
 
 def sanitize_html_for_wordpress(html_text: str) -> str:

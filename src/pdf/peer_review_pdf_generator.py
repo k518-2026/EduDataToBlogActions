@@ -273,6 +273,11 @@ class PeerReviewPdfGenerator:
             textColor=colors.HexColor("#0f172a"),
         )
 
+        # Ensure all styles use strict CJK word wrapping and JIS X 4051 rules
+        import src.pdf.pdf_generator  # noqa: F401
+        for st in styles.values():
+            st.wordWrap = "CJK"
+
         return styles
 
     def generate_pdf(
