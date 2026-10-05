@@ -60,12 +60,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
     # 1. TIMSS Math: TIMSS Paradox & Affective Domain
     "japan_timss_math_science": DatasetAcademicContext(
         dataset_id="japan_timss_math_science",
-        academic_topic="国際学力調査における算数・数学到達度と情意面（好意度・自己効力感）の非対称性（TIMSSパラドックス）",
-        theoretical_framework="Banduraの自己効力感理論 (Self-Efficacy Theory)，IEA情意ドメイン評価枠組み，Pekrunの達成感情統制理論 (Control-Value Theory)",
+        academic_topic="日本の小学校4年算数・中学校2年数学の平均得点の長期推移（TIMSS 1995〜2023年）と男女差",
+        theoretical_framework="IEAのTIMSSの評価枠組み（平均得点と男女差の記述。標本調査の標準誤差を考慮する）",
         core_research_problems=(
-            "日本の児童生徒は認知的学力到達度において世界トップクラスの成績を維持する一方で，"
-            "「算数・数学が楽しい」「得意である」といった情意面（自己効力感）が国際平均を大幅に下回る『TIMSSパラドックス』が長期的に持続している．"
-            "特に小学校4年から中学校2年への学校種移行期（小中接続）における情意指数の急落メカニズムと，平均得点推移との非線形な関係を計量的に解明する．"
+            "TIMSSで日本の小学校4年の算数と中学校2年の数学の平均得点は，1995年から2023年までどう推移したか．"
+            "また女子と男子の平均得点の差は，学年と調査年によってどう変わったか．IEAが公表した値だけに基づいて整理する．"
+            "調査は標本調査で，得点は整数で公表されており，小さな差を過大に読まないことを前提にする．調査は1995年から2023年までの28年間（約四半世紀）である．"
         ),
         banned_cliches=[
             "近年のSociety 5.0の進展に伴い",
@@ -75,9 +75,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "情報化社会の急速な進展に伴い",
         ],
         specific_prompt_guidance=(
-            "必ず『TIMSSパラドックス（認知的学力と情意面・自己効力感の国際的乖離）』および小中接続期（小4から中2）における"
-            "情意指数の急落問題から論述を開始すること．Banduraの自己効力感やPekrunの感情統制理論に言及し，"
-            "単なる知識習得を超えた概念的理解と内発的動機づけの一体的向上の必要性を学術的に論じること．"
+            "分析結果に出ている数値（IEAのTIMSS 2023 International Resultsの公表値）だけを根拠に，平均得点の推移と男女差を述べること．"
+            "児童生徒の意識（楽しさ，自信，有用感）の経年データはこの分析に含まれない．意識についての数値や「TIMSSパラドックス」などの結論を，"
+            "データの裏付けなしに書かないこと．因果は断定しないこと．"
         ),
         curated_references=[
             "BANDURA, A. (1997) Self-efficacy: The exercise of control. W. H. Freeman and Company.",
@@ -160,13 +160,13 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. 2019年・2023年調査にかけて中学校数学の好意度が微増している要因として、GIGAスクール端末の導入等の学習環境の変化がどの程度寄与しているとお考えか。",
             "2. 「得意である肯定率」の低迷が、単なる苦手意識ではなく、高度な目標基準設定（メタ認知的自己評価の厳格さ）に起因する可能性について著者の見解を伺いたい。",
         ],
-        title_en="The TIMSS Paradox in Mathematics Education: Empirical Analysis of the Asymmetry Between Academic Achievement and Affective Attitudes",
+        title_en="Trends in Japanese Grade 4 and Grade 8 Mathematics Achievement and Gender Differences in TIMSS, 1995-2023",
         source_en="International Association for the Evaluation of Educational Achievement (IEA) and National Institute for Educational Policy Research (NIER)",
         metrics_en={
-            "小4算数平均得点": "Grade 4 Mathematics Average Score",
-            "中2数学平均得点": "Grade 8 Mathematics Average Score",
-            "小4算数楽しい": "Grade 4 Mathematics Enjoyment Rate",
-            "中2数学楽しい": "Grade 8 Mathematics Enjoyment Rate",
+            "平均得点": "Average Mathematics Score",
+            "男子平均得点": "Boys' Average Mathematics Score",
+            "女子平均得点": "Girls' Average Mathematics Score",
+            "男女得点差": "Gender Score Gap (Boys - Girls)",
         },
         fallback_keywords_en=["TIMSS PARADOX", "MATHEMATICS EDUCATION", "SELF-EFFICACY", "AFFECTIVE DOMAIN", "LONGITUDINAL ANALYSIS"],
         fallback_summary_en=(
@@ -179,14 +179,14 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "the primary-to-secondary educational transition. Based on Bandura's self-efficacy theory and Pekrun's control-value theory, "
             "pedagogical implications for integrated cognitive and emotional instructional design are discussed."
         ),
-        angle_id="timss_affective_paradox",
-        angle_name="TIMSSパラドックス（認知的学力到達度と自己効力感の非対称性）",
-        title_theme="「数学が得意」なのに「嫌い」な子どもたち：TIMSSパラドックスが暴く学力と自己効力感の乖離",
-        focus_metrics=['平均得点', '勉強が楽しい肯定率', '得意である肯定率'],
-        rq1='TIMSS調査における小学校4年算数および中学校2年数学の平均得点と情意指標（楽しい・得意肯定率）はどのように推移しているか。',
-        rq2='認知的学力到達度（平均得点）と情意面（自己効力感・好意度）の間にはどのような共変連動性（または乖離）が認められるか。',
-        scatter_x_metric='平均得点',
-        scatter_y_metric='勉強が楽しい肯定率',
+        angle_id="timss_achievement_trend",
+        angle_name="日本の算数・数学の平均得点の長期推移（小4・中2、1995〜2023年）",
+        title_theme="日本の子どもの算数・数学の得点は30年でどう動いたか：TIMSSの公表値から小4と中2を比べる",
+        focus_metrics=['平均得点', '男子平均得点', '女子平均得点'],
+        rq1='TIMSSにおける日本の小学校4年算数と中学校2年数学の平均得点は、1995年から2023年にかけてどのように推移したか。',
+        rq2='学年（小4・中2）と調査年は、平均得点にどのような主効果と交互作用を示しているか（標本調査の誤差を踏まえて）。',
+        scatter_x_metric='男子平均得点',
+        scatter_y_metric='女子平均得点',
         
         analysis_method='two_way_anova',
         anova_dv='平均得点',
@@ -619,13 +619,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
     # 5. OECD PISA Math & ICT: Inverted-U Hypothesis & Screen Time
     "oecd_pisa_math_ict": DatasetAcademicContext(
         dataset_id="oecd_pisa_math_ict",
-        academic_topic="OECD PISAにおける数学的リテラシーの国際的格差とデジタル端末活用の「逆U字仮説」およびジェンダー差の計量分析",
-        theoretical_framework="OECDの逆U字効果仮説 (Inverted-U Hypothesis)，Swellerの認知的負荷理論 (Cognitive Load Theory)，Spencerらのステレオタイプ脅威理論",
+        academic_topic="OECD PISAにおける数学的リテラシーの国際比較（2015〜2025年）と男女得点差の推移",
+        theoretical_framework="OECDのPISAの数学的リテラシーの評価枠組み（平均得点の国際比較と男女差の記述）",
         core_research_problems=(
-            "PISA 2022調査において，日本の生徒は数学的リテラシーで国際トップ水準を達成したが，"
-            "OECD加盟国全体では端末利用時間と学力の間に『適度な学習利用は学力を高めるが，過度な娯楽・SNS利用は学力を低下させる』という"
-            "逆U字型の関係（Inverted-U Hypothesis）が報告された．さらに，数学得点における男女差（男子優位）の国際的持続性と"
-            "デジタル活用の関係性を計量的に検証する．"
+            "OECDのPISA（2015・2018・2022・2025年）で，日本・シンガポール・韓国・エストニア・カナダ・イギリス・アメリカの数学の平均得点は，"
+            "OECD加盟23か国の平均と比べてどう推移したか．また男子と女子の平均得点の差は，国と調査年によってどう異なるか．"
+            "OECDが公表した値だけに基づいて整理する．カナダとアメリカはOECDの表で標本抽出基準に関する注意がついており，解釈に慎重さが要る．"
         ),
         banned_cliches=[
             "近年のSociety 5.0の進展に伴い",
@@ -635,9 +634,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "情報化社会の急速な進展に伴い",
         ],
         specific_prompt_guidance=(
-            "必ず『OECD生徒の学習到達度調査（PISA）における数学的リテラシーの国際比較とデジタル機器利用の「逆U字仮説」』から論述を開始すること．"
-            "OECD (2024) のスクリーンタイムと学習成果の非線形関係や，Sweller (1988) の認知的負荷理論に触れ，"
-            "各国の得点格差，男女得点差の持続構造，および学習目的と余暇目的のデジタル利用の乖離を客観的に論じること．"
+            "分析結果に出ている数値（OECD『PISA 2025 Results (Volume I)』の公表値）だけを根拠に，数学の得点の推移と男女差を述べること．"
+            "PISA 2025の主要分野は科学で，数学は副次的な分野である．デジタル機器の利用や学習時間など，データに含まれない事柄は，"
+            "数値の裏付けなしに書かないこと．観測数の32は「国・地域×調査年」の組み合わせの数で，国の数ではない（7か国とOECD平均の4時点）．カナダとアメリカには標本抽出基準に関する注意があることに触れ，因果は断定しないこと．"
         ),
         curated_references=[
             "松原憲治 (2021) PISA数学的リテラシー調査における国際比較と日本の課題. 数学教育学研究, <b>27</b> (1) ：55-68.",
@@ -717,7 +716,7 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "1. エストニア等で男女得点差が小さい要因として、初等中等教育段階でのどのような教育的介入が機能していると著者は推察されるか。",
             "2. デジタル端末の利用が「認知的負荷の過大化」を招く臨界時間（Threshold）について、日本の教育現場への具体的提言をどう展開されるか伺いたい。",
         ],
-        title_en="Digital Utilization and Mathematics Literacy in Secondary Education: International Comparative Evidence from OECD PISA",
+        title_en="International Comparison of Mathematics Literacy and Gender Differences in OECD PISA, 2015-2025",
         source_en="Organisation for Economic Co-operation and Development (OECD)",
         metrics_en={
             "数学得点": "Mathematical Literacy Score",
@@ -733,9 +732,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "structural cross-national differences and resilient performance patterns during global educational disruptions. Policy implications "
             "regarding equitable mathematics instruction and balanced educational technology integration are discussed."
         ),
-        angle_id="pisa_math_resilience_and_ict",
-        angle_name="PISA国際比較に見る数学的リテラシーの経年レジリエンスと男女得点差の国際構造",
-        title_theme="PISA国際比較が示す日本の数学的リテラシーの頑健性とジェンダー得点差の構造的持続",
+        angle_id="pisa_math_trend_and_gender",
+        angle_name="PISAの数学的リテラシーの国際比較（2015〜2025年）と男女得点差の推移",
+        title_theme="PISAの数学の得点は10年でどう動いたか：OECDの公表値から7か国と平均を比べる",
         focus_metrics=['数学得点', '男子得点', '女子得点', '男女得点差'],
         rq1='PISA参加主要国における数学的リテラシー得点（全体・男子・女子）および男女得点差の分布特性にはどのような特徴があるか。',
         rq2='国別要因および調査年次要因は数学的リテラシー得点および男女得点差の推移にどのような主効果と変動をもたらしているか。',
@@ -1663,15 +1662,14 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"],
         DatasetAcademicContext(
             dataset_id="japan_timss_math_science",
-            academic_topic="算数・数学における実利主義的価値観と内発的動機づけの葛藤構造（有益性と好意度のトレードオフ）",
+            academic_topic="日本の算数・数学の得点の男女差（TIMSS 1995〜2023年）の推移",
             theoretical_framework="Ecclesの期待価値理論 (Expectancy-Value Theory)，Deci & Ryanの自己決定理論 (Self-Determination Theory)",
             core_research_problems=(
-                "「数学は将来の進路や就職に役立つ」という実利主義的有用性感（ユーティリティ・バリュー）は高い水準にある一方で，"
-                "「数学を学ぶこと自体が楽しい」という興味・内発的価値が低迷する教育構造を計量的に検証する．"
-                "外発的動機づけが学習者の認知的エンゲージメントおよび長期的な数学探究力に及ぼす影響を解明する．"
+                "TIMSSの公表値で，日本の小学校4年と中学校2年の男子と女子の平均得点の差（男子−女子）は，1995年から2023年までどう変わったか．"
+                "差は数点から十数点で，標本調査の誤差と同程度の年もある．差の大きさと誤差を区別して述べる．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].banned_cliches,
-            specific_prompt_guidance="必ず『実利主義的学習観（役に立つから学ぶ）と内発的動機の乖離』に焦点を当てて論じること．",
+            specific_prompt_guidance="男子と女子の平均得点の差（男子−女子）の推移を，公表値の範囲で述べること．得点は整数で公表されている．差が小さい年は「差があった」と断定せず，原因（指導，意識，社会的要因など）はデータにないので断定しないこと．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].curated_references,
             fallback_title="算数・数学学習における実利主義的効用感と内発的動機づけの相関動態†",
             fallback_subtitle="IEA TIMSS調査データに基づく期待価値理論の計量検証",
@@ -1683,24 +1681,26 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].fallback_questions_to_authors,
-            title_en="Empirical Analysis of Instrumental Utility and Intrinsic Motivation in Mathematics Education",
+            title_en="Gender Differences in Japanese Mathematics Achievement in TIMSS, 1995-2023",
             source_en=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].metrics_en,
             fallback_keywords_en=["EXPECTANCY-VALUE THEORY", "INTRINSIC MOTIVATION", "UTILITY VALUE", "MATHEMATICS", "TIMSS"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["japan_timss_math_science"].fallback_summary_en,
-            angle_id="timss_instrumental_utility",
-            angle_name="実利主義的価値観と内発的動機づけの葛藤構造",
-            title_theme="「役に立つから学ぶ」は学力を伸ばすか？：数学の実利主義的価値認識と内発的動機の対立構造",
-            focus_metrics=['将来役立つ肯定率', '勉強が楽しい肯定率', '平均得点'],
-        rq1='算数・数学に対する実利主義的効用認識（将来役立つ）と内発的動機（楽しい）の推移にはどのような水準差が認められるか。',
-        rq2='「将来役立つ」という実利認識は内発的な学習好意度や学力得点とどのように連動しているか。',
-        scatter_x_metric='将来役立つ肯定率',
-        scatter_y_metric='勉強が楽しい肯定率',
+            angle_id="timss_gender_gap",
+            angle_name="日本の算数・数学の得点の男女差の推移（TIMSS）",
+            title_theme="算数・数学の得点に男女の差はあるのか：TIMSSの公表値で日本の30年を見る",
+            focus_metrics=['男女得点差', '男子平均得点', '女子平均得点'],
+        rq1='日本の小学校4年と中学校2年で、男子と女子の平均得点の差（男子−女子）は1995年から2023年にかけてどう推移したか。',
+        rq2='男女得点差は、学年と調査年によってどのように異なるか（標本調査の誤差を踏まえて）。',
+        scatter_x_metric='男子平均得点',
+        scatter_y_metric='女子平均得点',
         
-        analysis_method='multiple_regression',
-        regression_y='平均得点',
-        regression_x_list=['勉強が楽しい肯定率', '将来役立つ肯定率'],
-        secondary_chart_type='multiple_regression',
+        group_comparison_metric='男女得点差',
+            analysis_method='two_way_anova',
+            anova_dv='男女得点差',
+            anova_factor_a='学年・教科',
+            anova_factor_b='調査年',
+        secondary_chart_type='anova_interaction',
         ),
     ],
 
@@ -1852,14 +1852,14 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
         DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"],
         DatasetAcademicContext(
             dataset_id="oecd_pisa_math_ict",
-            academic_topic="OECD PISAにおける国家全体の数学的リテラシー到達水準と男女得点差（ジェンダー・ギャップ）の統計的独立性の検証",
+            academic_topic="PISAの数学の平均得点の水準と男女得点差の関連（2015〜2025年）",
             theoretical_framework="Spencerのステレオタイプ脅威理論 (Stereotype Threat)，Hydeのジェンダー類似性仮説 (Gender Similarities Hypothesis)，比較教育制度論",
             core_research_problems=(
                 "国家全体の数学的リテラシー平均得点（数学得点）が高い教育システムほど男女得点差も自然に縮小するのか，"
                 "あるいは全体的な学力到達水準と男女間のジェンダー・ギャップ（男女得点差）は統計的に独立した別個の制度的次元であるのかをベイズ無相関検定（BF₀₁）により解明する．"
             ),
             banned_cliches=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].banned_cliches,
-            specific_prompt_guidance="必ず収録指標（数学得点・男子得点・女子得点・男女得点差）に基づき，国家全体の数学到達水準（数学得点）とジェンダー格差（男女得点差）の統計的独立性（無相関仮説H₀のベイズ検証）に焦点を当てて論じること．",
+            specific_prompt_guidance="数学の平均得点の水準と男女得点差（男子−女子）の関連を，分析結果の相関係数・信頼区間・ベイズファクターが示す範囲で述べること．観測は7か国とOECD平均の4時点で，国と年の組み合わせは独立ではない．観測数の32は「国・地域×調査年」の組み合わせの数で，国の数ではない．関連の有無を断定せず，因果は述べないこと．",
             curated_references=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].curated_references,
             fallback_title="OECD PISAにおける数学的リテラシー到達水準と男女得点差の統計的独立性に関するベイズ検証†",
             fallback_subtitle="主要国時系列データに基づく全体学力水準とジェンダー・ギャップの無相関分析",
@@ -1875,14 +1875,14 @@ DATASET_RESEARCH_ANGLES: Dict[str, List[DatasetAcademicContext]] = {
             fallback_major_revisions=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_major_revisions,
             fallback_minor_revisions=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_minor_revisions,
             fallback_questions_to_authors=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_questions_to_authors,
-            title_en="Bayesian Independence Analysis of Overall Mathematical Literacy and Gender Score Gaps in OECD PISA",
+            title_en="Association Between Mean Mathematics Performance and the Gender Gap in OECD PISA, 2015-2025",
             source_en=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].source_en,
             metrics_en=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].metrics_en,
             fallback_keywords_en=["OECD PISA", "GENDER SCORE GAP", "BAYESIAN NULL HYPOTHESIS", "MATHEMATICS LITERACY"],
             fallback_summary_en=DATASET_ACADEMIC_CONTEXTS["oecd_pisa_math_ict"].fallback_summary_en,
             angle_id="pisa_socioeconomic_gradient",
-            angle_name="PISA数学的リテラシー到達水準と男女得点差の統計的独立性検証",
-            title_theme="高学力国ほど男女格差は小さいのか？：PISAデータが示す全体到達水準とジェンダーギャップの独立性",
+            angle_name="PISAの数学の平均得点の水準と男女得点差の関連",
+            title_theme="得点の高い国ほど男女差は小さいのか：PISAの公表値で確かめる",
             focus_metrics=['数学得点', '男子得点', '女子得点', '男女得点差'],
             rq1='各国の男子得点、女子得点、および男女得点差の国際的分布水準にはどのような格差パターンが存在するか。',
             rq2='国家全体の数学的リテラシー到達水準（数学得点）と男女得点差との間には統計的独立性（無相関）が認められるか。',
