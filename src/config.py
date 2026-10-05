@@ -33,7 +33,13 @@ class Config:
     ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5").strip()
 
     # Blog publishing mode: 'wordpress_mail', 'wordpress_rest', or 'markdown_only'
-    BLOG_PUBLISHER_TYPE: str = os.getenv("BLOG_PUBLISHER_TYPE", "wordpress_mail").strip().lower()
+    # Temporarily paused WordPress posting -> defaults to 'markdown_only'
+    BLOG_PUBLISHER_TYPE: str = os.getenv("BLOG_PUBLISHER_TYPE", "markdown_only").strip().lower()
+    WP_PUBLISHING_PAUSED: bool = os.getenv("WP_PUBLISHING_PAUSED", "true").strip().lower() in (
+        "true",
+        "1",
+        "yes",
+    )
 
     # WordPress Post by Email settings
     WP_POST_EMAIL: str = os.getenv("WP_POST_EMAIL", "").strip()

@@ -98,7 +98,13 @@ def main():
     storage = ReportStorage()
 
     topic = (args.topic or Config.DEFAULT_TOPIC or "all").strip().strip("'\"").lower()
-    publisher_type = (args.publisher or Config.BLOG_PUBLISHER_TYPE or "wordpress_mail").strip().strip("'\"").lower()
+    publisher_type = (args.publisher or Config.BLOG_PUBLISHER_TYPE or "markdown_only").strip().strip("'\"").lower()
+    if Config.WP_PUBLISHING_PAUSED and publisher_type in ("wordpress_mail", "wordpress_rest"):
+        logger.info(
+            "⏸️ WordPressへの投稿は現在一時停止設定（WP_PUBLISHING_PAUSED=true）のため、"
+            f"'{publisher_type}' から 'markdown_only'（GitHub保存のみ）に切り替えます。"
+        )
+        publisher_type = "markdown_only"
 
     # 2. Select dataset and scholarly research angle
     history = storage.load_history()
