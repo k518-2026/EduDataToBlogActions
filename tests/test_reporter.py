@@ -59,8 +59,8 @@ def test_reporter_builds_valid_documents(tmp_path):
 
     # Validate HTML
     assert f"[title {report.title}]" in report.html_content
-    assert "[status publish]" in report.html_content
-    assert "data:image/png;base64," in report.html_content
+    assert "[status draft]" in report.html_content and "[end]" in report.html_content
+    assert "raw.githubusercontent.com" in report.html_content and "<img " in report.html_content  # images are GitHub URLs (WordPress mail does not show base64)
     assert "テスト授業示唆です。" in report.html_content
     assert ".pyファイルをダウンロード" in report.html_content
 
@@ -135,9 +135,11 @@ def test_reporter_builds_dual_tables_and_figures(tmp_path):
     # Check HTML contains both tables and both base64 images
     assert "基本記述統計量一覧" in report.html_content
     assert "表2: 重回帰分析推定量" in report.html_content
-    assert report.html_content.count("data:image/png;base64,") >= 2
-    assert "<a " not in report.html_content
-    assert "</a>" not in report.html_content
+    assert report.html_content.count("<img ") >= 2 and "data:image/png;base64," not in report.html_content
+    import re as _re
+    from src.utils import own_repo_url_prefixes
+    hrefs = _re.findall(r'<a\b[^>]*href="([^"]+)"', report.html_content)
+    assert all(h.startswith(own_repo_url_prefixes()) for h in hrefs), "only links to this repository's own files are allowed"
 
 
 

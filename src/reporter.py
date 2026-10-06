@@ -20,7 +20,10 @@ from src.analyzer import AnalysisResult, format_apa_p, format_apa_stat
 from src.config import Config
 from src.fetchers.base import EducationDataset
 from src.insights import EducationalInsights
-from src.utils import clean_insight_text, format_bayes_factor, sanitize_html_for_wordpress
+from src.utils import clean_insight_text, format_bayes_factor, own_repo_url_prefixes, sanitize_html_for_wordpress
+
+# WordPress の記事に載せる表の最大行数。全体は、公開する分析スクリプトで再現できる。
+MAX_TABLE_ROWS = 6
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -380,7 +383,13 @@ plt.show()
             "| :--- | :---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
         html_rows = []
-        for i, (m, s) in enumerate(analysis.descriptive_stats.items()):
+        focus = list(getattr(self, "_focus_metrics", []) or [])
+        all_items = list(analysis.descriptive_stats.items())
+        all_items.sort(key=lambda kv: (kv[0] not in focus, focus.index(kv[0]) if kv[0] in focus else 0))
+        shown_items = all_items[:MAX_TABLE_ROWS]
+        if len(all_items) > len(shown_items):
+            pop_note += f"\n*※指標が{len(all_items)}あるため、この分析の中心の{len(shown_items)}指標だけを載せた（全体は公開しているPythonコードで再現できる）。*\n"
+        for i, (m, s) in enumerate(shown_items):
             md_rows.append(
                 f"| **{m}** | {s.count:,} | {s.mean:.2f} | {s.median:.2f} | {s.std:.2f} | {s.min_val:.2f} | {s.max_val:.2f} | {s.iqr:.2f} |"
             )
@@ -452,7 +461,10 @@ plt.show()
             "| :--- | :---: | ---: | :---: | ---: | ---: | ---: | ---: | ---: | :--- |",
         ]
         html_rows = []
-        for i, tr in enumerate(analysis.trends):
+        focus = list(getattr(self, "_focus_metrics", []) or [])
+        all_trends = sorted(analysis.trends, key=lambda t: (t.metric not in focus))
+        shown_trends = all_trends[:MAX_TABLE_ROWS]
+        for i, tr in enumerate(shown_trends):
             grp_str = f"[{tr.group_name}] " if tr.group_name else ""
             cagr_val_str = f"{tr.cagr:+.2f}%" if tr.cagr is not None else "-"
             bf_disp = format_bayes_factor(tr.bf10)
@@ -509,6 +521,8 @@ plt.show()
             )
 
         md_table = "### 📈 経年変化・トレンド推移\n\n" + "\n".join(md_rows) + "\n\n"
+        if len(all_trends) > len(shown_trends):
+            md_table += f"*※{len(all_trends)}行のうち、この分析の中心の{len(shown_trends)}行だけを載せた（全体は公開しているPythonコードで再現できる）。*\n\n"
         html_table = f"""
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
           <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -556,7 +570,8 @@ plt.show()
             "| :--- | :---: | :---: | :--- | :---: | :--- |",
         ]
         html_rows = []
-        for i, cr in enumerate(analysis.correlations):
+        shown_corrs = analysis.correlations[:MAX_TABLE_ROWS]  # 研究課題の指標ペアが先頭に来る
+        for i, cr in enumerate(shown_corrs):
             bf_disp = format_bayes_factor(getattr(cr, "bf10", None))
             bf_val_str = bf_disp if getattr(cr, "bf10", None) is not None else "-"
             bf_interp_str = cr.bf_interpretation or "-"
@@ -596,6 +611,8 @@ plt.show()
             )
 
         md_table = "### 🔍 指標間の相関分析\n\n" + "\n".join(md_rows) + "\n\n"
+        if len(analysis.correlations) > len(shown_corrs):
+            md_table += f"*※{len(analysis.correlations)}組のうち、研究課題の指標ペアを先頭に{len(shown_corrs)}組だけを載せた（全体は公開しているPythonコードで再現できる）。*\n\n"
         html_table = f"""
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; margin-bottom:28px;">
           <div style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0; padding:12px 18px;">
@@ -995,6 +1012,8 @@ plt.show()
     ) -> GeneratedReport:
         today_str = get_jst_now().strftime("%Y年%m月%d日")
         date_iso = get_jst_now().strftime("%Y-%m-%d")
+        # 表には、この分析（切り口）の中心の指標を先に載せる
+        self._focus_metrics = list(getattr(selected_angle, "focus_metrics", []) or [])
 
         category_label = "算数・数学教育" if dataset.category == "math" else "情報教育・プログラミング"
         if selected_angle and getattr(selected_angle, "title_theme", None):
@@ -1047,11 +1066,7 @@ plt.show()
             if secondary_chart_path else ""
         )
 
-        sec_img_src = (
-            f"data:image/png;base64,{secondary_chart_b64}"
-            if secondary_chart_b64
-            else raw_github_secondary_img_url
-        )
+        sec_img_src = raw_github_secondary_img_url
 
         # Determine academic title for secondary chart based on analysis method
         method = getattr(analysis, "primary_method", "correlation")
@@ -1116,6 +1131,10 @@ plt.show()
                 </span>
 """
 
+        review_link_html = (
+            f'<a href="{peer_review_pdf_url}">📋 査読報告書PDFを開く</a>　｜　' if peer_review_pdf_url else ""
+        )
+
         if pdf_url:
             pdf_badge_md = f"""
 > 📄 **学術論文形式PDF（生成AI論文）を公開中**:
@@ -1141,6 +1160,9 @@ plt.show()
                 </span><br/>
                 {review_btn_html}
               </div>
+            </div>
+            <div style="margin-top:12px; font-size:14px; line-height:2;">
+              <a href="{pdf_url}">📄 学術論文PDFを開く</a>　｜　{review_link_html}<a href="{raw_py_url}">🐍 分析のPythonコードを開く</a>
             </div>
           </div>
 """
@@ -1254,7 +1276,7 @@ plt.show()
 """
 
         # 4. Assemble HTML Content (With Base64 images, reproducible Python code box, and interactive Copy Button)
-        wp_status = Config.WP_POST_STATUS or "publish"
+        wp_status = Config.WP_POST_STATUS or "draft"
         cat_str = ",".join(categories)
         tag_str = ",".join(tags)
 
@@ -1266,11 +1288,8 @@ plt.show()
             [f"<li style='margin-bottom:6px;'>{ins}</li>" for ins in analysis.key_insights]
         )
 
-        img_src = (
-            f"data:image/png;base64,{chart_b64}"
-            if chart_b64
-            else raw_github_img_url
-        )
+        # WordPress（メール投稿）は base64 埋め込みの画像を表示しない。GitHub に上がった図の URL を使う
+        img_src = raw_github_img_url
 
         # Secondary chart HTML block
         secondary_chart_html = ""
@@ -1399,10 +1418,13 @@ plt.show()
 [category {cat_str}]
 [tags {tag_str}]
 [status {wp_status}]
+[publicize off]
+[end]
 """
 
         # Final safety net: strip any <a href="..."> links and convert DOI URLs to plain 'DOI: 10.xxxx/...'
-        html_content = sanitize_html_for_wordpress(html_content)
+        # (Only the links to this repository's own PDFs and Python code are kept.)
+        html_content = sanitize_html_for_wordpress(html_content, keep_href_prefixes=own_repo_url_prefixes())
 
         return GeneratedReport(
             title=title,

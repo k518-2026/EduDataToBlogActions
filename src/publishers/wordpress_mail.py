@@ -8,7 +8,7 @@ from typing import Optional
 from src.config import Config
 from src.publishers.base import BasePublisher
 from src.reporter import GeneratedReport
-from src.utils import sanitize_html_for_wordpress
+from src.utils import own_repo_url_prefixes, sanitize_html_for_wordpress
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class WordPressMailPublisher(BasePublisher):
         alt_part.attach(MIMEText(plain_text, "plain", "utf-8"))
 
         # HTML content (ensure all <a href="..."> links are stripped and DOIs are plain text)
-        safe_html = sanitize_html_for_wordpress(report.html_content)
+        safe_html = sanitize_html_for_wordpress(report.html_content, keep_href_prefixes=own_repo_url_prefixes())
         alt_part.attach(MIMEText(safe_html, "html", "utf-8"))
 
         # Attach chart image

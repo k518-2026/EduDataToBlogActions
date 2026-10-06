@@ -318,7 +318,15 @@ def format_title_two_lines(title: str) -> str:
     return f"{clean[:best_pos]}<br/>{clean[best_pos:]}"
 
 
-def sanitize_html_for_wordpress(html_text: str) -> str:
+def own_repo_url_prefixes():
+    """このリポジトリの GitHub の URL の頭。論文PDF・査読報告書PDF・Pythonコードへのリンクだけは残すために使う。"""
+    from src.config import Config
+
+    repo = Config.GITHUB_REPOSITORY
+    return (f"https://raw.githubusercontent.com/{repo}/", f"https://github.com/{repo}/")
+
+
+def sanitize_html_for_wordpress(html_text: str, keep_href_prefixes=()) -> str:
     """
     Sanitizes HTML and text content for WordPress posts (both Post by Email and REST API):
     1. Converts <a href="https://doi.org/10.xxxx/...">...</a> to plain text 'DOI: 10.xxxx/...'.
@@ -332,6 +340,22 @@ def sanitize_html_for_wordpress(html_text: str) -> str:
         return ""
 
     cleaned = str(html_text)
+
+    # 0. Protect <a> tags that point at the allowed prefixes (our own published files); restored at the end
+    kept = []
+    if keep_href_prefixes:
+        def _protect(m):
+            if m.group(1).startswith(tuple(keep_href_prefixes)):
+                kept.append(m.group(0))
+                return f"@@KEEPLINK{len(kept) - 1}@@"
+            return m.group(0)
+
+        cleaned = re.sub(
+            r"<a\b[^>]*?href=[\"'](https?://[^\"']+)[\"'][^>]*>.*?</a>",
+            _protect,
+            cleaned,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
 
     # 1. Convert <a href="...doi.org/10.xxx">...</a> to DOI: 10.xxx
     cleaned = re.sub(
@@ -381,6 +405,10 @@ def sanitize_html_for_wordpress(html_text: str) -> str:
 
     # 6. Clean up any accidental duplicate "DOI: DOI: "
     cleaned = re.sub(r"(?:DOI:\s*){2,}", "DOI: ", cleaned, flags=re.IGNORECASE)
+
+    # Restore the protected links
+    for i, tag in enumerate(kept):
+        cleaned = cleaned.replace(f"@@KEEPLINK{i}@@", tag)
 
     return cleaned
 
@@ -480,6 +508,42 @@ def resolve_anthropic_model(api_key: str, preferred_model: str = "") -> str:
     return models[0]
 
 
+
+
+def ollama_chat_text(prompt: str, system: str = "", max_tokens: int = 8192, timeout: int = 1800) -> str:
+    """Asks the Ollama server (Config.OLLAMA_BASE_URL) for a JSON answer and returns the text.
+
+    Qwen3.5 / Gemma4 need think=false; qwen2.5 ignores it. The answer is requested in JSON mode,
+    so the caller can parse it like the answers from Claude and Gemini.
+    """
+    import json
+    import urllib.request
+
+    from src.config import Config
+
+    if not Config.OLLAMA_BASE_URL:
+        raise LLMGenerationError("OLLAMA_BASE_URL が設定されていません")
+    messages = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
+    payload = {
+        "model": Config.OLLAMA_MODEL,
+        "messages": messages,
+        "stream": False,
+        "format": "json",
+        "think": False,
+        "options": {"num_ctx": 24576, "num_predict": max_tokens, "temperature": 0.3},
+    }
+    req = urllib.request.Request(
+        Config.OLLAMA_BASE_URL + "/api/chat",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"content-type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    text = ((data.get("message") or {}).get("content") or "").strip()
+    if not text:
+        raise LLMGenerationError("Ollama の応答が空です")
+    return text
 
 
 def extract_anthropic_text(res_data: dict) -> str:

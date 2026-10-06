@@ -116,7 +116,7 @@ jobs:
           BLOG_PUBLISHER_TYPE: ${{ inputs.publisher || 'markdown_only' }}
           WP_PUBLISHING_PAUSED: 'true'
           WP_POST_EMAIL: ${{ secrets.WP_POST_EMAIL }}
-          WP_POST_STATUS: ${{ vars.WP_POST_STATUS || 'publish' }}
+          WP_POST_STATUS: ${{ vars.WP_POST_STATUS || 'draft' }}
           SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
           SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
           SMTP_USER: ${{ secrets.SMTP_USER }}

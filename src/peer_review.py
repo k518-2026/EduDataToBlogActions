@@ -21,7 +21,7 @@ from src.academic_paper import AcademicPaper
 from src.analyzer import AnalysisResult, is_collinear_or_redundant_pair
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import LLMGenerationError, anthropic_thinking_options, extract_anthropic_text, resolve_anthropic_model
+from src.utils import LLMGenerationError, anthropic_thinking_options, extract_anthropic_text, ollama_chat_text, resolve_anthropic_model
 from src.utils_date import get_jst_now
 
 logger = logging.getLogger(__name__)
@@ -268,6 +268,17 @@ class PeerReviewGenerator:
                 logger.warning(f"Gemini peer review generation failed: {e}")
                 errors.append(f"Gemini: {e}")
 
+        # 2b. Ollama (a local LLM) is the last resort after Claude and Gemini
+        if not report and Config.OLLAMA_BASE_URL:
+            try:
+                logger.info(f"Generating academic peer review with Ollama ({Config.OLLAMA_MODEL})...")
+                report = self._generate_with_claude(
+                    paper, dataset, analysis, selected_angle=selected_angle, audit_issues=audit_issues, llm="ollama"
+                )
+            except Exception as e:
+                logger.warning(f"Ollama peer review generation failed: {e}")
+                errors.append(f"Ollama: {e}")
+
         # 3. No template text is ever published: fail loudly
         if not report:
             raise LLMGenerationError(
@@ -448,38 +459,43 @@ class PeerReviewGenerator:
         analysis: AnalysisResult,
         selected_angle: Optional[Any] = None,
         audit_issues: Optional[List[Dict[str, str]]] = None,
+        llm: str = "claude",
     ) -> PeerReviewReport:
         prompt = self._build_review_prompt(
             paper, dataset, analysis, selected_angle=selected_angle, audit_issues=audit_issues
         )
-        resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
-        logger.info(f"Targeting Anthropic Claude model for peer review: '{resolved_model}' (requested: '{self.anthropic_model}')")
+        if llm == "ollama":
+            logger.info(f"Targeting Ollama model '{Config.OLLAMA_MODEL}' at {Config.OLLAMA_BASE_URL}")
+            raw_text = ollama_chat_text(prompt, system="You are a senior academic reviewer for an educational research journal. Review thoroughly and provide critical scholarly evaluations.", max_tokens=8192)
+        else:
+            resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
+            logger.info(f"Targeting Anthropic Claude model for peer review: '{resolved_model}' (requested: '{self.anthropic_model}')")
 
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": self.anthropic_api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-            "user-agent": "EduDataToBlogActions/1.0",
-        }
-        payload = {
-            "model": resolved_model,
-            "max_tokens": 16000,
-            "system": "You are a senior academic reviewer for an educational research journal. Review thoroughly and provide critical scholarly evaluations.",
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        payload.update(anthropic_thinking_options(resolved_model))
+            url = "https://api.anthropic.com/v1/messages"
+            headers = {
+                "x-api-key": self.anthropic_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+                "user-agent": "EduDataToBlogActions/1.0",
+            }
+            payload = {
+                "model": resolved_model,
+                "max_tokens": 16000,
+                "system": "You are a senior academic reviewer for an educational research journal. Review thoroughly and provide critical scholarly evaluations.",
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            payload.update(anthropic_thinking_options(resolved_model))
 
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=600) as resp:
-            res_data = json.loads(resp.read().decode("utf-8"))
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                res_data = json.loads(resp.read().decode("utf-8"))
 
-        raw_text = extract_anthropic_text(res_data)
+            raw_text = extract_anthropic_text(res_data)
         json_match = re.search(r"\{[\s\S]*\}", raw_text)
         if json_match:
             raw_text = json_match.group(0)

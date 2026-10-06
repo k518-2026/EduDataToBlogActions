@@ -162,7 +162,10 @@ def test_reporter_integrates_pdf_link(tmp_path):
 
     assert report.pdf_url == dummy_pdf_url
     assert report.pdf_path == dummy_pdf_path
-    assert "<a " not in report.html_content
+    import re as _re
+    from src.utils import own_repo_url_prefixes
+    hrefs = _re.findall(r'<a\b[^>]*href="([^"]+)"', report.html_content)
+    assert all(h.startswith(own_repo_url_prefixes()) for h in hrefs), "only links to this repository's own files are allowed"
     assert "学術論文形式の完全版レポート" in report.html_content
     assert dummy_pdf_url in report.markdown_content
     assert "学術論文形式PDF" in report.markdown_content

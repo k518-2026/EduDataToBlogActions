@@ -32,6 +32,10 @@ class Config:
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip()
     ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5-5").strip()
 
+    # Ollama (local LLM; the third choice after Claude and Gemini). Empty OLLAMA_BASE_URL disables it.
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "").strip().rstrip("/")
+    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5:14b").strip()
+
     # Blog publishing mode: 'wordpress_mail', 'wordpress_rest', or 'markdown_only'
     # Temporarily paused WordPress posting -> defaults to 'markdown_only'
     BLOG_PUBLISHER_TYPE: str = os.getenv("BLOG_PUBLISHER_TYPE", "markdown_only").strip().lower()
@@ -43,7 +47,7 @@ class Config:
 
     # WordPress Post by Email settings
     WP_POST_EMAIL: str = os.getenv("WP_POST_EMAIL", "").strip()
-    WP_POST_STATUS: str = os.getenv("WP_POST_STATUS", "publish").strip()
+    WP_POST_STATUS: str = os.getenv("WP_POST_STATUS", "draft").strip()
     DEFAULT_CATEGORIES: str = os.getenv(
         "DEFAULT_CATEGORIES", "教育データ分析,情報教育,算数数学教育"
     ).strip()

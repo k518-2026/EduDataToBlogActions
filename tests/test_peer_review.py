@@ -132,7 +132,10 @@ def test_report_builder_and_markdown_publisher_with_peer_review(tmp_path):
     assert "査読報告書PDF" in report.markdown_content
     assert "https://github.com/example/review.pdf" in report.markdown_content
     assert "査読報告書PDF" in report.html_content
-    assert "<a " not in report.html_content
+    import re as _re
+    from src.utils import own_repo_url_prefixes
+    hrefs = _re.findall(r'<a\b[^>]*href="([^"]+)"', report.html_content)
+    assert all(h.startswith(own_repo_url_prefixes()) for h in hrefs), "only links to this repository's own files are allowed"
 
     # Test publisher copies the review PDF into reports_dir/pdf/
     reports_dir = tmp_path / "reports"

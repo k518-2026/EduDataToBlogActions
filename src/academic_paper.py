@@ -38,6 +38,7 @@ from src.utils import (
     resolve_anthropic_model,
     resolve_metric_unit,
     sanitize_html_for_wordpress,
+    ollama_chat_text,
 )
 
 logger = logging.getLogger(__name__)
@@ -792,6 +793,17 @@ class AcademicPaperGenerator:
                 logger.warning(f"Gemini academic paper generation failed: {e}")
                 errors.append(f"Gemini: {e}")
 
+        # 2b. Ollama (a local LLM) is the last resort after Claude and Gemini
+        if Config.OLLAMA_BASE_URL:
+            try:
+                logger.info(f"Generating academic paper with Ollama ({Config.OLLAMA_MODEL})...")
+                return self._generate_with_claude(
+                    dataset, analysis, selected_angle=selected_angle, past_topics=past_topics, llm="ollama"
+                )
+            except Exception as e:
+                logger.warning(f"Ollama academic paper generation failed: {e}")
+                errors.append(f"Ollama: {e}")
+
         # 3. No template text is ever published: fail loudly
         raise LLMGenerationError(
             "論文本文を生成できませんでした（テンプレートでは代替しません）: "
@@ -1102,6 +1114,7 @@ class AcademicPaperGenerator:
         analysis: AnalysisResult,
         selected_angle: Optional[Any] = None,
         past_topics: Optional[List[Dict[str, str]]] = None,
+        llm: str = "claude",
     ) -> AcademicPaper:
         import json
         import re
@@ -1112,33 +1125,37 @@ class AcademicPaperGenerator:
         )
         prompt += "\n\n必ず上記全フィールド（title, subtitle, abstract, keywords, background, objectives, methodology, results_text, discussion, references, title_en, authors_en, summary_en, keywords_en）を含む有効な単一のJSONオブジェクト（余計な説明文やマークダウンコードブロックなし）のみを出力してください。"
 
-        resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
-        logger.info(f"Targeting Anthropic Claude model: '{resolved_model}' (requested: '{self.anthropic_model}')")
+        if llm == "ollama":
+            logger.info(f"Targeting Ollama model '{Config.OLLAMA_MODEL}' at {Config.OLLAMA_BASE_URL}")
+            raw_text = ollama_chat_text(prompt, system="", max_tokens=12288)
+        else:
+            resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
+            logger.info(f"Targeting Anthropic Claude model: '{resolved_model}' (requested: '{self.anthropic_model}')")
 
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": self.anthropic_api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-            "user-agent": "EduDataToBlogActions/1.0",
-        }
-        payload = {
-            "model": resolved_model,
-            "max_tokens": 32000,
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        payload.update(anthropic_thinking_options(resolved_model))
+            url = "https://api.anthropic.com/v1/messages"
+            headers = {
+                "x-api-key": self.anthropic_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+                "user-agent": "EduDataToBlogActions/1.0",
+            }
+            payload = {
+                "model": resolved_model,
+                "max_tokens": 32000,
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            payload.update(anthropic_thinking_options(resolved_model))
 
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=600) as resp:
-            res_data = json.loads(resp.read().decode("utf-8"))
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                res_data = json.loads(resp.read().decode("utf-8"))
 
-        raw_text = extract_anthropic_text(res_data)
+            raw_text = extract_anthropic_text(res_data)
         json_match = re.search(r"\{[\s\S]*\}", raw_text)
         if json_match:
             raw_text = json_match.group(0)

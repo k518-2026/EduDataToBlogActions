@@ -18,7 +18,7 @@ from google.genai import types
 from src.analyzer import AnalysisResult
 from src.config import Config
 from src.fetchers.base import EducationDataset
-from src.utils import LLMGenerationError, clean_insight_text, anthropic_thinking_options, extract_anthropic_text, resolve_anthropic_model, resolve_metric_unit
+from src.utils import LLMGenerationError, clean_insight_text, anthropic_thinking_options, extract_anthropic_text, ollama_chat_text, resolve_anthropic_model, resolve_metric_unit
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +149,17 @@ class GeminiInsightGenerator:
             except Exception as e:
                 logger.warning(f"Gemini API call failed: {e}")
                 errors.append(f"Gemini: {e}")
+
+        # 2b. Ollama (a local LLM) is the last resort after Claude and Gemini
+        if Config.OLLAMA_BASE_URL:
+            try:
+                logger.info(f"Generating insights with Ollama ({Config.OLLAMA_MODEL})...")
+                return self._generate_with_claude(
+                    dataset, analysis, selected_angle=selected_angle, past_topics=past_topics, llm="ollama"
+                )
+            except Exception as e:
+                logger.warning(f"Ollama insights generation failed: {e}")
+                errors.append(f"Ollama: {e}")
 
         # 3. No template text is ever published: fail loudly
         raise LLMGenerationError(
@@ -310,6 +321,7 @@ class GeminiInsightGenerator:
         analysis: AnalysisResult,
         selected_angle: Optional[Any] = None,
         past_topics: Optional[List[Dict[str, str]]] = None,
+        llm: str = "claude",
     ) -> EducationalInsights:
         prompt = self._build_insight_prompt(
             dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
@@ -320,34 +332,38 @@ class GeminiInsightGenerator:
             "```json 等のマークダウンコードブロックや前後の解説文は一切含めず、純粋なJSONオブジェクト（{...}）のみを出力してください。"
         )
 
-        resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
-        logger.info(f"Targeting Anthropic Claude model for insights: '{resolved_model}' (requested: '{self.anthropic_model}')")
+        if llm == "ollama":
+            logger.info(f"Targeting Ollama model '{Config.OLLAMA_MODEL}' at {Config.OLLAMA_BASE_URL}")
+            raw_text = ollama_chat_text(prompt, system="You are an expert Japanese educational policy and statistical analyst specializing in uncovering surprising data paradoxes. Always respond strictly in valid JSON without markdown fences or preambles.", max_tokens=8192)
+        else:
+            resolved_model = resolve_anthropic_model(self.anthropic_api_key, self.anthropic_model)
+            logger.info(f"Targeting Anthropic Claude model for insights: '{resolved_model}' (requested: '{self.anthropic_model}')")
 
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": self.anthropic_api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-            "user-agent": "EduDataToBlogActions/1.0",
-        }
-        payload = {
-            "model": resolved_model,
-            "max_tokens": 16000,
-            "system": "You are an expert Japanese educational policy and statistical analyst specializing in uncovering surprising data paradoxes. Always respond strictly in valid JSON without markdown fences or preambles.",
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        payload.update(anthropic_thinking_options(resolved_model))
+            url = "https://api.anthropic.com/v1/messages"
+            headers = {
+                "x-api-key": self.anthropic_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+                "user-agent": "EduDataToBlogActions/1.0",
+            }
+            payload = {
+                "model": resolved_model,
+                "max_tokens": 16000,
+                "system": "You are an expert Japanese educational policy and statistical analyst specializing in uncovering surprising data paradoxes. Always respond strictly in valid JSON without markdown fences or preambles.",
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            payload.update(anthropic_thinking_options(resolved_model))
 
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=600) as resp:
-            res_data = json.loads(resp.read().decode("utf-8"))
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                res_data = json.loads(resp.read().decode("utf-8"))
 
-        raw_text = extract_anthropic_text(res_data)
+            raw_text = extract_anthropic_text(res_data)
         parsed = parse_insights_json(raw_text)
         exec_summary, paradox, pedagogy, policy = self._require_insight_fields(parsed, "Claude")
 

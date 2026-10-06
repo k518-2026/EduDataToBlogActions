@@ -20,6 +20,14 @@ def pytest_configure(config):
 
 
 @pytest.fixture(autouse=True)
+def no_real_llm_calls(monkeypatch):
+    """The tests never call a real language model (the local .env may point at an Ollama server)."""
+    from src.config import Config
+
+    monkeypatch.setattr(Config, "OLLAMA_BASE_URL", "")
+
+
+@pytest.fixture(autouse=True)
 def template_standin(request, monkeypatch):
     if request.node.get_closest_marker("no_template_standin"):
         return
