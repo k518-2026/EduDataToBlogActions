@@ -525,7 +525,7 @@ class EduDataVisualizer:
         for grp in sorted_df[group_col]:
             grp_latest = pd.to_numeric(df[df[group_col] == grp][metric], errors="coerce").dropna()
             grp_full = pd.to_numeric(df_full[df_full[group_col] == grp][metric], errors="coerce").dropna()
-            sample = grp_latest if len(grp_latest) >= 2 else grp_full
+            sample = grp_latest  # the bar is the latest period: the interval must come from that period only
             if len(sample) >= 2:
                 se = float(sample.std(ddof=1)) / np.sqrt(len(sample))
                 ci_values.append(float(stats.t.ppf(0.975, df=len(sample) - 1)) * se)

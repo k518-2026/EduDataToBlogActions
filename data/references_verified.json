@@ -127,7 +127,8 @@
    "reference": "ROGERS, E. M. (2003) Diffusion of innovations (5th ed.). Free Press.",
    "evidence": "書籍（Free Press, 5th ed., 2003）。Crossref は初版の書評のみ。標準的な書誌",
    "datasets": [
-    "japan_mext_ict_informatization"
+    "japan_mext_ict_informatization",
+    "oecd_talis_teacher_survey"
    ]
   },
   {
@@ -164,6 +165,7 @@
    "reference": "SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, <b>35</b> (1) ：4-28.",
    "evidence": "Crossref DOI 10.1006/jesp.1998.1373",
    "datasets": [
+    "japan_stem_cs_enrollment",
     "oecd_pisa2025_gender_gap",
     "oecd_pisa_math_ict"
    ]
@@ -479,6 +481,7 @@
    "reference": "ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, <b>136</b> (1) ：103-127.",
    "evidence": "Crossref DOI 10.1037/a0018053",
    "datasets": [
+    "japan_stem_cs_enrollment",
     "japan_timss_math_science",
     "oecd_pisa2025_gender_gap",
     "oecd_pisa_math_ict"
@@ -488,6 +491,7 @@
    "reference": "GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, <b>320</b> (5880) ：1164-1165.",
    "evidence": "Crossref DOI 10.1126/science.1154094",
    "datasets": [
+    "japan_stem_cs_enrollment",
     "japan_timss_math_science",
     "oecd_pisa2025_gender_gap",
     "oecd_pisa_math_ict"
@@ -520,6 +524,27 @@
    "evidence": "Crossref DOI 10.1145/2858796.2858799",
    "datasets": [
     "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "ERTMER, P. A. and OTTENBREIT-LEFTWICH, A. T. (2010) Teacher technology change: How knowledge, confidence, beliefs, and culture intersect. Journal of Research on Technology in Education, <b>42</b> (3) ：255-284.",
+   "evidence": "Crossref DOI 10.1080/15391523.2010.10782551",
+   "datasets": [
+    "oecd_talis_teacher_survey"
+   ]
+  },
+  {
+   "reference": "SU, R., ROUNDS, J. and ARMSTRONG, P. I. (2009) Men and things, women and people: A meta-analysis of sex differences in interests. Psychological Bulletin, <b>135</b> (6) ：859-884.",
+   "evidence": "Crossref DOI 10.1037/a0017364",
+   "datasets": [
+    "japan_stem_cs_enrollment"
+   ]
+  },
+  {
+   "reference": "CHERYAN, S., ZIEGLER, S. A., MONTOYA, A. K. and JIANG, L. (2017) Why are some STEM fields more gender balanced than others? Psychological Bulletin, <b>143</b> (1) ：1-35.",
+   "evidence": "Crossref DOI 10.1037/bul0000052",
+   "datasets": [
+    "japan_stem_cs_enrollment"
    ]
   }
  ]

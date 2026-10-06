@@ -27,6 +27,26 @@
       "title": "高校情報科の担当者の配置（49自治体）",
       "status": "ready",
       "prepared_on": "2026-10-06"
+    },
+    {
+      "id": "04_oecd_talis_teacher_survey",
+      "dataset_id": "oecd_talis_teacher_survey",
+      "angle_id": "talis_collaboration_ict",
+      "file": "04_oecd_talis_teacher_survey.generation.json",
+      "title": "TALIS 2024 日本の中学校教員のデジタル資源・AI利用（54の国・地域）",
+      "status": "hold",
+      "prepared_on": "2026-10-06",
+      "note": "Opus執筆・Sonnet査読。ユーザーの確認待ち（確認後に ready にする）"
+    },
+    {
+      "id": "05_japan_stem_cs_enrollment",
+      "dataset_id": "japan_stem_cs_enrollment",
+      "angle_id": "stem_gender_gap_underrepresentation",
+      "file": "05_japan_stem_cs_enrollment.generation.json",
+      "title": "大学の学科別の女性比率（58区分）",
+      "status": "hold",
+      "prepared_on": "2026-10-06",
+      "note": "Opus執筆・Sonnet査読。ユーザーの確認待ち（確認後に ready にする）"
     }
   ]
 }
