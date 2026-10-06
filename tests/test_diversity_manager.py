@@ -1,7 +1,7 @@
 """
 Tests for Deduplication, Multi-Angle Research Diversity, and Topic Rotation.
 Verifies that:
-1. All 13 datasets have multiple scholarly research angles.
+1. All 14 datasets have multiple scholarly research angles.
 2. Angle rotation selects unposted or least-recently-used angles.
 3. Storage persists angle metadata and retrieves recent research topics.
 4. Dynamic report titles reflect selected_angle.title_theme.
@@ -36,7 +36,7 @@ class TestDiversityManager:
         """Every dataset in the catalog must have at least 2 distinct academic angles."""
         catalog = DatasetCatalog()
         datasets = catalog.get_all_datasets()
-        assert len(datasets) == 13, f"Expected 13 datasets, got {len(datasets)}"
+        assert len(datasets) == 14, f"Expected 14 datasets, got {len(datasets)}"
 
         for d in datasets:
             angles = get_all_angles_for_dataset(d.id)

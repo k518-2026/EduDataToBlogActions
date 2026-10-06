@@ -1,0 +1,32 @@
+{
+  "min_interval_days": 2,
+  "items": [
+    {
+      "id": "01_timss2023_student_attitudes",
+      "dataset_id": "timss2023_student_attitudes",
+      "angle_id": "timss_attitudes_achievement_link",
+      "file": "01_timss2023_student_attitudes.generation.json",
+      "title": "TIMSS 2023 算数・数学の好き・自信・価値と得点（国・地域）",
+      "status": "ready",
+      "prepared_on": "2026-10-06"
+    },
+    {
+      "id": "02_oecd_pisa2025_gender_gap",
+      "dataset_id": "oecd_pisa2025_gender_gap",
+      "angle_id": "pisa25_level_gap_link",
+      "file": "02_oecd_pisa2025_gender_gap.generation.json",
+      "title": "PISA 2025 数学の男女得点差（90の国・地域）",
+      "status": "ready",
+      "prepared_on": "2026-10-06"
+    },
+    {
+      "id": "03_japan_high_school_informatics",
+      "dataset_id": "japan_high_school_informatics",
+      "angle_id": "hs_info_computational_thinking",
+      "file": "03_japan_high_school_informatics.generation.json",
+      "title": "高校情報科の担当者の配置（49自治体）",
+      "status": "ready",
+      "prepared_on": "2026-10-06"
+    }
+  ]
+}

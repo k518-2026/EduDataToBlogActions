@@ -195,7 +195,12 @@ class EduDataVisualizer:
             if chart_type == "trend_line" and dataset.time_col:
                 self._plot_trend_lines(fig, ax, dataset, analysis)
             elif chart_type == "ranking_bar" and dataset.group_col:
-                self._plot_ranking_bar(fig, ax, dataset, analysis)
+                focus = list(getattr(selected_angle, "focus_metrics", None) or [])
+                self._plot_ranking_bar(
+                    fig, ax, dataset, analysis,
+                    metric_override=focus[0] if focus else None,
+                    selected_angle=selected_angle,
+                )
             elif chart_type == "correlation_scatter" and len(dataset.metrics) >= 2:
                 self._plot_correlation_scatter(fig, ax, dataset, analysis, selected_angle=selected_angle)
             else:
@@ -510,36 +515,37 @@ class EduDataVisualizer:
             latest_time = df[dataset.time_col].max()
             df = df[df[dataset.time_col] == latest_time]
 
-        sorted_df = df.groupby(group_col)[metric].mean().sort_values(ascending=True).reset_index()
+        sorted_df = df.groupby(group_col)[metric].mean().dropna().sort_values(ascending=True).reset_index()
+        n_groups_all = len(sorted_df)
 
-        overall_std = (
-            analysis.descriptive_stats.get(metric).std
-            if metric in analysis.descriptive_stats
-            else 2.0
-        )
-
+        # A confidence interval is drawn only where a group has repeated observations to compute it from.
+        # A group with a single published value (one country, one year) gets no error bar: an interval
+        # borrowed from the spread of the whole data set would say nothing about that group.
         ci_values = []
         for grp in sorted_df[group_col]:
             grp_latest = pd.to_numeric(df[df[group_col] == grp][metric], errors="coerce").dropna()
             grp_full = pd.to_numeric(df_full[df_full[group_col] == grp][metric], errors="coerce").dropna()
-
-            if len(grp_latest) >= 2:
-                std_val = float(grp_latest.std(ddof=1))
-                se = (std_val if std_val > 0 else overall_std) / np.sqrt(len(grp_latest))
-                t_crit = float(stats.t.ppf(0.975, df=len(grp_latest) - 1))
-                ci = max(float(t_crit * se), 0.5)
-            elif len(grp_full) >= 2:
-                std_val = float(grp_full.std(ddof=1))
-                se = (std_val if std_val > 0 else overall_std) / np.sqrt(len(grp_full))
-                t_crit = float(stats.t.ppf(0.975, df=len(grp_full) - 1))
-                ci = max(float(t_crit * se), 0.5)
+            sample = grp_latest if len(grp_latest) >= 2 else grp_full
+            if len(sample) >= 2:
+                se = float(sample.std(ddof=1)) / np.sqrt(len(sample))
+                ci_values.append(float(stats.t.ppf(0.975, df=len(sample) - 1)) * se)
             else:
-                n_eff = max(len(sorted_df), 3)
-                se = overall_std / np.sqrt(n_eff)
-                ci = max(float(1.96 * se), 0.5)
-            ci_values.append(ci)
+                ci_values.append(float("nan"))
 
         sorted_df["ci_95"] = ci_values
+        has_ci = bool(sorted_df["ci_95"].notna().any())
+
+        # A bar chart of dozens of groups is unreadable: keep the top and bottom of the ranking and Japan.
+        max_bars = 24
+        shown_note = ""
+        if n_groups_all > max_bars:
+            n_top, n_bottom = 14, 6
+            keep = set(range(n_groups_all - n_top, n_groups_all)) | set(range(n_bottom))
+            for i, name in enumerate(sorted_df[group_col]):
+                if "日本" in str(name) or "Japan" in str(name):
+                    keep.add(i)
+            sorted_df = sorted_df.iloc[sorted(keep)].reset_index(drop=True)
+            shown_note = f"全{n_groups_all}件のうち上位{n_top}・下位{n_bottom}と日本を表示"
 
         colors = []
         for name in sorted_df[group_col]:
@@ -551,11 +557,12 @@ class EduDataVisualizer:
             else:
                 colors.append("#457b9d")  # Slate blue
 
+        ci_plot = sorted_df["ci_95"].fillna(0.0) if has_ci else None
         bars = ax.barh(
             sorted_df[group_col],
             sorted_df[metric],
-            xerr=sorted_df["ci_95"],
-            capsize=4.5,
+            xerr=ci_plot,
+            capsize=4.5 if has_ci else 0,
             error_kw={
                 "elinewidth": 1.4,
                 "ecolor": "#1e293b",
@@ -571,12 +578,15 @@ class EduDataVisualizer:
         for i, bar in enumerate(bars):
             width = bar.get_width()
             ci = sorted_df["ci_95"].iloc[i]
+            has_bar_ci = has_ci and pd.notna(ci)
+            label = f"{width:.1f}{metric_unit} (±{ci:.1f})" if has_bar_ci else f"{width:.1f}{metric_unit}"
+            reach = width + (ci if has_bar_ci else 0.0) if width >= 0 else width
             ax.annotate(
-                f"{width:.1f}{metric_unit} (±{ci:.1f})",
-                xy=(width + ci, bar.get_y() + bar.get_height() / 2),
-                xytext=(6, 0),
+                label,
+                xy=(reach, bar.get_y() + bar.get_height() / 2),
+                xytext=(6 if width >= 0 else -6, 0),
                 textcoords="offset points",
-                ha="left",
+                ha="left" if width >= 0 else "right",
                 va="center",
                 fontsize=8.5,
                 fontweight="bold",
@@ -584,22 +594,30 @@ class EduDataVisualizer:
                 zorder=4,
             )
 
-        rq_label = "【グループ比較と95%信頼区間】"
+        rq_label = "【グループ比較と95%信頼区間】" if has_ci else "【国・地域の比較】"
         if getattr(selected_angle, "group_comparison_metric", None) == metric:
-            rq_label = f"【RQ検証：{metric}のグループ・学校種間格差】"
+            rq_label = f"【RQ検証：{metric}の比較】"
 
         ax.set_title(f"{dataset.title}\n{rq_label}", fontsize=13, fontweight="bold", pad=12)
-        ax.set_xlabel(f"{metric} ({metric_unit})  [誤差棒: 95% 信頼区間 (95% CI)]", fontsize=11, labelpad=8)
+        ci_label = "  [誤差棒: 95% 信頼区間 (95% CI)]" if has_ci else ""
+        ax.set_xlabel(f"{metric}{'' if metric.endswith('(' + metric_unit + ')') else ' (' + metric_unit + ')'}{ci_label}", fontsize=11, labelpad=8)
         ax.set_ylabel("", fontsize=11)
         ax.grid(True, axis="x", linestyle="--", alpha=0.5)
 
-        max_reach = (sorted_df[metric] + sorted_df["ci_95"]).max()
-        ax.set_xlim(0, max_reach * 1.22)
+        upper = (sorted_df[metric] + sorted_df["ci_95"].fillna(0.0)).max()
+        lower = min(float(sorted_df[metric].min()), 0.0)
+        span = max(float(upper) - lower, 1.0)
+        ax.set_xlim(lower - (0.2 * span if lower < 0 else 0.0), float(upper) + 0.22 * span)
+        if lower < 0:
+            ax.axvline(0, color="#475569", linewidth=1.0, zorder=2)
 
+        note = "※エラーバーは 95% 信頼区間 (95% CI) を示す" if has_ci else "※各項目は公表値1点のため，誤差棒は付けていない"
+        if shown_note:
+            note = f"※{shown_note}\n" + note
         ax.text(
             0.99,
             0.03,
-            "※エラーバーは 95% 信頼区間 (95% CI) を示す",
+            note,
             transform=ax.transAxes,
             ha="right",
             va="bottom",
@@ -669,7 +687,16 @@ class EduDataVisualizer:
         )
 
         if group_col and group_col in df.columns:
-            for _, row in df.iterrows():
+            label_rows = df
+            if len(df) > 30:
+                # Too many points to name them all: Japan, and the points at the ends of either axis
+                keep_idx = set()
+                for col, n_end in ((col_y, 5), (col_x, 3)):
+                    order = pd.to_numeric(df[col], errors="coerce").sort_values()
+                    keep_idx |= set(order.index[:n_end]) | set(order.index[-n_end:])
+                keep_idx |= set(df.index[df[group_col].astype(str).str.contains("日本|Japan")])
+                label_rows = df.loc[sorted(keep_idx)]
+            for _, row in label_rows.iterrows():
                 name = str(row[group_col])
                 ax.annotate(
                     name,
@@ -691,7 +718,7 @@ class EduDataVisualizer:
                     if getattr(cr, "bf10", None) is not None
                     else ""
                 )
-                r_info = f" (相関係数 r = {cr.pearson_r}, p = {cr.p_value}{bf_str})"
+                r_info = f" (相関係数 r = {format_apa_stat(cr.pearson_r, bounded=True)}, p {format_apa_p(cr.p_value)}{bf_str})"
                 break
 
         x_unit = resolve_metric_unit(col_x, dataset.unit)

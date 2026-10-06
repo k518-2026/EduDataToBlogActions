@@ -496,7 +496,7 @@ def extract_in_text_citations(text: str) -> List[Tuple[str, str]]:
         paren_content = paren_match.group(1).strip()
         sub_items = re.split(r"[；;]", paren_content)
         for sub in sub_items:
-            m = re.search(r"([A-Za-z\u4e00-\u9faf\s\.\-＆&・]+?)[，,]\s*([12][09]\d\d)", sub)
+            m = re.search(r"([A-Za-z\u3040-\u30ff\u4e00-\u9faf\s\.\-＆&・]+?)[，,]\s*([12][09]\d\d)", sub)
             if m:
                 a, y = m.group(1).strip(), m.group(2).strip()
                 a = re.sub(

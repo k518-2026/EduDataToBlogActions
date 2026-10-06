@@ -113,3 +113,7 @@ class OECDUnescoFetcher:
     def get_timss_attitudes(self) -> Optional[EducationDataset]:
         """TIMSS 2023: students' liking of, confidence in and valuing of mathematics (country level)."""
         return self._load_json_dataset("timss2023_student_attitudes.json")
+
+    def get_pisa2025_gender_gap(self) -> Optional[EducationDataset]:
+        """PISA 2025: gender gap in mathematics, all participating countries and economies (2025 only)."""
+        return self._load_json_dataset("oecd_pisa2025_gender_gap.json")

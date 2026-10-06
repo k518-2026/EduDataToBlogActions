@@ -59,6 +59,7 @@ class CorrelationResult:
     interpretation: str
     bf10: float = 1.0
     bf_interpretation: str = ""
+    n: int = 0
 
 
 @dataclass
@@ -396,6 +397,18 @@ def is_collinear_or_redundant_pair(col_x: str, col_y: str) -> bool:
     if ("男女差" in col_x and ("女性" in col_y or "男性" in col_y)) or ("男女差" in col_y and ("女性" in col_x or "男性" in col_x)):
         return True
 
+    # PISA / TIMSS: the both-gender mean, the boys' mean and the girls' mean, and the boys-minus-girls gap computed from the last two
+    gender_parts = {"男子得点", "女子得点"}
+    if {col_x, col_y} <= (gender_parts | {"数学得点"}):
+        return True
+    if (col_x == "男女得点差" and col_y in gender_parts) or (col_y == "男女得点差" and col_x in gender_parts):
+        return True
+
+    # High-school informatics teachers: the total of 臨時免許状 + 免許外教科担任, its two parts, and its change since the 2020 survey
+    total_key, change_key = "臨時免許状・免許外教科担任の計", "計の令和2年調査からの増減"
+    if total_key in (col_x, col_y) and {col_x, col_y} - {total_key} <= {"臨時免許状", "免許外教科担任", change_key}:
+        return True
+
     # A total ("…（総数）") and one of its parts that name the same quantity
     # (e.g. "全体の通級指導児童生徒数（総数）" vs "小学校の通級指導児童生徒数"): the part is inside the total.
     def part_core(col: str) -> str:
@@ -547,11 +560,12 @@ class EduDataAnalyzer:
                             CorrelationResult(
                                 metric_x=col_x,
                                 metric_y=col_y,
-                                pearson_r=round(float(r), 3),
+                                pearson_r=round(float(r), 6),
                                 p_value=round(float(p_val), 4),
                                 interpretation=interp,
                                 bf10=bf10,
                                 bf_interpretation=bf_interp,
+                                n=len(sub),
                             )
                         )
 
@@ -575,11 +589,12 @@ class EduDataAnalyzer:
                         CorrelationResult(
                             metric_x=target_x,
                             metric_y=target_y,
-                            pearson_r=round(float(r), 3),
+                            pearson_r=round(float(r), 6),
                             p_value=round(float(p_val), 4),
                             interpretation=interp,
                             bf10=bf10,
                             bf_interpretation=bf_interp,
+                            n=len(sub),
                         ),
                     )
             else:
@@ -1046,7 +1061,7 @@ class EduDataAnalyzer:
                 item = NoCorrelationResult(
                     metric_x=col_x,
                     metric_y=col_y,
-                    pearson_r=round(float(r), 3),
+                    pearson_r=round(float(r), 6),
                     t_val=round(float(t_val), 2),
                     df=df_deg,
                     p_val=round(float(p_val), 4),

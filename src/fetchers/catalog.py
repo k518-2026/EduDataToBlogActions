@@ -80,6 +80,8 @@ class DatasetCatalog:
             self.oecd_unesco_fetcher.get_talis_teacher_survey(),
             # 13. TIMSS 2023 student attitudes (Math)
             self.oecd_unesco_fetcher.get_timss_attitudes(),
+            # 14. PISA 2025 gender gap in mathematics, all participants (Math)
+            self.oecd_unesco_fetcher.get_pisa2025_gender_gap(),
         ]
         return [ds for ds in datasets if ds is not None]
 

@@ -149,6 +149,7 @@
    "reference": "OECD (2023) PISA 2022 Results (Volume I): The State of Learning and Equity in Education. OECD Publishing, Paris. DOI: 10.1787/53f23881-en",
    "evidence": "Crossref DOI 10.1787/53f23881-en",
    "datasets": [
+    "oecd_pisa2025_gender_gap",
     "oecd_pisa_math_ict"
    ]
   },
@@ -163,6 +164,7 @@
    "reference": "SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, <b>35</b> (1) ：4-28.",
    "evidence": "Crossref DOI 10.1006/jesp.1998.1373",
    "datasets": [
+    "oecd_pisa2025_gender_gap",
     "oecd_pisa_math_ict"
    ]
   },
@@ -198,7 +200,8 @@
    "reference": "BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, <b>17</b> (4) ：369-386.",
    "evidence": "Crossref DOI 10.1080/09540250500145072",
    "datasets": [
-    "japan_stem_cs_enrollment"
+    "japan_stem_cs_enrollment",
+    "oecd_pisa2025_gender_gap"
    ]
   },
   {
@@ -417,6 +420,106 @@
    "evidence": "TIMSS 2023 公式サイト（timss2023.org/results/）の国際報告書の題名と、Exhibit のExcelを取得して確認",
    "datasets": [
     "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "CHEN, C., LEE, S. and STEVENSON, H. W. (1995) Response style and cross-cultural comparisons of rating scales among East Asian and North American students. Psychological Science, <b>6</b> (3) ：170-175.",
+   "evidence": "Crossref DOI 10.1111/j.1467-9280.1995.tb00327.x",
+   "datasets": [
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "SHEN, C. and TAM, H. P. (2008) The paradoxical relationship between student achievement and self-perception: a cross-national analysis based on three waves of TIMSS data. Educational Research and Evaluation, <b>14</b> (1) ：87-100.",
+   "evidence": "Crossref DOI 10.1080/13803610801896653",
+   "datasets": [
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "LEE, J. and STANKOV, L. (2018) Non-cognitive predictors of academic achievement: Evidence from TIMSS and PISA. Learning and Individual Differences, <b>65</b> ：50-64.",
+   "evidence": "Crossref DOI 10.1016/j.lindif.2018.05.009",
+   "datasets": [
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "ROBINSON, W. S. (1950) Ecological correlations and the behavior of individuals. American Sociological Review, <b>15</b> (3) ：351-357.",
+   "evidence": "Crossref DOI 10.2307/2087176（American Sociological Review 15(3), 351）。頁は351-357",
+   "datasets": [
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "MARSH, H. W. and HAU, K.-T. (2003) Big-fish--little-pond effect on academic self-concept: A cross-cultural (26-country) test of the negative effects of academically selective schools. American Psychologist, <b>58</b> (5) ：364-376.",
+   "evidence": "Crossref DOI 10.1037/0003-066x.58.5.364",
+   "datasets": [
+    "timss2023_student_attitudes"
+   ]
+  },
+  {
+   "reference": "HYDE, J. S., LINDBERG, S. M., LINN, M. C., ELLIS, A. B. and WILLIAMS, C. C. (2008) Gender similarities characterize math performance. Science, <b>321</b> (5888) ：494-495.",
+   "evidence": "Crossref DOI 10.1126/science.1160364",
+   "datasets": [
+    "japan_timss_math_science",
+    "oecd_pisa2025_gender_gap",
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "LINDBERG, S. M., HYDE, J. S., PETERSEN, J. L. and LINN, M. C. (2010) New trends in gender and mathematics performance: A meta-analysis. Psychological Bulletin, <b>136</b> (6) ：1123-1135.",
+   "evidence": "Crossref DOI 10.1037/a0021276",
+   "datasets": [
+    "japan_timss_math_science",
+    "oecd_pisa2025_gender_gap",
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, <b>136</b> (1) ：103-127.",
+   "evidence": "Crossref DOI 10.1037/a0018053",
+   "datasets": [
+    "japan_timss_math_science",
+    "oecd_pisa2025_gender_gap",
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, <b>320</b> (5880) ：1164-1165.",
+   "evidence": "Crossref DOI 10.1126/science.1154094",
+   "datasets": [
+    "japan_timss_math_science",
+    "oecd_pisa2025_gender_gap",
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "OECD (2026) PISA 2025 Results (Volume I). OECD Publishing, Paris. DOI: 10.1787/73451bc5-en",
+   "evidence": "Crossref DOI 10.1787/73451bc5-en。データの出典（StatLink の Excel）",
+   "datasets": [
+    "oecd_pisa2025_gender_gap",
+    "oecd_pisa_math_ict"
+   ]
+  },
+  {
+   "reference": "SHULMAN, L. S. (1986) Those who understand: Knowledge growth in teaching. Educational Researcher, <b>15</b> (2) ：4-14.",
+   "evidence": "Crossref DOI 10.3102/0013189x015002004",
+   "datasets": [
+    "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "INGERSOLL, R. M. (1999) The problem of underqualified teachers in American secondary schools. Educational Researcher, <b>28</b> (2) ：26-37.",
+   "evidence": "Crossref DOI 10.3102/0013189x028002026",
+   "datasets": [
+    "japan_high_school_informatics"
+   ]
+  },
+  {
+   "reference": "HUBWIESER, P., GIANNAKOS, M. N., BERGES, M., BRINDA, T., DIETHELM, I., MAGENHEIM, J., PAL, Y., JACKOVA, J. and JASUTE, E. (2015) A global snapshot of computer science education in K-12 schools. Proceedings of the 2015 ITiCSE on Working Group Reports, 65-83.",
+   "evidence": "Crossref DOI 10.1145/2858796.2858799",
+   "datasets": [
+    "japan_high_school_informatics"
    ]
   }
  ]

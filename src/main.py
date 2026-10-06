@@ -84,6 +84,12 @@ def parse_args():
         help="Reuse the insights, paper and review saved by an earlier run (temp/generation_<dataset>.json), "
              "e.g. after correcting the text by hand. No language model is called.",
     )
+    parser.add_argument(
+        "--from-queue",
+        action="store_true",
+        help="Post the next ready paper in queue/index.json (see src/post_queue.py). "
+             "Does nothing if the previous post is more recent than the queue's min_interval_days.",
+    )
     return parser.parse_args()
 
 
@@ -108,6 +114,21 @@ def _save_generation(path, store):
 
 def main():
     args = parse_args()
+    queue_item = None
+    queue_index = None
+    if args.from_queue:
+        from src import post_queue
+
+        queue_index = post_queue.load_index()
+        today = get_jst_now().date()
+        queue_item = post_queue.pick_next(queue_index, today)
+        if queue_item is None:
+            logger.info("📭 キューから投稿するものがありません（待ちがない，または前回の投稿から間隔が足りない）。")
+            return
+        args.dataset = queue_item["dataset_id"]
+        args.angle = queue_item["angle_id"]
+        args.reuse = str(post_queue.QUEUE_DIR / queue_item["file"])
+        logger.info(f"📬 キューの次の論文: {queue_item['id']} ({args.dataset} / {args.angle})")
     logger.info("==================================================")
     logger.info("🚀 Starting EduDataToBlogActions Pipeline")
     logger.info("==================================================")
@@ -327,12 +348,13 @@ def main():
         return
 
     logger.info(f"🌐 Publishing report using platform: '{publisher_type}'...")
+    sent = False
     if publisher_type == "wordpress_mail":
         publisher = WordPressMailPublisher()
-        publisher.publish(report)
+        sent = bool(publisher.publish(report))
     elif publisher_type == "wordpress_rest":
         publisher = WordPressRestPublisher()
-        publisher.publish(report)
+        sent = bool(publisher.publish(report))
     elif publisher_type == "markdown_only":
         logger.info("Blog publisher set to 'markdown_only'. Archiving to reports/ completed.")
     else:
@@ -340,6 +362,12 @@ def main():
 
     # 9. Record history
     storage.record_post(report, platform=publisher_type)
+    if queue_item is not None and sent:
+        from src import post_queue
+
+        post_queue.mark_posted(queue_index, queue_item["id"], get_jst_now().date())
+        post_queue.save_index(queue_index)
+        logger.info(f"📌 キューの '{queue_item['id']}' を投稿済みにしました。")
     logger.info("✅ Pipeline executed and recorded successfully!")
 
 

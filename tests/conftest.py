@@ -21,10 +21,12 @@ def pytest_configure(config):
 
 @pytest.fixture(autouse=True)
 def no_real_llm_calls(monkeypatch):
-    """The tests never call a real language model (the local .env may point at an Ollama server)."""
+    """The tests never call a real language model (the local .env holds real API keys and an Ollama server)."""
     from src.config import Config
 
     monkeypatch.setattr(Config, "OLLAMA_BASE_URL", "")
+    monkeypatch.setattr(Config, "ANTHROPIC_API_KEY", "")
+    monkeypatch.setattr(Config, "GEMINI_API_KEY", "")
 
 
 @pytest.fixture(autouse=True)

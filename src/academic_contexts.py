@@ -81,6 +81,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
         ),
         curated_references=[
             "BANDURA, A. (1997) Self-efficacy: The exercise of control. W. H. Freeman and Company.",
+            "HYDE, J. S., LINDBERG, S. M., LINN, M. C., ELLIS, A. B. and WILLIAMS, C. C. (2008) Gender similarities characterize math performance. Science, <b>321</b> (5888) ：494-495.",
+            "LINDBERG, S. M., HYDE, J. S., PETERSEN, J. L. and LINN, M. C. (2010) New trends in gender and mathematics performance: A meta-analysis. Psychological Bulletin, <b>136</b> (6) ：1123-1135.",
+            "ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, <b>136</b> (1) ：103-127.",
+            "GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, <b>320</b> (5880) ：1164-1165.",
+            "SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, <b>35</b> (1) ：4-28.",
+            "BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, <b>17</b> (4) ：369-386.",
             "国立教育政策研究所 (2021) 算数・数学教育／理科教育の国際比較：TIMSS 2019 国際数学・理科教育動向調査の2019年調査報告書. 明石書店.",
             "MULLIS, I. V. S., MARTIN, M. O., FOY, P., KELLY, D. L. and FISHBEIN, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
             "PEKRUN, R. (2006) The control-value theory of achievement emotions: Assumptions, corollaries, and implications for educational research and practice. Educational Psychology Review, <b>18</b> (4) ：315-341.",
@@ -212,13 +218,16 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "文部科学省 (2019) 高等学校学習指導要領（平成30年告示）解説 情報編. 開隆堂出版.",
             "文部科学省 (2022) 高等学校情報科担当教員の配置状況及び指導体制の充実に向けて（令和4年11月）. 文部科学省初等中等教育局学校デジタル化PT.",
             "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35.",
+            "SHULMAN, L. S. (1986) Those who understand: Knowledge growth in teaching. Educational Researcher, <b>15</b> (2) ：4-14.",
+            "INGERSOLL, R. M. (1999) The problem of underqualified teachers in American secondary schools. Educational Researcher, <b>28</b> (2) ：26-37.",
+            "HUBWIESER, P., GIANNAKOS, M. N., BERGES, M., BRINDA, T., DIETHELM, I., MAGENHEIM, J., PAL, Y., JACKOVA, J. and JASUTE, E. (2015) A global snapshot of computer science education in K-12 schools. Proceedings of the 2015 ITiCSE on Working Group Reports, 65-83.",
         ],
         fallback_title="高等学校「情報I」におけるプログラミング指導言語の採択動態と共通テスト対策の進捗に関する計量分析†",
         fallback_subtitle="新学習指導要領必履修化に伴う指導体制と探究的演習導入率の時系列推移検証",
         fallback_keywords=["情報教育", "情報I", "プログラミング教育", "大学入学共通テスト", "計算論的思考"],
         fallback_background=(
             "我が国の初等中等教育カリキュラム改革において，2022年度より施行された新高等学校学習指導要領に基づく共通必履修科目「情報I」の新設は，これまでの操作的リテラシー習得を中心とする情報教育のパラダイムを根本から刷新する歴史的画期となった（文部科学省，2019）．"
-            "さらに，2025年度大学入学者選抜より大学入学共通テストにおいて「情報」が新たな試験教科として正式導入されたことは，高等学校現場における指導内容の質およびプログラミング実践の深度に決定的なインパクトをもたらしている（大学入試センター，2021）．"
+            "さらに，2025年度大学入学者選抜より大学入学共通テストにおいて「情報」が新たな試験教科として正式導入されたことは，高等学校現場における指導内容の質およびプログラミング実践の深度に決定的なインパクトをもたらしている（大学入試センター，2023）．"
             "Wing (2006) が提唱した計算論的思考（Computational Thinking）の枠組みは，単なるコード記述の技術的訓練にとどまらず，複雑な現実問題を抽象化・モデル化し，アルゴリズムを用いて効率的に自動処理する普遍的な問題解決能力として国際的に位置づけられている．"
             "しかし，Mishra & Koehler (2006) のTPACK（Technological Pedagogical Content Knowledge）理論が指摘するように，テクノロジーと教育内容・指導法を統合的に理解した教員の育成には構造的な困難が伴う．"
             "とりわけ我が国の高校教育においては，情報科専任免許を保有しない教員による「免許外教科担任」の存在や指導体制の自治体間格差（文部科学省，2022），プログラミング言語（初学者向け教材としてのPythonとWeb親和性の高いJavaScript）の採択における現場の葛藤，さらにはペーパーテスト形式の共通テスト対策への傾斜と1人1台端末を活用した協働的探究演習との指導時間配分の摩擦など，制度改革の理想と実践現場の現実との間に多様な学術的課題が噴出している（）．"
@@ -576,6 +585,12 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "OECD (2023) PISA 2022 Results (Volume II): Learning During – and From – Disruption. OECD Publishing, Paris. DOI: 10.1787/a97db61c-en",
             "SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, <b>35</b> (1) ：4-28.",
             "SWELLER, J. (1988) Cognitive load during problem solving: Effects on learning. Cognitive Science, <b>12</b> (2) ：257-285.",
+            "OECD (2026) PISA 2025 Results (Volume I). OECD Publishing, Paris. DOI: 10.1787/73451bc5-en",
+            "HYDE, J. S., LINDBERG, S. M., LINN, M. C., ELLIS, A. B. and WILLIAMS, C. C. (2008) Gender similarities characterize math performance. Science, <b>321</b> (5888) ：494-495.",
+            "LINDBERG, S. M., HYDE, J. S., PETERSEN, J. L. and LINN, M. C. (2010) New trends in gender and mathematics performance: A meta-analysis. Psychological Bulletin, <b>136</b> (6) ：1123-1135.",
+            "ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, <b>136</b> (1) ：103-127.",
+            "GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, <b>320</b> (5880) ：1164-1165.",
+            "BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, <b>17</b> (4) ：369-386.",
         ],
         fallback_title="OECD PISAにおける数学的リテラシー得点の国際動態と男女格差に関する計量的比較分析†",
         fallback_subtitle="主要国時系列比較とデジタル機器利用の教育的影響に関する国際的検証",
@@ -699,6 +714,9 @@ DATASET_ACADEMIC_CONTEXTS: Dict[str, DatasetAcademicContext] = {
             "UNESCO (2023) Global Education Monitoring Report 2023: Technology in Education - A Tool on Whose Terms? UNESCO Publishing, Paris. DOI: 10.54676/aatw1274",
             "VAN DIJK, J. (2020) The digital divide. Polity Press, Cambridge.",
             "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35.",
+            "SHULMAN, L. S. (1986) Those who understand: Knowledge growth in teaching. Educational Researcher, <b>15</b> (2) ：4-14.",
+            "INGERSOLL, R. M. (1999) The problem of underqualified teachers in American secondary schools. Educational Researcher, <b>28</b> (2) ：26-37.",
+            "HUBWIESER, P., GIANNAKOS, M. N., BERGES, M., BRINDA, T., DIETHELM, I., MAGENHEIM, J., PAL, Y., JACKOVA, J. and JASUTE, E. (2015) A global snapshot of computer science education in K-12 schools. Proceedings of the 2015 ITiCSE on Working Group Reports, 65-83.",
         ],
         fallback_title="UNESCO/ITU国際指標に基づく若年層プログラミングスキル保有率の国際比較に関する計量分析†",
         fallback_subtitle="SDG 4.4達成に向けたデジタル・キャピタルの格差構造と汎用スキルとの相関検証",
@@ -2241,6 +2259,11 @@ _TA_REFS = [
     "MULLIS, I. V. S., MARTIN, M. O., FOY, P., KELLY, D. L. and FISHBEIN, B. (2020) TIMSS 2019 International Results in Mathematics and Science. Boston College, TIMSS & PIRLS International Study Center.",
     "PEKRUN, R. (2006) The control-value theory of achievement emotions: Assumptions, corollaries, and implications for educational research and practice. Educational Psychology Review, <b>18</b> (4) ：315-341.",
     "WIGFIELD, A. and ECCLES, J. S. (2000) Expectancy-value theory of achievement motivation. Contemporary Educational Psychology, <b>25</b> (1) ：68-81.",
+    "CHEN, C., LEE, S. and STEVENSON, H. W. (1995) Response style and cross-cultural comparisons of rating scales among East Asian and North American students. Psychological Science, <b>6</b> (3) ：170-175.",
+    "SHEN, C. and TAM, H. P. (2008) The paradoxical relationship between student achievement and self-perception: a cross-national analysis based on three waves of TIMSS data. Educational Research and Evaluation, <b>14</b> (1) ：87-100.",
+    "LEE, J. and STANKOV, L. (2018) Non-cognitive predictors of academic achievement: Evidence from TIMSS and PISA. Learning and Individual Differences, <b>65</b> ：50-64.",
+    "ROBINSON, W. S. (1950) Ecological correlations and the behavior of individuals. American Sociological Review, <b>15</b> (3) ：351-357.",
+    "MARSH, H. W. and HAU, K.-T. (2003) Big-fish--little-pond effect on academic self-concept: A cross-cultural (26-country) test of the negative effects of academically selective schools. American Psychologist, <b>58</b> (5) ：364-376.",
 ]
 _TA_BANNED = [
     "近年のSociety 5.0の進展に伴い",
@@ -2376,6 +2399,153 @@ DATASET_RESEARCH_ANGLES["timss2023_student_attitudes"] = [
         group_comparison_metric=_TA_L8_LGAP,
         analysis_method="correlation",
         secondary_chart_type="correlation_scatter",
+    ),
+]
+
+
+# ---- PISA 2025 数学の男女得点差（全参加国・地域） ---------------------------------------------
+_PG_X, _PG_Y, _PG_B, _PG_G = "数学得点", "男女得点差", "男子得点", "女子得点"
+_PG_CAVEAT = (
+    "対象はPISA 2025に参加し，数学の男女別の値が公表されている90の国・地域（OECD平均は含めない）．男女得点差は男子−女子で，正は男子のほうが高いことを示す．"
+    "国・地域のあいだの関連は，国どうしの違いを示すだけで，個々の生徒の因果を示さない．PISA 2025の主要分野は科学で，数学は副次的な分野．"
+    "カナダ・アメリカなど6か国は，OECDの表で標本抽出基準についての注意（*）がある．"
+)
+_PG_METRICS_EN = {
+    "数学得点": "Mean Mathematics Performance (Both Genders)",
+    "男子得点": "Mean Mathematics Performance of Boys",
+    "女子得点": "Mean Mathematics Performance of Girls",
+    "男女得点差": "Gender Gap in Mathematics Performance (Boys - Girls)",
+}
+_PG_REFS = [
+    "OECD (2026) PISA 2025 Results (Volume I). OECD Publishing, Paris. DOI: 10.1787/73451bc5-en",
+    "OECD (2023) PISA 2022 Results (Volume I): The State of Learning and Equity in Education. OECD Publishing, Paris. DOI: 10.1787/53f23881-en",
+    "HYDE, J. S., LINDBERG, S. M., LINN, M. C., ELLIS, A. B. and WILLIAMS, C. C. (2008) Gender similarities characterize math performance. Science, <b>321</b> (5888) ：494-495.",
+    "LINDBERG, S. M., HYDE, J. S., PETERSEN, J. L. and LINN, M. C. (2010) New trends in gender and mathematics performance: A meta-analysis. Psychological Bulletin, <b>136</b> (6) ：1123-1135.",
+    "ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, <b>136</b> (1) ：103-127.",
+    "GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, <b>320</b> (5880) ：1164-1165.",
+    "SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, <b>35</b> (1) ：4-28.",
+    "BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, <b>17</b> (4) ：369-386.",
+]
+_PG_BANNED = [
+    "近年のSociety 5.0の進展に伴い",
+    "近年，Society 5.0の進展に伴い",
+    "現代社会において急速に進展するDXに伴い",
+    "情報化社会の急速な進展に伴い",
+]
+_PG_GUIDE = (
+    "公表値（2025年，点）の範囲で述べること．" + _PG_CAVEAT +
+    "日本は，数学の平均得点が525.4点（90の国・地域のうち5番目），男女得点差が16.3点（男子が高い）である．"
+    "授業の方法，学習時間，家庭の状況，過去の調査との比較は，このデータにないので書かないこと．"
+)
+_PG_FALLBACK = dict(
+    fallback_title="PISA 2025における数学の男女得点差の国際比較†",
+    fallback_subtitle="90の国・地域の公表値の整理",
+    fallback_keywords=["PISA 2025", "数学的リテラシー", "男女差", "国際比較"],
+    fallback_background=(
+        "OECDのPISA 2025（OECD, 2026）は，15歳の生徒の数学的リテラシーの平均得点を男女別に公表している．"
+        "数学の男女差は小さいとする研究（Hyde et al., 2008; Lindberg et al., 2010）がある一方，国による違いも報告されている（Else-Quest et al., 2010; Guiso et al., 2008）．"
+        "本稿は，公表された表の値だけを使い，男女得点差が国・地域によってどう違うかを整理する．"
+        "PISAの得点は，国・地域ごとの標本調査から推計された平均で，男女それぞれの平均と，その差には標準誤差が付いている．"
+        "標準誤差を考慮すれば，男女差が偶然の範囲を超えているかどうかを国・地域ごとに判断できる．"
+        "数学の男女差は，ステレオタイプ脅威のような心理的な要因（Spencer et al., 1999）や，理系の進路をめぐる複数の要因（Blickenstaff, 2005）と結びつけて論じられてきたが，"
+        "本稿のデータにはこれらを測った変数がないため，原因には踏み込まない．PISA 2022の結果（OECD, 2023）との比較も，本稿の対象外とする．"
+    ),
+    fallback_objectives=(
+        "本研究の目的は，PISA 2025の公表値で，数学の男女得点差の分布と，平均得点の水準との関連を示すことである．\n\n"
+        "・RQ1: 男女得点差は国・地域によってどう違い，日本はどこに位置するか．\n"
+        "・RQ2: 平均得点の高い国・地域ほど，男女得点差は小さいか．"
+    ),
+    fallback_discussion=(
+        "本実測結果に基づき，リサーチクエスチョンに沿って先行研究と対比しながら考察する．国・地域間の関連は，個々の生徒の因果を示さない．"
+        "Else-Quest et al. (2010) は男女差が国によって異なることを報告しており，本結果もその方向と合う．\n\n"
+        "【RQ1に関する考察：男女差の分布】\n"
+        "男女得点差は，男子が高い国・地域が多数を占めるが，標準誤差を考慮すると，差が偶然の範囲に収まる国・地域も少なくない．"
+        "Hyde et al. (2008) と Lindberg et al. (2010) は，数学の男女差が全体として小さいことを示しており，本結果の「差が小さい国・地域が多い」点と合う（同じところ）．"
+        "ただし，差が大きい国・地域もあり，国による違いが大きい点は，これらの研究が主に特定の国のデータに基づく点と異なる（違うところ）．\n\n"
+        "【RQ2に関する考察：水準との関連】\n"
+        "平均得点の水準と男女差の関連は，国・地域の集計値の関連であり，個々の生徒の因果を示さない．Guiso et al. (2008) が示した男女平等の度合いとの関連は，本稿のデータにない変数であり，検証していない．\n\n"
+        "【研究の限界と今後の課題】\n"
+        "本研究は公表された集計値に基づく．今後は，男女平等の指標や経済水準を加えた検討，および生徒個人のデータによる検討が望まれる．"
+    ),
+    fallback_review_critique=(
+        "本稿は，PISA 2025の公表値で，数学の男女得点差の国際比較を整理した短報である．国・地域間の関連を個人の因果に読み替えない姿勢は適切だが，"
+        "男女平等の指標など説明変数が不足しており，条件付採録（Major Revision）と判定する．"
+    ),
+    fallback_major_revisions=[
+        "【生態学的誤謬】国・地域の集計値の関連を，個々の生徒に当てはめない旨を明記すること．",
+        "【説明変数】男女平等の指標や経済水準など，関連しうる変数を検討すること．",
+        "【標準誤差】男女差の標準誤差を考慮した解析を加えること．",
+    ],
+    fallback_minor_revisions=[
+        "表の注に，国・地域数と標本抽出基準についての注意を加えること．",
+        "図の縦軸・横軸の単位（点）を明記すること．",
+    ],
+    fallback_questions_to_authors=[
+        "1. 平均得点の高い国・地域で男女差が大きい傾向について，著者の見解を伺いたい．",
+        "2. 男女差が小さい国・地域の共通点について，データから言えることは何か．",
+    ],
+    academic_discipline="数学教育学・教育社会学",
+    source_en="OECD, PISA 2025 Results (Volume I)",
+    metrics_en=_PG_METRICS_EN,
+    fallback_keywords_en=["PISA 2025", "MATHEMATICS", "GENDER GAP", "INTERNATIONAL COMPARISON"],
+    fallback_summary_en=(
+        "This study uses the published PISA 2025 tables to describe gender gaps in mathematics performance across 90 countries and economies "
+        "and their relation to average performance. Relations across countries describe differences between countries and do not show causal effects on individual students."
+    ),
+)
+
+DATASET_ACADEMIC_CONTEXTS["oecd_pisa2025_gender_gap"] = DatasetAcademicContext(
+    dataset_id="oecd_pisa2025_gender_gap",
+    academic_topic="数学的リテラシーの男女得点差の国際比較（PISA 2025，90の国・地域）：日本の位置",
+    theoretical_framework="数学の男女差に関する「ジェンダー類似性仮説」（Hyde et al.），男女平等の度合いとの関連（Guiso et al.），ステレオタイプ脅威（Spencer et al.）",
+    core_research_problems=(
+        "PISA 2025で，数学的リテラシーの男女得点差（男子−女子）が国・地域によってどう違うか，日本はどこに位置するかを，標準誤差とあわせて整理する．"
+        "日本は平均得点が525.4点と高い一方，男女得点差は16.3点で，90の国・地域のなかで大きいほうに入る．" + _PG_CAVEAT
+    ),
+    banned_cliches=_PG_BANNED,
+    specific_prompt_guidance=_PG_GUIDE,
+    curated_references=_PG_REFS,
+    title_en="Gender Gaps in Mathematics in PISA 2025: A Comparison of 90 Countries and Economies",
+    angle_id="pisa25_gap_distribution",
+    angle_name="数学の男女得点差の国際分布（日本の位置）",
+    title_theme="数学の男女の得点差は，国によってどう違うのか：PISA 2025の90の国・地域を並べる",
+    focus_metrics=[_PG_Y, _PG_B, _PG_G],
+    rq1="数学の男女得点差（男子−女子）は，国・地域によってどのように分布し，日本はどこに位置するか。",
+    rq2="男女得点差が，標準誤差を考慮しても男子（または女子）のほうが高いと言える国・地域は，どれくらいあるか。",
+    scatter_x_metric=_PG_B,
+    scatter_y_metric=_PG_G,
+    group_comparison_metric=_PG_Y,
+    analysis_method="correlation",
+    secondary_chart_type="correlation_scatter",
+    **_PG_FALLBACK,
+)
+
+DATASET_RESEARCH_ANGLES["oecd_pisa2025_gender_gap"] = [
+    DATASET_ACADEMIC_CONTEXTS["oecd_pisa2025_gender_gap"],
+    DatasetAcademicContext(
+        dataset_id="oecd_pisa2025_gender_gap",
+        academic_topic="数学の平均得点の水準と男女得点差の関連（PISA 2025，90の国・地域）",
+        theoretical_framework="数学の男女差に関する「ジェンダー類似性仮説」（Hyde et al.），男女平等の度合いとの関連（Guiso et al.），ステレオタイプ脅威（Spencer et al.）",
+        core_research_problems=(
+            "PISA 2025の公表値で，数学の平均得点が高い国・地域ほど男女得点差が小さいかを，国・地域のあいだの関連として確かめる．"
+            "あわせて，上位の国・地域のなかでの関連も確かめる．" + _PG_CAVEAT
+        ),
+        banned_cliches=_PG_BANNED,
+        specific_prompt_guidance=_PG_GUIDE,
+        curated_references=_PG_REFS,
+        title_en="Mathematics Performance Level and the Gender Gap in PISA 2025: A Cross-Country Comparison",
+        angle_id="pisa25_level_gap_link",
+        angle_name="平均得点の水準と男女得点差の関連",
+        title_theme="得点の高い国ほど数学の男女差は小さいのか：PISA 2025の90の国・地域で確かめる",
+        focus_metrics=[_PG_Y, _PG_X],
+        rq1="数学の平均得点が高い国・地域ほど，男女得点差は小さいか（90の国・地域）。",
+        rq2="男女得点差の大きさは，平均得点の水準によって傾向が異なるか（低い・中ほど・高い国・地域）。",
+        scatter_x_metric=_PG_X,
+        scatter_y_metric=_PG_Y,
+        group_comparison_metric=_PG_Y,
+        analysis_method="correlation",
+        secondary_chart_type="correlation_scatter",
+        **_PG_FALLBACK,
     ),
 ]
 

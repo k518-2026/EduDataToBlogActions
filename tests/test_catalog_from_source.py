@@ -160,3 +160,18 @@ def test_timss_attitudes_catalog_is_reproducible_and_known_values():
     assert jp["小4・平均得点"] == 591.0
     assert jp["中2・平均得点"] == 595.0
     assert jp["小4・とても価値ありと考える(%)"] if False else "小4・とても価値ありと考える(%)" not in jp  # value scale: grade 8 only
+
+
+def test_pisa2025_gender_gap_catalog_is_reproducible_and_consistent():
+    import subprocess, sys
+    from src.config import CATALOG_DIR
+
+    path = CATALOG_DIR / "oecd_pisa2025_gender_gap.json"
+    before = path.read_text(encoding="utf-8")
+    subprocess.run([sys.executable, "-m", "tools.build_pisa2025_gender_catalog"], check=True, capture_output=True)
+    assert path.read_text(encoding="utf-8") == before
+    rows = json.loads(before)["data"]
+    assert len(rows) == 90
+    jp = next(r for r in rows if r["国・地域"] == "日本")
+    assert (jp["数学得点"], jp["男女得点差"], jp["男女得点差の標準誤差"]) == (525.4, 16.3, 5.7)
+    assert all(abs((r["男子得点"] - r["女子得点"]) - r["男女得点差"]) < 0.11 for r in rows)

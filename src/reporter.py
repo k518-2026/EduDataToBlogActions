@@ -930,7 +930,7 @@ plt.show()
                 r_apa = format_apa_stat(cr.pearson_r, bounded=True)
                 p_apa = format_apa_p(cr.p_value)
                 bf10_str = format_bayes_factor(cr.bf10)
-                n_sample = analysis.sample_size
+                n_sample = getattr(cr, "n", 0) or analysis.sample_size
                 df_deg = max(n_sample - 2, 1)
                 denom = max(1.0 - cr.pearson_r**2, 1e-6)
                 t_stat = cr.pearson_r * math.sqrt(df_deg / denom) if abs(cr.pearson_r) < 1.0 else 0.0

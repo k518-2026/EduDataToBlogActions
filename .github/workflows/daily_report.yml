@@ -3,7 +3,8 @@ name: Daily Educational Open Data Analysis & Blog Auto-Poster
 on:
   # Scheduled runs (JST = UTC + 9)
   # 1. 毎朝 05:00 JST (20:00 UTC) - 恒常運用
-  # 2. 夜 22:00 JST (13:00 UTC) - 2026年9月30日まで1日2回運用
+  # 2. 再開するときは，毎朝の定期実行に --from-queue を付ける（キューは2日に1本しか進まない）。
+  #    投稿はユーザーの了承後に再開する（WP_PUBLISHING_PAUSED を外す）。
   # schedule:  # 2026-10-05 WordPress 異議申し立ての結果待ちのため一時停止。再開は # を外す
     # - cron: '0 20 * * *'
     # - cron: '0 13 * * *'
@@ -39,6 +40,11 @@ on:
         type: string
         required: false
         default: ''
+      from_queue:
+        description: 'Post the next ready paper in queue/index.json (every 2 days at most)'
+        type: boolean
+        required: false
+        default: false
       publisher:
         description: 'Publishing target (wordpress_rest / wordpress_mail / markdown_only)'
         type: choice
@@ -133,6 +139,7 @@ jobs:
           INPUT_PUBLISHER: ${{ inputs.publisher }}
           INPUT_DATASET: ${{ inputs.dataset }}
           INPUT_ANGLE: ${{ inputs.angle }}
+          INPUT_FROM_QUEUE: ${{ inputs.from_queue }}
         run: |
           ARGS=""
           if [ "$INPUT_DRY_RUN" = "true" ] || [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
@@ -152,6 +159,9 @@ jobs:
           fi
           if [ -n "$INPUT_ANGLE" ]; then
             ARGS="$ARGS --angle $INPUT_ANGLE"
+          fi
+          if [ "$INPUT_FROM_QUEUE" = "true" ]; then
+            ARGS="$ARGS --from-queue"
           fi
           echo "Executing: python -m src.main $ARGS"
           python -m src.main $ARGS
@@ -183,7 +193,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action EduData"
-          git add data/posted_reports.json data/REPORT_ARCHIVE.md reports/
+          git add data/posted_reports.json data/REPORT_ARCHIVE.md reports/ queue/index.json
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
