@@ -1,0 +1,124 @@
+{
+  "description": "毎日1本ずつ、上から順に書く題材。status: todo / done / failed / skip。手順は queue/DAILY_PROCEDURE.md。",
+  "topics": [
+    {
+      "dataset_id": "timss2023_student_attitudes",
+      "angle_id": "timss_attitudes_like_confident",
+      "title": "日本の小4・中2は算数・数学が好きか（TIMSS 2023）。好き・自信の割合と日本の位置。",
+      "note": "",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "oecd_talis_teacher_survey",
+      "angle_id": "talis_critical_thinking_instruction",
+      "title": "日本の中学校で考えさせる課題はどれだけ出されているか（TALIS 2024）。",
+      "note": "日本は批判的思考を要する課題の割合が54か国中最下位（24.2%）。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "oecd_pisa2025_gender_gap",
+      "angle_id": "pisa25_gap_distribution",
+      "title": "数学の男女得点差の国際分布（PISA 2025、90の国・地域）。標準誤差を考慮した国の数と日本の位置。",
+      "note": "queue/02 とは角度を変える（分布と標準誤差が中心）。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "unesco_world_ict_skills",
+      "angle_id": "unesco_gender_disparity_in_skills",
+      "title": "成人のICTスキルの男女差（UNESCO 2021、47の国・地域）。",
+      "note": "",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "unesco_world_ict_skills",
+      "angle_id": "unesco_global_digital_skills_divide",
+      "title": "成人のICTスキル（プログラミング・表計算・プレゼン）の国際差。",
+      "note": "",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_high_school_informatics",
+      "angle_id": "hs_info_curriculum_implementation",
+      "title": "高校情報科：臨時免許状と免許外教科担任の使い分け（49自治体）。",
+      "note": "queue/03 とは角度を変える（内訳の使い分けが中心）。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_timss_math_science",
+      "angle_id": "timss_gender_gap",
+      "title": "日本の算数・数学の男女差の推移（TIMSS 1995〜2023）。",
+      "note": "14行の時系列。相関は主な結果にしない。公表表の『有意』の印（p）は src/data/source の Exhibit にある。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_timss_math_science",
+      "angle_id": "timss_achievement_trend",
+      "title": "日本の算数・数学の得点の長期推移（TIMSS）。",
+      "note": "14行の時系列。相関は主な結果にしない。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "oecd_pisa_math_ict",
+      "angle_id": "pisa_math_trend_and_gender",
+      "title": "PISAの数学の得点は10年でどう動いたか（7か国とOECD平均、2015〜2025）。",
+      "note": "男女差の標準誤差は data/source のPISA表にある（make_facts には入っていない）。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_stem_cs_enrollment",
+      "angle_id": "stem_capacity_and_workforce_demand",
+      "title": "大学の学科別：志願の段階と入学の段階の女性比率。",
+      "note": "志願者と入学者の女性比率は r=.99 で計算上ほぼ同じ。3年間の変化と志願→入学の差を中心にする。queue/05 と重複しないよう注意。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_teacher_workload_survey",
+      "angle_id": "workload_dx_time_squeeze",
+      "title": "教員の業務内容別の在校等時間（平成28年度と令和4年度）。",
+      "note": "参考文献が6本。8本前後にするため、先に Crossref で実在を確かめた文献を追加する（手順書 2a）。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_teacher_workload_survey",
+      "angle_id": "workload_extracurricular_burden",
+      "title": "教員の業務：授業外の業務の負担。",
+      "note": "参考文献が6本。手順書 2a。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_school_absenteeism_bullying",
+      "angle_id": "absenteeism_long_term_trend",
+      "title": "不登校児童生徒数の長期推移（平成26〜令和6年度）。",
+      "note": "参考文献が5本。手順書 2a。標準誤差はない。『有意』と書かない。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_special_needs_education",
+      "angle_id": "special_needs_assistive_tech",
+      "title": "通級による指導を受ける児童生徒数の推移（平成5〜令和4年度）。",
+      "note": "参考文献が5本。手順書 2a。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "worldbank_education_indicators",
+      "angle_id": "wb_education_expenditure_efficiency",
+      "title": "教育支出と学習到達度の関係（世界銀行、16か国）。",
+      "note": "参考文献が5本。n=16。手順書 2a。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_national_assessment_math",
+      "angle_id": "national_math_reasoning_gap",
+      "title": "全国学力調査：国語と算数・数学の正答率の動き（令和元〜7年度）。",
+      "note": "6時点だけ。相関は結果にしない。記述の整理にとどめる。参考文献が6本。手順書 2a。",
+      "status": "todo"
+    },
+    {
+      "dataset_id": "japan_mext_ict_informatization",
+      "angle_id": "mext_ict_infrastructure_vs_pedagogy",
+      "title": "学校のICT環境の整備状況の推移（平成31年3月〜令和6年3月）。",
+      "note": "6時点だけ。記述の整理にとどめる。参考文献が6本。手順書 2a。",
+      "status": "todo"
+    }
+  ]
+}
