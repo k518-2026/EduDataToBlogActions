@@ -77,7 +77,33 @@ def parse_args():
         default="",
         help="Override publisher type ('wordpress_mail', 'wordpress_rest', 'markdown_only').",
     )
+    parser.add_argument(
+        "--reuse",
+        type=str,
+        default="",
+        help="Reuse the insights, paper and review saved by an earlier run (temp/generation_<dataset>.json), "
+             "e.g. after correcting the text by hand. No language model is called.",
+    )
     return parser.parse_args()
+
+
+def _load_generation(path):
+    """Loads the saved insights / paper / review (see _save_generation)."""
+    import json
+    from src.academic_paper import AcademicPaper
+    from src.insights import EducationalInsights
+    from src.peer_review import PeerReviewReport
+
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    review = dict(data["review"])
+    review["scores"] = {k: tuple(v) for k, v in review["scores"].items()}
+    return EducationalInsights(**data["insights"]), AcademicPaper(**data["paper"]), PeerReviewReport(**review)
+
+
+def _save_generation(path, store):
+    import json
+
+    Path(path).write_text(json.dumps(store, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def main():
@@ -158,16 +184,30 @@ def main():
 
     # 5. Generate pedagogical insights
     logger.info("💡 Generating educational pedagogical insights...")
-    insights = insight_gen.generate_insights(
-        dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
-    )
+    from dataclasses import asdict
+
+    generation_path = TEMP_DIR / f"generation_{dataset.id}.json"
+    generation = {}
+    if args.reuse:
+        reuse_insights, reuse_paper, reuse_review = _load_generation(args.reuse)
+        logger.info(f"♻️ Reusing saved insights/paper/review from {args.reuse} (no language model is called)")
+        insights = reuse_insights
+    else:
+        insights = insight_gen.generate_insights(
+            dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+        )
+    generation["insights"] = asdict(insights)
 
     # 6. Generate undergraduate thesis-level academic paper and PDF
     logger.info("🎓 Generating undergraduate thesis-level academic paper...")
     paper_gen = AcademicPaperGenerator()
-    academic_paper = paper_gen.generate_paper(
-        dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
-    )
+    if args.reuse:
+        academic_paper = reuse_paper
+    else:
+        academic_paper = paper_gen.generate_paper(
+            dataset, analysis, selected_angle=selected_angle, past_topics=past_topics
+        )
+    generation["paper"] = asdict(academic_paper)
 
     logger.info("📑 Compiling academic thesis PDF document...")
     pdf_gen = EduPaperPdfGenerator()
@@ -193,9 +233,16 @@ def main():
     # 7. Generate rigorous academic peer review report and PDF
     logger.info("📋 Generating rigorous academic peer review report...")
     review_gen = PeerReviewGenerator()
-    peer_review = review_gen.generate_review(
-        academic_paper, dataset, analysis, selected_angle=selected_angle
-    )
+    if args.reuse:
+        peer_review = reuse_review
+    else:
+        peer_review = review_gen.generate_review(
+            academic_paper, dataset, analysis, selected_angle=selected_angle
+        )
+    generation["review"] = asdict(peer_review)
+    if not args.reuse:
+        _save_generation(generation_path, generation)
+        logger.info(f"Saved the generated texts to {generation_path} (rerun with --reuse to rebuild without a model)")
 
     logger.info("📑 Compiling academic peer review PDF report...")
     review_pdf_gen = PeerReviewPdfGenerator()

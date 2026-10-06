@@ -605,6 +605,7 @@ class EduDataAnalyzer:
                     grp_rank = (
                         latest_df.groupby(group_col)[m]
                         .mean()
+                        .dropna()
                         .sort_values(ascending=False)
                         .round(2)
                     )
