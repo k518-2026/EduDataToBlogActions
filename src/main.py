@@ -114,6 +114,10 @@ def _save_generation(path, store):
 
 def main():
     args = parse_args()
+    # GitHub Actions only posts papers that were written locally and pushed to queue/. It never generates text.
+    if os.getenv("QUEUE_ONLY", "").strip().lower() == "true" and not args.from_queue:
+        logger.error("QUEUE_ONLY=true: 論文・査読の生成は行いません。--from-queue でキューの論文を投稿してください。")
+        sys.exit(2)
     queue_item = None
     queue_index = None
     if args.from_queue:

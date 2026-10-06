@@ -2,6 +2,12 @@
 
 日本および海外の公的オープンデータから「算数・数学教育」や「情報教育・プログラミング教育」に関する統計データを自動取得し、統計分析（記述統計・経年変化・相関・国際比較）を行い、**データ表・グラフ付きの教育インサイトレポート**を作成して指定したブログ（WordPress等）へ自動投稿する**GitHub Actions完全自動化パイプライン**です。
 
+> **運用の分担（2026-10-06〜）** 論文と査読報告書は、**ローカルの Claude Code で作り**（`tools/make_facts.py` → 執筆 → `tools/check_numbers.py` → 査読 → `--reuse` で PDF 化）、`queue/` に入れて push する。
+> **GitHub Actions は、`queue/` の「ready」の先頭を WordPress へ投稿するだけ**（2日以上あけて1本。`daily_report.yml`、言語モデルは呼ばない）。
+> 投稿の停止中は、リポジトリの変数 `WP_PUBLISHING_PAUSED` が `true`（既定）。再開は `false` にして、`schedule` の `#` を外す。手順は `queue/README.md`。
+> 以下の説明のうち、API による自動生成の部分は、この運用では使わない（ローカルでの試験用に残してある）。
+
+
 ---
 
 ## 🌟 システムの特徴
@@ -43,7 +49,7 @@
 EduDataToBlogActions/
 ├── .github/
 │   └── workflows/
-│       └── daily_report.yml          # GitHub Actions 定期実行（〜9/30: 朝5時・夜10時、10/1〜: 毎朝5時JST）
+│       └── daily_report.yml          # GitHub Actions: queue/ の論文を WP へ投稿するだけ（生成しない）
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                     # 環境変数・パス・定数設定
