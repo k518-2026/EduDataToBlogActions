@@ -367,7 +367,7 @@ class GeminiInsightGenerator:
         parsed = parse_insights_json(raw_text)
         exec_summary, paradox, pedagogy, policy = self._require_insight_fields(parsed, "Claude")
 
-        logger.info(f"Successfully generated educational insights via Claude ({resolved_model})!")
+        logger.info(f"Successfully generated educational insights via {Config.OLLAMA_MODEL if llm == 'ollama' else resolved_model}!")
         return EducationalInsights(
             executive_summary=clean_insight_text(exec_summary),
             counter_intuitive_finding=clean_insight_text(paradox),

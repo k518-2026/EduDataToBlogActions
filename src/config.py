@@ -35,6 +35,7 @@ class Config:
     # Ollama (local LLM; the third choice after Claude and Gemini). Empty OLLAMA_BASE_URL disables it.
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "").strip().rstrip("/")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5:14b").strip()
+    OLLAMA_NUM_CTX: int = int(os.getenv("OLLAMA_NUM_CTX", "49152"))  # 論文のプロンプトは約2.2万トークン。出力も入る大きさが要る
 
     # Blog publishing mode: 'wordpress_mail', 'wordpress_rest', or 'markdown_only'
     # Temporarily paused WordPress posting -> defaults to 'markdown_only'

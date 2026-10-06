@@ -3,9 +3,12 @@ General utilities for EduDataToBlogActions.
 Includes Japan Standard Time (JST) date handling, metric unit resolution, and text cleaning.
 """
 from datetime import datetime
+import logging
 import re
 from typing import Optional
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -530,7 +533,7 @@ def ollama_chat_text(prompt: str, system: str = "", max_tokens: int = 8192, time
         "stream": False,
         "format": "json",
         "think": False,
-        "options": {"num_ctx": 24576, "num_predict": max_tokens, "temperature": 0.3},
+        "options": {"num_ctx": Config.OLLAMA_NUM_CTX, "num_predict": max_tokens, "temperature": 0.3},
     }
     req = urllib.request.Request(
         Config.OLLAMA_BASE_URL + "/api/chat",
@@ -538,12 +541,22 @@ def ollama_chat_text(prompt: str, system: str = "", max_tokens: int = 8192, time
         headers={"content-type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
-    text = ((data.get("message") or {}).get("content") or "").strip()
-    if not text:
-        raise LLMGenerationError("Ollama の応答が空です")
-    return text
+    last_error = None
+    for attempt in range(1, 4):  # small local models sometimes return broken JSON; ask again
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        text = ((data.get("message") or {}).get("content") or "").strip()
+        if not text:
+            last_error = "Ollama の応答が空です"
+            continue
+        m = re.search(r"\{[\s\S]*\}", text)
+        try:
+            json.loads(m.group(0) if m else text)
+            return text
+        except ValueError as e:
+            last_error = f"Ollama の応答がJSONとして読めません（{attempt}回目）: {e}"
+            logger.warning(last_error)
+    raise LLMGenerationError(last_error or "Ollama の応答が得られません")
 
 
 def extract_anthropic_text(res_data: dict) -> str:

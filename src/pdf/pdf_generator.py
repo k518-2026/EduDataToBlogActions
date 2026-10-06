@@ -581,9 +581,26 @@ class EduPaperPdfGenerator:
 
         return styles
 
+    @staticmethod
+    def _safe_markup(text: str) -> str:
+        """Small language models mix <em>/<strong> with <i>/<b> and leave tags unbalanced; reportlab then fails.
+        Normalise the tags, and drop all tags if they still do not balance."""
+        import re as _re
+
+        t = _re.sub(r"<(/?)em\s*>", lambda m: "<" + m.group(1) + "i>", text, flags=_re.IGNORECASE)
+        t = _re.sub(r"<(/?)strong\s*>", lambda m: "<" + m.group(1) + "b>", t, flags=_re.IGNORECASE)
+        for tag in ("i", "b", "sub", "sup", "u"):
+            if len(_re.findall(rf"<{tag}\s*>", t)) != len(_re.findall(rf"</{tag}\s*>", t)):
+                t = _re.sub(rf"</?{tag}\s*>", "", t)
+        return t
+
     def _para(self, text: str, style: ParagraphStyle) -> Paragraph:
         """Constructs a Paragraph after standardizing text spaces, numbers, and formulas."""
-        return Paragraph(clean_text_spaces(text), style)
+        cleaned = clean_text_spaces(text)
+        try:
+            return Paragraph(cleaned, style)
+        except ValueError:
+            return Paragraph(self._safe_markup(cleaned), style)
 
     def _para_en(self, text: str, style: ParagraphStyle) -> Paragraph:
         """Constructs a Paragraph for English text with standard ASCII typography."""
