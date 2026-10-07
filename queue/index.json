@@ -47,6 +47,15 @@
       "status": "ready",
       "prepared_on": "2026-10-06",
       "note": "2026-10-06 ユーザーが内容OKと確認（精度は徐々に上げる方針）"
+    },
+    {
+      "id": "06_timss2023_student_attitudes",
+      "dataset_id": "timss2023_student_attitudes",
+      "angle_id": "timss_attitudes_like_confident",
+      "file": "06_timss2023_student_attitudes.generation.json",
+      "title": "日本の子どもは算数・数学が好きなのか：TIMSS 2023で小4・中2を国際比較する†",
+      "status": "ready",
+      "prepared_on": "2026-10-07"
     }
   ]
 }

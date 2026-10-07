@@ -6,7 +6,8 @@
       "angle_id": "timss_attitudes_like_confident",
       "title": "日本の小4・中2は算数・数学が好きか（TIMSS 2023）。好き・自信の割合と日本の位置。",
       "note": "",
-      "status": "todo"
+      "status": "done",
+      "done_on": "2026-10-07"
     },
     {
       "dataset_id": "oecd_talis_teacher_survey",
