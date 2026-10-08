@@ -1142,8 +1142,8 @@ class EduPaperPdfGenerator:
                     orig_w, orig_h = im.size
                 target_w = 200.0
                 target_h = target_w * (orig_h / orig_w)
-                if target_h > 105.0:
-                    target_h = 105.0
+                if target_h > 150.0:
+                    target_h = 150.0
                     target_w = target_h * (orig_w / orig_h)
 
                 # Clean dataset title for concise academic caption
@@ -1159,7 +1159,7 @@ class EduPaperPdfGenerator:
 
                 figure1_elements = [
                     Image(str(chart_path), width=target_w, height=target_h),
-                    self._para(f"図１　{clean_fig_title}の経年推移と傾向分析（95%CI併記）", self.styles["FigureCaption"]),
+                    self._para(f"図１　{clean_fig_title}{'の経年推移と傾向分析（95%CI併記）' if 'time' in str(getattr(analysis, 'primary_method', '')) or dataset.title.endswith(('の経年推移', 'の推移')) else 'の国・地域間の比較'}", self.styles["FigureCaption"]),
                 ]
                 story.append(KeepTogether(figure1_elements))
                 story.append(Spacer(1, 4))
@@ -1173,8 +1173,8 @@ class EduPaperPdfGenerator:
                     orig_w, orig_h = im.size
                 target_w = 200.0
                 target_h = target_w * (orig_h / orig_w)
-                if target_h > 105.0:
-                    target_h = 105.0
+                if target_h > 150.0:
+                    target_h = 150.0
                     target_w = target_h * (orig_w / orig_h)
 
                 clean_fig_title2 = dataset.title

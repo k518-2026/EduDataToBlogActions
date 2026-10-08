@@ -598,7 +598,9 @@ class EduDataVisualizer:
         if getattr(selected_angle, "group_comparison_metric", None) == metric:
             rq_label = f"【RQ検証：{metric}の比較】"
 
-        ax.set_title(f"{dataset.title}\n{rq_label}", fontsize=13, fontweight="bold", pad=12)
+        _t = dataset.title
+        _t = "\n".join(_t[i:i + 40] for i in range(0, len(_t), 40))
+        ax.set_title(f"{_t}\n{rq_label}", fontsize=13, fontweight="bold", pad=12)
         ci_label = "  [誤差棒: 95% 信頼区間 (95% CI)]" if has_ci else ""
         ax.set_xlabel(f"{metric}{'' if metric.endswith('(' + metric_unit + ')') else ' (' + metric_unit + ')'}{ci_label}", fontsize=11, labelpad=8)
         ax.set_ylabel("", fontsize=11)
@@ -732,8 +734,12 @@ class EduDataVisualizer:
         ):
             rq_label = f"【RQ2検証：{col_x}と{col_y}の連動構造】"
 
+        # Wrap long title lines so the saved figure stays compact (a wide title makes the PDF figure tiny)
+        def _wrap(s: str, n: int = 44) -> str:
+            return "\n".join(s[i:i + n] for i in range(0, len(s), n))
+
         ax.set_title(
-            f"{dataset.title}\n{rq_label}{col_x} vs {col_y}{r_info}（95%CI併記）",
+            f"{_wrap(dataset.title)}\n{_wrap(f'{rq_label}{col_x} vs {col_y}')}\n{_wrap(r_info.strip())}（95%CI併記）",
             fontsize=12,
             fontweight="bold",
             pad=12,
