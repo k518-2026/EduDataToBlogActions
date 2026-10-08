@@ -56,6 +56,15 @@
       "title": "日本の子どもは算数・数学が好きなのか：TIMSS 2023で小4・中2を国際比較する†",
       "status": "ready",
       "prepared_on": "2026-10-07"
+    },
+    {
+      "id": "07_oecd_talis_teacher_survey",
+      "dataset_id": "oecd_talis_teacher_survey",
+      "angle_id": "talis_critical_thinking_instruction",
+      "file": "07_oecd_talis_teacher_survey.generation.json",
+      "title": "日本の中学校では，考えさせる課題がどれだけ出されているのか：TALIS 2024で54の国・地域と比べる†",
+      "status": "ready",
+      "prepared_on": "2026-10-09"
     }
   ]
 }

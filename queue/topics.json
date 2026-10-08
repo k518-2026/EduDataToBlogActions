@@ -14,7 +14,8 @@
       "angle_id": "talis_critical_thinking_instruction",
       "title": "日本の中学校で考えさせる課題はどれだけ出されているか（TALIS 2024）。",
       "note": "日本は批判的思考を要する課題の割合が54か国中最下位（24.2%）。",
-      "status": "todo"
+      "status": "done",
+      "done_on": "2026-10-09"
     },
     {
       "dataset_id": "oecd_pisa2025_gender_gap",
