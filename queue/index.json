@@ -65,6 +65,17 @@
       "title": "日本の中学校では，考えさせる課題がどれだけ出されているのか：TALIS 2024で54の国・地域と比べる†",
       "status": "ready",
       "prepared_on": "2026-10-09"
+    },
+    {
+      "id": "08_timss2023_student_attitudes",
+      "dataset_id": "timss2023_student_attitudes",
+      "angle_id": "timss_attitudes_regression_path",
+      "file": "08_timss2023_student_attitudes.generation.json",
+      "title": "好き・自信・価値と得点を同時に見る：TIMSS 2023 中2（重回帰・パス解析・SEM）",
+      "status": "hold",
+      "prepared_on": "2026-10-09",
+      "drafted_by": "ollama-gemma4:12b+sonnet-proof",
+      "note": "試作（重回帰・パス解析・SEM、LuaLaTeX）。査読を最終版で取り直したら ready にする"
     }
   ]
 }

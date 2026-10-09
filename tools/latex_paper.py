@@ -138,7 +138,7 @@ def model_blocks(dataset_id, angle_id):
             f"{e['indirect']:.2f} [{e['indirect_ci95_boot'][0]:.2f}, {e['indirect_ci95_boot'][1]:.2f}] & {e['total']:.2f} \\\\"
             for e in pm["effects"])
         fit = pm.get("fit") or {}
-        fit_txt = (f"\\textit{{$\\chi^2$}}({fit['DoF']:.0f})={fit['chi2']:.2f}，CFI={fit['CFI']:.2f}，RMSEA={fit['RMSEA']:.2f}（観測数が少ないため目安）．" if fit.get("available") else "")
+        fit_txt = (f"\\textit{{$\\chi^2$}}({fit['df']:.0f})={fit['chi2']:.2f}，RMSEA={fit['RMSEA']:.2f}，CFI={fit['CFI']:.2f}（観測数が少ないため目安）．" if fit.get("chi2") is not None and fit.get("df") else "")
         tables.append("\\begin{table}[t]\n\\caption{パス解析：直接・間接・総合の関連（標準化）}\n\\centering\\scriptsize\\setlength{\\tabcolsep}{3pt}\n"
                       "\\begin{tabular}{>{\\raggedright\\arraybackslash}p{3.4cm}rrr}\n\\toprule\n経路 & 直接 & 間接 [95\\%CI] & 総合 \\\\\n\\midrule\n"
                       + eff + "\n\\bottomrule\n\\end{tabular}\n\\par\\smallskip{\\scriptsize 注）" + fit_txt
@@ -147,7 +147,7 @@ def model_blocks(dataset_id, angle_id):
         se = res["sem"]
         fit = se["fit"]
         figures.append("\\begin{figure*}[t]\\centering\n" + sm.sem_diagram_tikz(se, spec["sem"]["latent"], spec["sem"].get("labels") or labels, width_cm=15.5) + "\n"
-                       "\\caption{" + tex(spec["sem"].get("title", "SEM")) + f"（標準化推定値。\\textit{{$\\chi^2$}}({fit['DoF']:.0f})={fit['chi2']:.2f}，"
+                       "\\caption{" + tex(spec["sem"].get("title", "SEM")) + f"（標準化推定値。\\textit{{$\\chi^2$}}({fit['df']:.0f})={fit['chi2']:.2f}，"
                        f"CFI={fit['CFI']:.2f}，RMSEA={fit['RMSEA']:.2f}，\\textit{{n}}={se['n']}。破線は \\textit{{p}}$\\ge$.05）}}\n\\end{{figure*}}")
     return tables, figures, res
 
@@ -170,7 +170,7 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     date = gen.get("date", "2026年10月")
     body = []
     body.append(r"\begin{document}")
-    body.append(r"\twocolumn[")
+    body.append(r"\twocolumn[{")
     body.append(r"\noindent\fbox{\gtfamily\small\ 生成AI論文\ }\par\medskip")
     body.append(r"\begin{center}")
     body.append(r"{\gtfamily\bfseries\LARGE " + tex(p.title.rstrip("†")) + r"$^{\dagger}$}\par\medskip")
@@ -181,7 +181,7 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     body.append(r"\end{center}\smallskip")
     body.append(r"\noindent\begin{minipage}{\textwidth}\small " + tex(p.abstract) + r"\par\smallskip")
     body.append(r"\noindent{\gtfamily キーワード：}" + tex("，".join(p.keywords)) + r"\end{minipage}\medskip")
-    body.append(r"]")
+    body.append(r"}]")  # 本文に「]」（信頼区間）があっても、囲みが終わらないように、波括弧で包む
     body.append(r"\let\thefootnote\relax")
     body.append(r"\footnotetext{\footnotesize " + date + r"執筆\\ $^{\dagger}$" + tex(p.title_en) + r"\\ $^{*1}$ Open Education Data Project, Tokyo, Japan\quad $^{*2}$ Educational Data Science Unit, Tokyo, Japan}")
     body.append(r"\section{はじめに}")
@@ -203,9 +203,9 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     body.append(r"\section{考察}")
     body.append(paragraphs(p.discussion))
     body.append(r"\section*{参考文献}")
-    body.append(r"\begingroup\footnotesize\setlength{\parindent}{0pt}\raggedright")
+    body.append(r"\begingroup\scriptsize\setlength{\parindent}{0pt}\raggedright")
     for r_ in p.references:
-        body.append(r"\par\hangindent=1.5\zw\hangafter=1 " + tex(r_) + r"\vspace{2pt}")
+        body.append(r"\par\hangindent=1.5\zw\hangafter=1 " + tex(r_) + r"\vspace{1pt}")
     body.append(r"\endgroup")
     body.append(r"\section*{Summary}")
     body.append(r"{\footnotesize\setlength{\parindent}{0pt}" + tex(p.summary_en) + r"\par\smallskip KEYWORDS: " + tex(", ".join(p.keywords_en)) + r"\par}")

@@ -4,8 +4,9 @@
 - 重回帰: statsmodels の OLS。標準化偏回帰係数、ロバスト標準誤差（HC3）、VIF、R²、調整済みR²、ブートストラップの信頼区間。
 - パス解析: 観測変数だけの再帰モデル。標準化したパス係数、決定係数、直接・間接・総合の関連（ブートストラップの信頼区間）。
   適合度（χ²、CFI、RMSEA など）は、semopy が使えるときだけ。観測数が少ないモデルの適合度は目安。
-- SEM: 潜在変数（測定モデル `=~`）を含むモデルは semopy で推定する。
-semopy は E:\\ClaudeCode\\assets\\pylib に入れてある。
+- SEM: 潜在変数（測定モデル `=~`）を含むモデルは、自前の最尤法（RAM 表現。_ram_fit）で推定する。
+  適合度は χ²（N×F、lavaan の既定と同じ）、自由度、p、CFI、TLI、RMSEA。観測数が少ないモデルの適合度は目安。
+  （semopy の χ²・自由度は、外生変数の扱いが標準と違い、手計算と合わなかったので使わない。）
 """
 from __future__ import annotations
 
@@ -188,7 +189,7 @@ def fit_path_model(df: pd.DataFrame, equations: list[str], focus: list[list[str]
     corr = {f"{a}|{b}": _r(float(np.corrcoef(d[a], d[b])[0, 1]), 2) for i, a in enumerate(exo) for b in exo[i + 1:]}
     res = {"type": "path_analysis", "n": n, "equations": equations, "variables": allv, "layers": layer, "paths": paths,
            "R2": {k: _r(v) for k, v in r2.items()}, "effects": effects, "exogenous_correlations": corr, "n_boot": len(store[foc[0]]["direct"]) if foc else 0}
-    res["fit"] = _semopy_fit(d, equations)
+    res["fit"] = _ram_fit(d, {}, equations)["fit"]
     return res
 
 
@@ -215,35 +216,139 @@ def _semopy_fit(d: pd.DataFrame, equations: list[str], extra_lines: list[str] | 
 
 # ---------------------------------------------------------------- SEM（潜在変数）
 def fit_sem(df: pd.DataFrame, latent: dict[str, list[str]], structural: list[str], rename: dict | None = None) -> dict:
-    """latent: {"潜在変数名": [指標の列名, ...]}, structural: ["潜在変数A ~ 潜在変数B + 観測変数"]。"""
-    import semopy
+    """潜在変数を含む SEM。latent: {"潜在変数名": [指標の列名, ...]}, structural: ["潜在変数A ~ 潜在変数B + 観測変数"]。最尤法（自前のエンジン）。"""
+    out = _ram_fit(df, latent, structural)
+    desc = [f"{k} =~ " + " + ".join(v) for k, v in latent.items()] + list(structural)
+    return {"type": "sem", "n": out["fit"]["n"], "model": "\n".join(desc), "estimates": out["estimates"], "fit": out["fit"], "R2": out["R2"]}
 
-    cols = sorted({c for ind in latent.values() for c in ind} | {t.strip() for e in structural for t in re.split(r"[~+]", e) if t.strip() and t.strip() not in latent})
-    cols = [c for c in cols if c in df.columns]
-    d = df[cols].apply(pd.to_numeric, errors="coerce").dropna()
-    names = {c: f"v{i}" for i, c in enumerate(cols)}
-    lat_names = {k: f"L{j}" for j, k in enumerate(latent)}
-    lines = []
-    for k, ind in latent.items():
-        lines.append(f"{lat_names[k]} =~ " + " + ".join(names[c] for c in ind))
-    for e in structural:
-        for k, nme in lat_names.items():
-            e = e.replace(k, nme)
-        for c, nme in sorted(names.items(), key=lambda kv: -len(kv[0])):
-            e = e.replace(c, nme)
-        lines.append(e)
-    mod = semopy.Model("\n".join(lines))
-    mod.fit(d.rename(columns=names))
-    ins = mod.inspect(std_est=True)
-    inv = {v: k for k, v in names.items()} | {v: k for k, v in lat_names.items()}
+
+# ---------------------------------------------------------------- 最尤法の SEM エンジン（RAM 表現）
+def _ram_fit(d: pd.DataFrame, latent: dict[str, list[str]], structural: list[str], n_start: int = 3, seed: int = 1) -> dict:
+    """観測変数のパス解析と、潜在変数を含む SEM を、同じ最尤法で推定する。
+
+    - 外生変数（観測・潜在）の分散と、外生変数どうしの共分散は、すべて自由推定（lavaan の fixed.x=FALSE と同じ）。
+    - 潜在変数は、最初の指標の負荷量を1に固定してスケールを決める。
+    - χ² = N × F_ML（lavaan の既定と同じ）。自由度 = 観測の積率の数 − 自由パラメータの数。
+    - CFI・TLI の基準モデルは、観測変数の分散だけ自由で、共分散がすべて0のモデル。RMSEA = sqrt(max(χ²−df,0)/(N·df))。
+    標準化推定値は、モデルから導く分散（観測・潜在）で標準化。p は、数値ヘッセ行列から求めたワルド検定。
+    """
+    from scipy import optimize, stats
+
+    obs_all = list(dict.fromkeys(list(d.columns)))
+    eqs = _parse(structural)
+    lat = list(latent)
+    used_obs = set(c for ind in latent.values() for c in ind) | {t for y, xs in eqs for t in [y] + xs if t in obs_all}
+    obs = [c for c in obs_all if c in used_obs]
+    z = d[obs].apply(pd.to_numeric, errors="coerce").dropna()
+    n = len(z)
+    S = np.cov(((z - z.mean()) / z.std(ddof=1)).values.T, ddof=0)
+    p_obs = len(obs)
+    names = obs + lat
+    ix = {v: i for i, v in enumerate(names)}
+    m = len(names)
+    # A（パス）: A[結果, 原因]
+    free_A, fixed_A = [], {}
+    for lv, inds in latent.items():
+        for j, c in enumerate(inds):
+            if j == 0:
+                fixed_A[(ix[c], ix[lv])] = 1.0
+            else:
+                free_A.append((ix[c], ix[lv]))
+    for y, xs in eqs:
+        for x in xs:
+            free_A.append((ix[y], ix[x]))
+    endog = {ix[c] for ind in latent.values() for c in ind} | {ix[y] for y, _ in eqs}
+    exog = [i for i in range(m) if i not in endog]
+    free_S = [(i, i) for i in range(m)] + [(a, b) for k, a in enumerate(exog) for b in exog[k + 1:]]
+    npar = len(free_A) + len(free_S)
+    moments = p_obs * (p_obs + 1) // 2
+    df = moments - npar
+    sel = np.zeros((p_obs, m))
+    for i in range(p_obs):
+        sel[i, i] = 1.0
+
+    def build(theta):
+        A = np.zeros((m, m))
+        for (i, j), v in fixed_A.items():
+            A[i, j] = v
+        for k, (i, j) in enumerate(free_A):
+            A[i, j] = theta[k]
+        Sm = np.zeros((m, m))
+        for k, (i, j) in enumerate(free_S):
+            v = theta[len(free_A) + k]
+            Sm[i, j] = v
+            Sm[j, i] = v
+        return A, Sm
+
+    def implied(theta):
+        A, Sm = build(theta)
+        Ai = np.linalg.inv(np.eye(m) - A)
+        full = Ai @ Sm @ Ai.T
+        return sel @ full @ sel.T, full, A
+
+    logdetS = np.linalg.slogdet(S)[1]
+
+    def fml(theta):
+        try:
+            sig, _, _ = implied(theta)
+            sign, ld = np.linalg.slogdet(sig)
+            if sign <= 0:
+                return 1e6
+            return ld + float(np.trace(S @ np.linalg.inv(sig))) - logdetS - p_obs
+        except np.linalg.LinAlgError:
+            return 1e6
+
+    rng = np.random.default_rng(seed)
+    best = None
+    for s in range(n_start):
+        th0 = np.zeros(npar)
+        for k, (i, j) in enumerate(free_A):
+            if names[j] in latent and names[i] in latent[names[j]]:   # 負荷量: 最初の指標との相関を出発点に
+                th0[k] = float(np.corrcoef(z[names[i]], z[latent[names[j]][0]])[0, 1])
+            else:
+                th0[k] = 0.2
+        for k, (i, j) in enumerate(free_S):
+            th0[len(free_A) + k] = (0.8 if names[i] in latent else 0.5 if i in endog else 1.0) if i == j else 0.0
+        th0 = th0 + rng.normal(scale=0.05 * s, size=npar)
+        bnds = [(None, None)] * len(free_A) + [((1e-4, None) if i == j else (None, None)) for (i, j) in free_S]
+        r = optimize.minimize(fml, th0, method="L-BFGS-B", bounds=bnds, options={"maxiter": 5000, "ftol": 1e-12, "gtol": 1e-8})
+        if best is None or r.fun < best.fun:
+            best = r
+    th = best.x
+    F = max(float(best.fun), 0.0)
+    chi2 = n * F
+    # 基準モデル
+    chi2_b = n * (np.sum(np.log(np.diag(S))) - logdetS)
+    df_b = p_obs * (p_obs - 1) // 2
+    fit = {"n": n, "chi2": _r(chi2, 3), "df": int(df), "n_free_params": int(npar), "converged": bool(best.success)}
+    if df > 0:
+        fit["p"] = _r(1 - stats.chi2.cdf(chi2, df), 4)
+        fit["RMSEA"] = _r(math.sqrt(max(chi2 - df, 0) / (n * df)), 3)
+        fit["CFI"] = _r(1 - max(chi2 - df, 0) / max(chi2_b - df_b, chi2 - df, 1e-12), 3)
+        fit["TLI"] = _r(((chi2_b / df_b) - (chi2 / df)) / ((chi2_b / df_b) - 1), 3) if df_b > 0 else None
+    else:
+        fit["note"] = "飽和モデル（自由度0）：適合度は評価できない"
+    # 推定値・標準化・p
+    sig, full, A = implied(th)
+    sd = np.sqrt(np.diag(full))
+    try:
+        import numdifftools as nd
+
+        H = nd.Hessian(fml, step=1e-4)(th)
+        cov = 2.0 * np.linalg.inv(n * H)
+        se = np.sqrt(np.clip(np.diag(cov), 0, None))
+    except Exception:  # noqa: BLE001
+        se = np.full(npar, np.nan)
     rows = []
-    for _, r in ins.iterrows():
-        if r["op"] in ("~", "=~"):
-            rows.append({"lval": inv.get(r["lval"], r["lval"]), "op": r["op"], "rval": inv.get(r["rval"], r["rval"]),
-                         "est": _r(r["Estimate"]), "std": _r(r["Est. Std"]), "p": None if str(r["p-value"]) in ("-", "nan") else _r(float(r["p-value"]), 4)})
-    st = semopy.calc_stats(mod).iloc[0]
-    fit = {k: _r(float(st[k]), 3) for k in ("chi2", "DoF", "chi2 p-value", "CFI", "TLI", "RMSEA", "AIC", "BIC") if k in st.index}
-    return {"type": "sem", "n": len(d), "model": "\n".join(lines), "estimates": rows, "fit": fit}
+    for k, (i, j) in enumerate(free_A):
+        std = th[k] * sd[j] / sd[i]
+        pv = float(2 * (1 - stats.norm.cdf(abs(th[k] / se[k])))) if se[k] and not np.isnan(se[k]) else None
+        rows.append({"lval": names[i], "op": "=~" if names[j] in latent and names[i] in latent[names[j]] else "~",
+                     "rval": names[j], "est": _r(th[k]), "std": _r(std), "p": _r(pv, 4) if pv is not None else None, "se": _r(se[k], 3)})
+    for (i, j), v in fixed_A.items():
+        rows.append({"lval": names[i], "op": "=~", "rval": names[j], "est": 1.0, "std": _r(v * sd[j] / sd[i]), "p": None, "se": None})
+    r2 = {names[i]: _r(1 - (th[len(free_A) + free_S.index((i, i))] / full[i, i])) for i in endog if (i, i) in free_S}
+    return {"fit": fit, "estimates": rows, "R2": r2, "names": names, "latent": lat, "observed": obs}
 
 
 # ---------------------------------------------------------------- パス図（TikZ）
@@ -328,16 +433,27 @@ def sem_diagram_tikz(result: dict, latent: dict[str, list[str]], labels: dict[st
            r"  lat/.style={draw,ellipse,minimum height=1.2cm,text width=%.2fcm,align=center,font=\footnotesize,inner sep=1pt}," % (min(box * 1.4, 3.4)),
            r"  lab/.style={font=\scriptsize,fill=white,inner sep=1pt}]"]
     ypos = {}
+    xpos = {}
     for v in order:
-        x = sum(xs_(j) for j in slot[v]) / len(slot[v])
+        xpos[v] = sum(xs_(j) for j in slot[v]) / len(slot[v])
+    for v in order:
+        x = xpos[v]
         ypos[v] = 0.0
+        if v not in latent and layer[v] == 0:
+            # 外生の観測変数は、矢印の邪魔にならないよう、結果の変数の少し上に置く
+            targets = [r["lval"] for r in struct if r["rval"] == v]
+            if targets and targets[0] in xpos:
+                x = (xpos[targets[0]] + min(xpos.values())) / 2 + sw * 0.3
+                x = min(max(x, 1.0), width_cm - 1.0)
+                ypos[v] = 1.7
+            xpos[v] = x
         extra = "" if v in latent else ",text width=%.2fcm,font=\\scriptsize" % (2 * sw - 0.35)
-        out.append(r"  \node[%s%s] (%s) at (%.2f,0) {%s};" % ("lat" if v in latent else "obs", extra, _nid(v), x, _tx(labels.get(v, v))))
+        out.append(r"  \node[%s%s] (%s) at (%.2f,%.2f) {%s};" % ("lat" if v in latent else "obs", extra, _nid(v), x, ypos[v], _tx(labels.get(v, v))))
     for lv, inds in latent.items():
         if lv not in slot:
             continue
         for j, c in zip(slot[lv], inds):
-            out.append(r"  \node[obs] (%s) at (%.2f,-3.0) {%s};" % (_nid(c), xs_(j), _tx(labels.get(c, c))))
+            out.append(r"  \node[obs] (%s) at (%.2f,-2.2) {%s};" % (_nid(c), xs_(j), _tx(labels.get(c, c))))
             ld = next((r for r in loads if r["lval"] == c and r["rval"] == lv), None)
             if ld:
                 val = ("%.2f" % ld["std"]).replace("0.", ".")

@@ -159,6 +159,13 @@ def make(dataset_id, angle_id):
             ps = pair_stats(cross, a, b)
             if ps:
                 pairs.append(ps)
+    facts["n_pairs_explored"] = len(pairs)
+    if len(pairs) > 40:  # 多すぎると、下書きの入力が長くなる。焦点の指標を含む組を先に、残りは |r| の大きい順に40組まで
+        focus = set(angle.focus_metrics)
+        near = [q for q in pairs if q["x"] in focus or q["y"] in focus]
+        rest = sorted((q for q in pairs if q not in near), key=lambda q: -abs(q["r"]))
+        pairs = (near + rest)[:40]
+        facts["pairs_note"] = f"探索した全{facts['n_pairs_explored']}組のうち、焦点の指標を含む組を先に、残りは|r|の大きい順に、{len(pairs)}組を載せた。多重比較の基準は.05÷{facts['n_pairs_explored']}。"
     facts["correlations_all_pairs"] = pairs
     facts["note"] = ("これは全ペアの探索結果。論文では研究課題にもとづくペアだけを書き，全ペアを探索したことと，多重比較の影響を明記する。"
                      "『計・部分・増減・割合』のように計算でつながったペアは，相関を結果として書かない。")

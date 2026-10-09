@@ -39,3 +39,29 @@ def test_sem_with_latent_variables():
     loads = [r for r in res["estimates"] if r["rval"] == "F" and r["lval"].startswith("a")]
     assert len(loads) == 3 and all(r["std"] > 0.6 for r in loads)
     assert "tikzpicture" in sm.sem_diagram_tikz(res, {"F": ["a0", "a1", "a2"]})
+
+
+def test_path_fit_matches_the_textbook_ml_chi_square():
+    """自前の最尤法の χ²（N×F）が、定義どおりの手計算と一致し、自由度が『置かなかったパスの数』になること。"""
+    import math
+
+    d = _df(150, seed=11)
+    res = sm.fit_path_model(d, ["m ~ x", "y ~ m"], n_boot=50)
+    fit = res["fit"]
+    assert fit["df"] == 1  # y ~ x を置いていない
+    z = d[["x", "m", "y"]]
+    S = np.cov(z.values.T, ddof=0)
+    b_m = S[0, 1] / S[0, 0]
+    b_y = S[1, 2] / S[1, 1]
+    psi = np.diag([S[0, 0], S[1, 1] - b_m**2 * S[0, 0], S[2, 2] - b_y**2 * S[1, 1]])
+    B = np.array([[0, 0, 0], [b_m, 0, 0], [0, b_y, 0]])
+    A = np.linalg.inv(np.eye(3) - B)
+    Sig = A @ psi @ A.T
+    F = math.log(np.linalg.det(Sig)) - math.log(np.linalg.det(S)) + np.trace(S @ np.linalg.inv(Sig)) - 3
+    assert abs(fit["chi2"] - 150 * F) < 0.01
+    assert fit["converged"]
+
+
+def test_saturated_path_model_has_zero_df():
+    res = sm.fit_path_model(_df(120, seed=2), ["m ~ x", "y ~ m + x"], n_boot=50)
+    assert res["fit"]["df"] == 0 and res["fit"]["chi2"] < 1e-3

@@ -14,13 +14,12 @@ import time
 import requests
 
 from src.config import BASE_DIR, TEMP_DIR
-from tools.make_brief import EXEMPLARS as DEFAULT_EXEMPLARS
+from tools.make_brief import pick_exemplars
 
-# 比較実験では、見本に「同じ題材の完成版」を入れない（写してしまう）。Opus に渡したのと同じ別題材を使う。
-EXEMPLARS = ("queue/02_oecd_pisa2025_gender_gap.generation.json", "queue/01_timss2023_student_attitudes.generation.json")
 
 
 def build_prompt(dataset_id, angle_id):
+    EXEMPLARS = pick_exemplars(dataset_id)  # 同じ題材の完成版は入れない（写してしまう）
     assert not any(dataset_id in e for e in EXEMPLARS), "見本に同じ題材の論文が入っている"
     brief = (TEMP_DIR / f"brief_{dataset_id}.md").read_text(encoding="utf-8")
     facts = (TEMP_DIR / f"facts_{dataset_id}.json").read_text(encoding="utf-8")

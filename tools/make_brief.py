@@ -10,7 +10,22 @@ import sys
 from src.academic_contexts import get_all_angles_for_dataset
 from src.config import BASE_DIR, TEMP_DIR
 
-EXEMPLARS = ("queue/04_oecd_talis_teacher_survey.generation.json", "queue/05_japan_stem_cs_enrollment.generation.json")
+EXEMPLARS = ("queue/04_oecd_talis_teacher_survey.generation.json", "queue/05_japan_stem_cs_enrollment.generation.json")  # 既定（pick_exemplars が使えないとき）
+
+
+def pick_exemplars(dataset_id, n=2):
+    """見本に使う完成済みの論文を、queue から選ぶ。**同じ題材のものは入れない**（写してしまう）。違う題材を、新しいものから。"""
+    import json
+
+    index = json.loads((BASE_DIR / "queue" / "index.json").read_text(encoding="utf-8"))["items"]
+    chosen, seen = [], {dataset_id}
+    for it in reversed(index):
+        if it["dataset_id"] not in seen and (BASE_DIR / "queue" / it["file"]).exists():
+            chosen.append("queue/" + it["file"])
+            seen.add(it["dataset_id"])
+        if len(chosen) == n:
+            break
+    return tuple(chosen) if len(chosen) == n else EXEMPLARS
 
 WRITER = """# 論文執筆の指示書：{ds}（{angle_id}）
 
@@ -99,18 +114,19 @@ REVIEWER = """# 査読の指示書：{ds}
 
 
 def make(dataset_id, angle_id, review_date="2026年10月06日"):
+    ex = pick_exemplars(dataset_id)
     angle = [a for a in get_all_angles_for_dataset(dataset_id) if a.angle_id == angle_id][0]
     root = str(BASE_DIR)
     facts = str(TEMP_DIR / f"facts_{dataset_id}.json")
     out = str(TEMP_DIR / f"draft_{dataset_id}.json")
     refs = "\n".join(f"- {r}" for r in angle.curated_references)
     writer = WRITER.format(
-        ds=dataset_id, angle_id=angle_id, facts=facts, ex1=str(BASE_DIR / EXEMPLARS[0]), ex2=str(BASE_DIR / EXEMPLARS[1]),
+        ds=dataset_id, angle_id=angle_id, facts=facts, ex1=str(BASE_DIR / ex[0]), ex2=str(BASE_DIR / ex[1]),
         theme=angle.title_theme, rq1=angle.rq1, rq2=angle.rq2, core=angle.core_research_problems, guide=angle.specific_prompt_guidance,
         out=out, refs=refs, min_refs=min(8, len(angle.curated_references)), root=root)
     reviewer = REVIEWER.format(
         ds=dataset_id, draft=out, facts=facts, catalog=str(BASE_DIR / "data" / "catalog" / f"{dataset_id}.json"),
-        exemplar=str(BASE_DIR / EXEMPLARS[0]), out=str(TEMP_DIR / f"review_{dataset_id}.json"), review_date=review_date)
+        exemplar=str(BASE_DIR / ex[0]), out=str(TEMP_DIR / f"review_{dataset_id}.json"), review_date=review_date)
     w, r = TEMP_DIR / f"brief_{dataset_id}.md", TEMP_DIR / f"review_brief_{dataset_id}.md"
     w.write_text(writer, encoding="utf-8")
     r.write_text(reviewer, encoding="utf-8")

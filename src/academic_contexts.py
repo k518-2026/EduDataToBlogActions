@@ -2549,6 +2549,23 @@ DATASET_RESEARCH_ANGLES["oecd_pisa2025_gender_gap"] = [
     ),
 ]
 
+# 重回帰・パス解析・SEM で、好き・自信・価値と得点を同時に見る（中2）
+import dataclasses as _dc
+
+DATASET_RESEARCH_ANGLES["timss2023_student_attitudes"].append(
+    _dc.replace(
+        DATASET_RESEARCH_ANGLES["timss2023_student_attitudes"][-1],
+        angle_id="timss_attitudes_regression_path",
+        angle_name="好き・自信・価値と得点を同時に見る（重回帰・パス解析・SEM，中2）",
+        title_theme="好き・自信・価値を同時に見ると，得点との関連はどう変わるか：TIMSS 2023の中2を重回帰とパス解析で整理する",
+        focus_metrics=[_TA_L8_MEAN, _TA_L8_VAL, _TA_L8_LIKE, _TA_L8_CONF],
+        rq1="中2の「とても好き」「とても自信あり」「とても価値あり」の割合を同時に説明変数にすると，国・地域の平均得点との関連はどう変わるか（重回帰）。",
+        rq2="「好き」「価値」「得点」の関連は，パス解析と，潜在変数を含むSEMでは，どのように整理できるか（探索的に。因果ではない）。",
+        scatter_x_metric=_TA_L8_VAL,
+        scatter_y_metric=_TA_L8_MEAN,
+        group_comparison_metric=_TA_L8_VAL,
+    )
+)
 
 def get_all_angles_for_dataset(dataset_id: str) -> List[DatasetAcademicContext]:
     """Retrieves all registered scholarly research angles for a given dataset."""

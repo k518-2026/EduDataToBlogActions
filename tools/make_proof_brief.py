@@ -51,9 +51,9 @@ def make(dataset_id, angle_id, draft=None):
     brief = (TEMP_DIR / f"brief_{dataset_id}.md").read_text(encoding="utf-8")
     sec = lambda n: re.search(rf"## {n}\..*?(?=\n## \d\.|\Z)", brief, re.S).group(0)
     theme = re.search(r"- テーマ: (.*)", brief).group(1)
-    ex1 = BASE_DIR / "queue" / "02_oecd_pisa2025_gender_gap.generation.json"
-    if dataset_id == "oecd_pisa2025_gender_gap":
-        ex1 = BASE_DIR / "queue" / "01_timss2023_student_attitudes.generation.json"
+    from tools.make_brief import pick_exemplars
+
+    ex1 = BASE_DIR / pick_exemplars(dataset_id)[0]
     draft = Path(draft) if draft else TEMP_DIR / "ollama_cmp" / f"gemma4_12b__{dataset_id}.json"
     text = TEMPLATE.format(
         draft=draft, facts=TEMP_DIR / f"facts_{dataset_id}.json", catalog=BASE_DIR / "data" / "catalog" / f"{dataset_id}.json",

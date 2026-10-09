@@ -21,7 +21,7 @@
 \pagestyle{plain}
 \raggedbottom
 \begin{document}
-\twocolumn[
+\twocolumn[{
 \noindent\fbox{\gtfamily\small\ 生成AI論文\ }\par\medskip
 \begin{center}
 {\gtfamily\bfseries\LARGE 理系の学科に女性はどれだけ入学しているのか：学校基本調査の58の学科区分で比べる$^{\dagger}$}\par\medskip
@@ -31,7 +31,7 @@
 \end{center}\smallskip
 \noindent\begin{minipage}{\textwidth}\small 本研究は，学校基本調査（令和5〜7年度）の公表値から，大学（学部）の関係学科58区分の入学者の女性比率を整理した．令和7年度の全体は47.0\%で，区分ごとには8.2\%から94.2\%まで分かれた．最も低いのは工学・機械工学（8.2\%）で，電気通信工学（12.2\%），理学・物理学（15.6\%）が続いた．重みづけた比率は工学20.4\%，理学32.1\%であった．理学の生物学（2726人）は47.1\%，工学で最も高い工芸学（49.5\%）は564人の小さな区分で，除くと工学の最大は応用化学の34.1\%であった．志願者の女性比率と入学者数に大きな関連は見られなかった（\textit{r}=-.03，\textit{BF}\textsubscript{10}=0.11）．これらは集計値であり，進路選択の理由や入試の公平さは示さない．\par\smallskip
 \noindent{\gtfamily キーワード：}学校基本調査，大学入学者，女性比率，理工系，生態学的誤謬\end{minipage}\medskip
-]
+}]
 \let\thefootnote\relax
 \footnotetext{\footnotesize 2026年10月執筆\\ $^{\dagger}$How Many Women Enter Science and Engineering Departments? A Comparison of 58 Department Categories in the Japanese School Basic Survey\\ $^{*1}$ Open Education Data Project, Tokyo, Japan\quad $^{*2}$ Educational Data Science Unit, Tokyo, Japan}
 \section{はじめに}
@@ -74,7 +74,6 @@ RQ2では，入学者の女性比率が入学者数を分母とするため，�
 指標 \textit{X} & 指標 \textit{Y} & \textit{r} & \textit{p} & \textit{BF}\textsubscript{10} \\
 \midrule
 入学者数 & 入学者の女性比率（\%） & -.01 & = .874 & 0.06 \\
-入学者数 & 女性の入学者数 & .90 & < .001 & >1000 \\
 入学者数 & 入学志願者の女性比率（\%） & -.02 & = .762 & 0.06 \\
 入学者の女性比率（\%） & 入学志願者の女性比率（\%） & .99 & < .001 & >1000 \\
 \bottomrule
@@ -106,16 +105,16 @@ Blickenstaff (2005)の問いに照らすと，本研究が見たのは大学入�
 
 本研究の限界は，(1)集計値のみで個人の理由や因果を特定できないこと，(2)成績・興味・家庭などの交絡を統制していないこと，(3)悉皆の集計で標本抽出の誤差はないが，区分は表の分類に依存し，200人未満の小分類と「情報」を扱えないこと，(4)主に1時点の横断比較で，変化も3時点に限られ，小さい区分は比率が揺れやすいこと，(5)RQ2で代わりの指標を用いたこと，である．
 \section*{参考文献}
-\begingroup\footnotesize\setlength{\parindent}{0pt}\raggedright
-\par\hangindent=1.5\zw\hangafter=1 BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, \textbf{17} (4) ：369-386.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 CHERYAN, S., ZIEGLER, S. A., MONTOYA, A. K. and JIANG, L. (2017) Why are some STEM fields more gender balanced than others? Psychological Bulletin, \textbf{143} (1) ：1-35.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, \textbf{136} (1) ：103-127.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, \textbf{320} (5880) ：1164-1165.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 経済産業省 (2019) IT人材需給に関する調査 調査報告書. 経済産業省.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 LENT, R. W., BROWN, S. D. and HACKETT, G. (1994) Toward a unifying social cognitive theory of career and academic interest, choice, and performance. Journal of Vocational Behavior, \textbf{45} (1) ：79-122.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 文部科学省 (2025) 学校基本調査 令和7年度 統計表『関係学科別 大学入学状況』. 政府統計の総合窓口（e-Stat）.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, \textbf{35} (1) ：4-28.\vspace{2pt}
-\par\hangindent=1.5\zw\hangafter=1 SU, R., ROUNDS, J. and ARMSTRONG, P. I. (2009) Men and things, women and people: A meta-analysis of sex differences in interests. Psychological Bulletin, \textbf{135} (6) ：859-884.\vspace{2pt}
+\begingroup\scriptsize\setlength{\parindent}{0pt}\raggedright
+\par\hangindent=1.5\zw\hangafter=1 BLICKENSTAFF, J. C. (2005) Women and science careers: Leaky pipeline or gender filter? Gender and Education, \textbf{17} (4) ：369-386.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 CHERYAN, S., ZIEGLER, S. A., MONTOYA, A. K. and JIANG, L. (2017) Why are some STEM fields more gender balanced than others? Psychological Bulletin, \textbf{143} (1) ：1-35.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 ELSE-QUEST, N. M., HYDE, J. S. and LINN, M. C. (2010) Cross-national patterns of gender differences in mathematics: A meta-analysis. Psychological Bulletin, \textbf{136} (1) ：103-127.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 GUISO, L., MONTE, F., SAPIENZA, P. and ZINGALES, L. (2008) Culture, gender, and math. Science, \textbf{320} (5880) ：1164-1165.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 経済産業省 (2019) IT人材需給に関する調査 調査報告書. 経済産業省.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 LENT, R. W., BROWN, S. D. and HACKETT, G. (1994) Toward a unifying social cognitive theory of career and academic interest, choice, and performance. Journal of Vocational Behavior, \textbf{45} (1) ：79-122.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 文部科学省 (2025) 学校基本調査 令和7年度 統計表『関係学科別 大学入学状況』. 政府統計の総合窓口（e-Stat）.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 SPENCER, S. J., STEELE, C. M. and QUINN, D. M. (1999) Stereotype threat and women's math performance. Journal of Experimental Social Psychology, \textbf{35} (1) ：4-28.\vspace{1pt}
+\par\hangindent=1.5\zw\hangafter=1 SU, R., ROUNDS, J. and ARMSTRONG, P. I. (2009) Men and things, women and people: A meta-analysis of sex differences in interests. Psychological Bulletin, \textbf{135} (6) ：859-884.\vspace{1pt}
 \endgroup
 \section*{Summary}
 {\footnotesize\setlength{\parindent}{0pt}Using published values from the School Basic Survey by the Ministry of Education, Culture, Sports, Science and Technology for 2023 to 2025, we described the share of women among new undergraduate entrants in 58 department categories. In 2025 the overall share was 47.0\%, but it ranged from 8.2\% to 94.2\% across categories. The lowest shares were in mechanical engineering (8.2\%), electrical and communication engineering (12.2\%) and physics (15.6\%); mathematics was 21.0\%. Weighted by the number of entrants, the share was 20.4\% in engineering and 32.1\% in science, compared with 88.4\% in home economics and 67.9\% in health. The highest share in engineering (49.5\%) was a small category of 564 entrants; excluding it, the maximum in engineering was 34.1\%, while biology in science (2,726 entrants) reached 47.1\%. To avoid a computational link with the denominator, we used the share of women among applicants; it showed no large association with the number of entrants (r = -.03, BF10 = 0.11). These are associations between aggregate values for department categories and do not show the reasons for students' choices or the fairness of admissions.\par\smallskip KEYWORDS: SCHOOL BASIC SURVEY, UNIVERSITY ENTRANTS, WOMEN IN STEM, DEPARTMENT COMPARISON, ECOLOGICAL FALLACY\par}
