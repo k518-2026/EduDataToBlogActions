@@ -40,6 +40,11 @@ def evaluate(name, path, ds, angle_id):
     angle = [a for a in get_all_angles_for_dataset(ds) if a.angle_id == angle_id][0]
     cites = extract_in_text_citations(body["background"] + "\n" + body["discussion"])
     res["citations_found"] = len(cites)
+    # resolve_missing_reference は、全題材の文献表から探す。この題材の表にない文献の引用を別に数える
+    from src.academic_paper import resolve_missing_reference
+
+    own = set(angle.curated_references)
+    res["citations_outside_own_table"] = [f"{au} ({yr})" for au, yr in cites if resolve_missing_reference(au, yr, ds, angle) not in own]
     try:
         p2 = synchronize_citations_and_references(AcademicPaper(**{**paper, "references": []}), ds, angle)
         res["references_resolved"] = len(p2.references)
@@ -86,5 +91,5 @@ if __name__ == "__main__":
         print(" 文字数", r["chars_total"], r["chars"])
         print(" 未照合の数値", len(r["numbers_unmatched"]), [t for _, t, _ in r["numbers_unmatched"]][:12])
         print(" 禁止語", r["forbidden_hits"], "| 因果っぽい語", r["causal_phrase_count"])
-        print(" 引用", r["citations_found"], "→ 文献表と対応", r["references_resolved"], r["unverified_citations"])
+        print(" 引用", r["citations_found"], "→ 文献表と対応", r["references_resolved"], r["unverified_citations"], "| この題材の表にない引用", r["citations_outside_own_table"])
         print(" 英文に日本語", r["japanese_in_english"], "| †", r["title_dagger"], "| <i>対応", r["italic_tag_balance"], "| PDF", r.get("pdf_pages"), r.get("pdf_error", ""))
