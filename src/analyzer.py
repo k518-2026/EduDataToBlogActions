@@ -385,6 +385,11 @@ def is_collinear_or_redundant_pair(col_x: str, col_y: str) -> bool:
     if col_x == col_y:
         return True
 
+    # 片方の名前がもう片方に含まれる（例:「入学者数」と「女性の入学者数」）: 全体とその部分で、計算上つながっている
+    short, long_ = sorted((col_x, col_y), key=len)
+    if len(short) >= 4 and short in long_:
+        return True
+
     # The same quantity at two points in time, or a change computed from its own two levels
     # (e.g. "平日・小学校・平成28年度" / "…令和4年度" / "…増減"): the correlation is trivial or built in.
     for suffixes in (("・平成28年度", "・令和4年度", "・増減"),):

@@ -58,7 +58,8 @@ def rq_block(s):
 PREAMBLE = r"""\documentclass[a4paper,10pt,twocolumn]{ltjsarticle}
 \usepackage[haranoaji]{luatexja-preset}
 \usepackage[top=18mm,bottom=20mm,left=17mm,right=17mm,columnsep=8mm]{geometry}
-\usepackage{graphicx,booktabs,array,caption,enumitem,xcolor}
+\usepackage{graphicx,booktabs,array,caption,enumitem,xcolor,tikz}
+\usetikzlibrary{shapes.geometric}
 \setlength{\parindent}{1\zw}
 \renewcommand{\baselinestretch}{1.0}
 \setlength{\parskip}{0pt}
@@ -101,6 +102,56 @@ def build_tables(analysis, dataset):
     return t1, t2
 
 
+def model_blocks(dataset_id, angle_id):
+    """data/model_specs.json の定義から、重回帰・パス解析・SEM の表と図（LaTeX）を作る。なければ空。"""
+    from src import sem_models as sm
+    from tools.make_facts import _model_spec, _run_models
+
+    spec = _model_spec(dataset_id, angle_id)
+    if not spec:
+        return [], [], None
+    ds = DatasetCatalog().get_by_id(dataset_id)
+    res = _run_models(ds.df, spec)
+    labels = spec.get("path", {}).get("labels", {})
+    tables, figures = [], []
+
+    def num(x, nd=2):
+        t = f"{x:+.{nd}f}"
+        return t.replace("+", "$+$").replace("-", "$-$")
+
+    if "regression" in res:
+        r = res["regression"]
+        rows = "\n".join(
+            f"{tex(labels.get(c['x'], c['x']))} & {num(c['beta'])} & [{num(c['beta_ci95_boot'][0])}, {num(c['beta_ci95_boot'][1])}] & {c['p']:.3f} & {c['VIF']:.2f} \\\\"
+            for c in r["coefficients"])
+        note = ("注）従属変数：" + tex(r["y"]) + f"．\\textit{{n}}={r['n']}，\\textit{{R}}\\textsuperscript{{2}}={r['R2']:.2f}（調整済み {r['adj_R2']:.2f}），"
+                f"\\textit{{F}}({r['df'][0]},{r['df'][1]})={r['F']:.2f}．標準化係数．95\\%CIはブートストラップ（{r['n_boot']}回）．")
+        tables.append("\\begin{table}[t]\n\\caption{" + tex(spec["regression"].get("title", "重回帰分析")) + "}\n\\centering\\scriptsize\\setlength{\\tabcolsep}{3pt}\n"
+                      "\\begin{tabular}{>{\\raggedright\\arraybackslash}p{3.0cm}rrrr}\n\\toprule\n説明変数 & $\\beta$ & 95\\%CI & \\textit{p} & VIF \\\\\n\\midrule\n"
+                      + rows + "\n\\bottomrule\n\\end{tabular}\n\\par\\smallskip{\\scriptsize " + note + "}\n\\end{table}")
+    if "path" in res:
+        pm = res["path"]
+        figures.append("\\begin{figure*}[t]\\centering\n" + sm.path_diagram_tikz(pm, labels, width_cm=15.5) + "\n"
+                       "\\caption{パス図（標準化係数。破線は \\textit{p}$\\ge$.05。\\textit{n}=" + str(pm["n"]) + "）}\n\\end{figure*}")
+        eff = "\n".join(
+            f"{tex(labels.get(e['from'], e['from']))} → {tex(labels.get(e['to'], e['to']))} & {e['direct']:.2f} & "
+            f"{e['indirect']:.2f} [{e['indirect_ci95_boot'][0]:.2f}, {e['indirect_ci95_boot'][1]:.2f}] & {e['total']:.2f} \\\\"
+            for e in pm["effects"])
+        fit = pm.get("fit") or {}
+        fit_txt = (f"\\textit{{$\\chi^2$}}({fit['DoF']:.0f})={fit['chi2']:.2f}，CFI={fit['CFI']:.2f}，RMSEA={fit['RMSEA']:.2f}（観測数が少ないため目安）．" if fit.get("available") else "")
+        tables.append("\\begin{table}[t]\n\\caption{パス解析：直接・間接・総合の関連（標準化）}\n\\centering\\scriptsize\\setlength{\\tabcolsep}{3pt}\n"
+                      "\\begin{tabular}{>{\\raggedright\\arraybackslash}p{3.4cm}rrr}\n\\toprule\n経路 & 直接 & 間接 [95\\%CI] & 総合 \\\\\n\\midrule\n"
+                      + eff + "\n\\bottomrule\n\\end{tabular}\n\\par\\smallskip{\\scriptsize 注）" + fit_txt
+                      + f"間接の95\\%CIはブートストラップ（{pm['n_boot']}回）．「直接」が0.00の経路は，モデルに含めていない．}}\n\\end{{table}}")
+    if "sem" in res:
+        se = res["sem"]
+        fit = se["fit"]
+        figures.append("\\begin{figure*}[t]\\centering\n" + sm.sem_diagram_tikz(se, spec["sem"]["latent"], spec["sem"].get("labels") or labels, width_cm=15.5) + "\n"
+                       "\\caption{" + tex(spec["sem"].get("title", "SEM")) + f"（標準化推定値。\\textit{{$\\chi^2$}}({fit['DoF']:.0f})={fit['chi2']:.2f}，"
+                       f"CFI={fit['CFI']:.2f}，RMSEA={fit['RMSEA']:.2f}，\\textit{{n}}={se['n']}。破線は \\textit{{p}}$\\ge$.05）}}\n\\end{{figure*}}")
+    return tables, figures, res
+
+
 def build(gen_path, dataset_id, angle_id, out_dir=None):
     gen = json.loads(Path(gen_path).read_text(encoding="utf-8"))
     p = AcademicPaper(**gen["paper"])
@@ -114,8 +165,8 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     c2 = viz.generate_secondary_chart(dataset, analysis, selected_angle=angle)
     t1, t2 = build_tables(analysis, dataset)
     focus = (angle.focus_metrics or [dataset.metrics[0]])[0]
-    cap1 = f"{focus}の国・地域別の値（上位・下位と日本を抜粋）"
-    cap2 = f"{angle.scatter_x_metric}と{angle.scatter_y_metric}の関連（回帰直線と95\\%信頼区間の帯）" if angle.scatter_x_metric and angle.scatter_y_metric else "指標間の関連"
+    cap1 = tex(f"{focus}の値の比較（上位・下位と日本を抜粋）")
+    cap2 = tex(f"{angle.scatter_x_metric}と{angle.scatter_y_metric}の関連（回帰直線と95%信頼区間の帯）") if angle.scatter_x_metric and angle.scatter_y_metric else "指標間の関連"
     date = gen.get("date", "2026年10月")
     body = []
     body.append(r"\begin{document}")
@@ -140,12 +191,15 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     body.append(rq_block(p.objectives))
     body.append(r"\section{調査対象および分析方法}")
     body.append(paragraphs(p.methodology))
+    m_tables, m_figs, _models = model_blocks(dataset_id, angle_id)
     body.append(t1)  # 2段幅の表は、次のページの先頭にしか置けない。結果の前に宣言して、2ページ目の先頭に来るようにする
     body.append(t2)
     body.append(r"\section{結果}")
     body.append(paragraphs(p.results_text))
     body.append(r"\begin{figure}[t]\centering\includegraphics[width=\columnwidth]{" + c1.name + r"}\caption{" + cap1 + r"}\end{figure}")
     body.append(r"\begin{figure}[t]\centering\includegraphics[width=\columnwidth]{" + c2.name + r"}\caption{" + cap2 + r"}\end{figure}")
+    for blk in m_tables + m_figs:
+        body.append(blk)
     body.append(r"\section{考察}")
     body.append(paragraphs(p.discussion))
     body.append(r"\section*{参考文献}")

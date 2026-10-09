@@ -239,14 +239,26 @@ def main():
     today_iso = get_jst_now().strftime("%Y-%m-%d")
     pdf_filename = f"{today_iso}_{dataset.id}_paper.pdf"
     local_pdf_path = TEMP_DIR / pdf_filename
-    pdf_gen.generate_pdf(
-        paper=academic_paper,
-        dataset=dataset,
-        analysis=analysis,
-        chart_path=chart_path,
-        output_pdf_path=local_pdf_path,
-        secondary_chart_path=secondary_chart_path,
-    )
+    queue_pdf = None
+    if args.reuse:
+        # キューの論文は、ローカルで LuaLaTeX を使って組んだ PDF（queue/pdf/<id>.pdf）があれば、それを使う
+        candidate = Path(args.reuse).resolve().parent / "pdf" / (Path(args.reuse).name.replace(".generation.json", "") + ".pdf")
+        if candidate.exists():
+            queue_pdf = candidate
+    if queue_pdf:
+        import shutil
+
+        shutil.copyfile(queue_pdf, local_pdf_path)
+        logger.info(f"LuaLaTeX版のPDFを使います: {queue_pdf}")
+    else:
+        pdf_gen.generate_pdf(
+            paper=academic_paper,
+            dataset=dataset,
+            analysis=analysis,
+            chart_path=chart_path,
+            output_pdf_path=local_pdf_path,
+            secondary_chart_path=secondary_chart_path,
+        )
 
     # Construct direct download URL (no GitHub preview page)
     pdf_download_url = (

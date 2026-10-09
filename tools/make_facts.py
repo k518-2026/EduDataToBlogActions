@@ -88,6 +88,27 @@ def _stem_derived(df, cross):
     return out
 
 
+def _model_spec(dataset_id, angle_id):
+    p = CATALOG_DIR.parent / "model_specs.json"
+    if not p.exists():
+        return None
+    return json.loads(p.read_text(encoding="utf-8")).get(f"{dataset_id}|{angle_id}")
+
+
+def _run_models(data, spec):
+    """重回帰・パス解析・SEM の結果（src/sem_models.py）。観測数が少ない集計値への探索的な当てはめ。"""
+    from src import sem_models as sm
+
+    out = {"note": "集計値（国・地域など）への探索的な当てはめ。係数は関連であり、因果・媒介ではない。標準化係数。ブートストラップは2000回。適合度は目安。"}
+    if "regression" in spec:
+        out["regression"] = sm.fit_regression(data, spec["regression"]["y"], spec["regression"]["x"])
+    if "path" in spec:
+        out["path"] = sm.fit_path_model(data, spec["path"]["equations"], focus=spec["path"].get("focus"))
+    if "sem" in spec:
+        out["sem"] = sm.fit_sem(data, spec["sem"]["latent"], spec["sem"]["structural"])
+    return out
+
+
 def make(dataset_id, angle_id):
     doc = json.loads((CATALOG_DIR / f"{dataset_id}.json").read_text(encoding="utf-8"))
     df = pd.DataFrame(doc["data"])
@@ -129,6 +150,9 @@ def make(dataset_id, angle_id):
                 facts["rankings"][m] = entry
     if dataset_id == "japan_stem_cs_enrollment":
         facts["derived"] = _stem_derived(df, cross)
+    spec = _model_spec(dataset_id, angle_id)
+    if spec:
+        facts["models"] = _run_models(df if not time else cross, spec)
     pairs = []
     for a, b in combinations(metrics, 2):
         if not is_collinear_or_redundant_pair(a, b):

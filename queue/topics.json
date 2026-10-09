@@ -7,7 +7,8 @@
       "title": "日本の小4・中2は算数・数学が好きか（TIMSS 2023）。好き・自信の割合と日本の位置。",
       "note": "",
       "status": "done",
-      "done_on": "2026-10-07"
+      "done_on": "2026-10-07",
+      "model_hint": "横断・小4の58か国。重回帰（好き×自信×得点差など）とパス解析を試す。"
     },
     {
       "dataset_id": "oecd_talis_teacher_survey",
@@ -15,35 +16,40 @@
       "title": "日本の中学校で考えさせる課題はどれだけ出されているか（TALIS 2024）。",
       "note": "日本は批判的思考を要する課題の割合が54か国中最下位（24.2%）。",
       "status": "done",
-      "done_on": "2026-10-09"
+      "done_on": "2026-10-09",
+      "model_hint": "横断・54か国。重回帰（批判的思考を要する課題を従属変数）とパス解析、潜在変数のSEM（指導実践）を試す。"
     },
     {
       "dataset_id": "oecd_pisa2025_gender_gap",
       "angle_id": "pisa25_gap_distribution",
       "title": "数学の男女得点差の国際分布（PISA 2025、90の国・地域）。標準誤差を考慮した国の数と日本の位置。",
       "note": "queue/02 とは角度を変える（分布と標準誤差が中心）。",
-      "status": "todo"
+      "status": "todo",
+      "model_hint": "横断・90の国・地域。重回帰（男女差〜得点・標準誤差など、使える変数のみ）。"
     },
     {
       "dataset_id": "unesco_world_ict_skills",
       "angle_id": "unesco_gender_disparity_in_skills",
       "title": "成人のICTスキルの男女差（UNESCO 2021、47の国・地域）。",
       "note": "",
-      "status": "todo"
+      "status": "todo",
+      "model_hint": "横断・47か国。重回帰とパス解析（男女のスキル保有率）を試す。"
     },
     {
       "dataset_id": "unesco_world_ict_skills",
       "angle_id": "unesco_global_digital_skills_divide",
       "title": "成人のICTスキル（プログラミング・表計算・プレゼン）の国際差。",
       "note": "",
-      "status": "todo"
+      "status": "todo",
+      "model_hint": "横断・47か国。重回帰とパス解析、潜在変数のSEM（ICTスキル）を試す。"
     },
     {
       "dataset_id": "japan_high_school_informatics",
       "angle_id": "hs_info_curriculum_implementation",
       "title": "高校情報科：臨時免許状と免許外教科担任の使い分け（49自治体）。",
       "note": "queue/03 とは角度を変える（内訳の使い分けが中心）。",
-      "status": "todo"
+      "status": "todo",
+      "model_hint": "横断・49自治体。実数どうしで規模の交絡がある。モデルは無理に当てはめない。"
     },
     {
       "dataset_id": "japan_timss_math_science",
