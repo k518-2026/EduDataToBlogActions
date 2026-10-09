@@ -7,7 +7,8 @@
       "title": "好き・自信・価値と得点を同時に見る：TIMSS 2023 中2（重回帰・パス解析・SEM）",
       "note": "モデルの定義済み（data/model_specs.json）。多重共線性（好き×価値 r=.93）、間接的な関連、1因子SEMの適合の悪さを、正直に書く。queue/01・06 と重複しないよう、モデルの結果が中心。",
       "model_hint": "定義済み",
-      "status": "todo"
+      "status": "done",
+      "done_on": "2026-10-10"
     },
     {
       "dataset_id": "timss2023_student_attitudes",
