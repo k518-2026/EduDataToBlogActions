@@ -76,6 +76,16 @@
       "prepared_on": "2026-10-09",
       "drafted_by": "ollama-gemma4:12b+sonnet-proof",
       "note": "重回帰・パス解析・SEM（LuaLaTeX）。第2版の査読（Minor Revision）の指摘を反映済み"
+    },
+    {
+      "id": "09_oecd_pisa2025_gender_gap",
+      "dataset_id": "oecd_pisa2025_gender_gap",
+      "angle_id": "pisa25_gap_distribution",
+      "file": "09_oecd_pisa2025_gender_gap.generation.json",
+      "title": "数学の男女の得点差は，国によってどう違うのか：PISA 2025の90の国・地域を並べる†",
+      "status": "ready",
+      "prepared_on": "2026-10-10",
+      "drafted_by": "ollama-gemma4:12b+sonnet-proof"
     }
   ]
 }

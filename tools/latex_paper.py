@@ -29,13 +29,17 @@ TAGS = {"<i>": r"\textit{", "</i>": "}", "<em>": r"\textit{", "</em>": "}", "<b>
 TAG_RE = re.compile(r"(</?(?:i|em|b|strong|sub|sup)>)")
 
 
+MINUS_RE = re.compile(r"(?<![\w.])-(?=\.?\d)")  # 数の前の負号（r=-.67，[-.85, -.56]，-1.08〜-.83）。範囲の「2020-21」は前が数字なので除く
+
+
 def tex(s):
-    """HTML 風の簡単なタグ（i, b, sub, sup）を LaTeX にし、特殊文字をエスケープする。"""
+    """HTML 風の簡単なタグ（i, b, sub, sup）を LaTeX にし、特殊文字をエスケープする。負号は数学用のマイナス（U+2212）にする。"""
     out = []
     for part in TAG_RE.split(s or ""):
         if part in TAGS:
             out.append(TAGS[part])
         else:
+            part = MINUS_RE.sub("−", part)
             out.append("".join(SPECIALS.get(c, c) for c in part))
     return "".join(out)
 
@@ -54,6 +58,12 @@ def rq_block(s):
         out += "\n\\begin{itemize}\n" + "\n".join(r"\item " + tex(i) for i in items) + "\n\\end{itemize}"
     return out
 
+
+# 図2（散布図）の指定。横軸が極端に偏る題材は対数軸にし、本文の相関（RQ2）と同じ指標の組を描く。回帰と帯も対数にした横軸で求める
+SCATTER_OPTIONS = {
+    ("japan_stem_cs_enrollment", "stem_gender_gap_underrepresentation"):
+        {"xy": ("入学者数", "入学志願者の女性比率（%）"), "logx": True},
+}
 
 PREAMBLE = r"""\documentclass[a4paper,10pt,twocolumn]{ltjsarticle}
 \usepackage[haranoaji]{luatexja-preset}
@@ -80,7 +90,7 @@ PREAMBLE = r"""\documentclass[a4paper,10pt,twocolumn]{ltjsarticle}
 """
 
 
-def build_tables(analysis, dataset):
+def build_tables(analysis, dataset, year=None):
     rows1 = []
     for name, st in analysis.descriptive_stats.items():
         rows1.append(f"{tex(name)} & {st.count} & {st.mean:.1f} & {st.std:.1f} & {st.median:.1f} & {st.min_val:.1f} & {st.max_val:.1f} \\\\")
@@ -88,7 +98,8 @@ def build_tables(analysis, dataset):
           r"\begin{tabular}{>{\raggedright\arraybackslash}p{9.2cm}rrrrrr}" "\n" r"\toprule" "\n"
           r"指標 & \textit{K} & 平均 & \textit{SD} & 中央値 & 最小 & 最大 \\" "\n" r"\midrule" "\n"
           + "\n".join(rows1) + "\n" r"\bottomrule" "\n" r"\end{tabular}" "\n"
-          r"\par\smallskip{\footnotesize 注）単位は" + tex(dataset.unit or "") + r"，\textit{K}は観測数（国・地域）．}" "\n" r"\end{table*}")
+          r"\par\smallskip{\footnotesize 注）単位は" + tex(dataset.unit or "") + r"，\textit{K}は観測数（国・地域・区分）．"
+          + (tex(f"{year}年度の断面．") if year else "") + "}\n" r"\end{table*}")
     rows2 = []
     for cr in analysis.correlations[:5]:
         bf = format_bayes_factor(cr.bf10)
@@ -157,16 +168,30 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     p = AcademicPaper(**gen["paper"])
     angle = [a for a in get_all_angles_for_dataset(dataset_id) if a.angle_id == angle_id][0]
     dataset = DatasetCatalog().get_by_id(dataset_id)
+    year = None
+    if dataset.time_col and dataset.time_col in dataset.df.columns:
+        # 本文の数値（tools/make_facts.py の cross）は最新年度の断面。表・図も同じ断面にそろえる（複数年を重ねると，観測数と相関が本文とずれる）
+        year = dataset.df[dataset.time_col].max()
+        dataset.df = dataset.df[dataset.df[dataset.time_col] == year].copy()
     analysis = EduDataAnalyzer().analyze(dataset, selected_angle=angle)
     out = Path(out_dir) if out_dir else TEMP_DIR / "latex" / dataset_id
     out.mkdir(parents=True, exist_ok=True)
-    viz = EduDataVisualizer(output_dir=out)
-    c1 = viz.generate_chart(dataset, analysis, selected_angle=angle)
-    c2 = viz.generate_secondary_chart(dataset, analysis, selected_angle=angle)
-    t1, t2 = build_tables(analysis, dataset)
+    # 図は、2段組の1欄で読める大きさで描き直す（tools/latex_charts.py）。題名は画像に入れず、キャプションで示す
+    from tools import latex_charts as lc
+
     focus = (angle.focus_metrics or [dataset.metrics[0]])[0]
-    cap1 = tex(f"{focus}の値の比較（上位・下位と日本を抜粋）")
-    cap2 = tex(f"{angle.scatter_x_metric}と{angle.scatter_y_metric}の関連（回帰直線と95%信頼区間の帯）") if angle.scatter_x_metric and angle.scatter_y_metric else "指標間の関連"
+    c1 = out / f"chart_{dataset.id}.png"
+    info1 = lc.ranking_bar(dataset, focus, c1)
+    c2 = out / f"chart_secondary_{dataset.id}.png"
+    opt = SCATTER_OPTIONS.get((dataset_id, angle_id), {})  # 指標の指定、対数軸（本文の分析と図をそろえる）
+    info2 = lc.scatter(dataset, analysis, angle, c2, xy=opt.get("xy"), logx=opt.get("logx", False))
+    t1, t2 = build_tables(analysis, dataset, year)
+    shown = "（上位・下位と日本を抜粋）" if info1["n_shown"] < info1["n_all"] else ""
+    cap1 = tex(f"{focus}の値の比較{shown}．赤が日本")
+    # 帯は，回帰直線（平均）の95%信頼区間であり，個々の点の予測区間ではない
+    logx_note = "，横軸は対数" if opt.get("logx") else ""
+    cap2 = (tex(f"{info2['x']}と{info2['y']}の関連（回帰直線と，その平均の95%信頼区間の帯{logx_note}，n={info2['n']}）") if info2
+            else "指標間の関連")
     date = gen.get("date", "2026年10月")
     body = []
     body.append(r"\begin{document}")
@@ -197,16 +222,20 @@ def build(gen_path, dataset_id, angle_id, out_dir=None):
     body.append(r"\section{結果}")
     body.append(paragraphs(p.results_text))
     body.append(r"\begin{figure}[t]\centering\includegraphics[width=\columnwidth]{" + c1.name + r"}\caption{" + cap1 + r"}\end{figure}")
-    body.append(r"\begin{figure}[t]\centering\includegraphics[width=\columnwidth]{" + c2.name + r"}\caption{" + cap2 + r"}\end{figure}")
+    if info2:
+        body.append(r"\begin{figure}[t]\centering\includegraphics[width=\columnwidth]{" + c2.name + r"}\caption{" + cap2 + r"}\end{figure}")
     for blk in m_tables + m_figs:
         body.append(blk)
     body.append(r"\section{考察}")
     body.append(paragraphs(p.discussion))
     body.append(r"\section*{参考文献}")
-    body.append(r"\begingroup\scriptsize\setlength{\parindent}{0pt}\raggedright")
+    # 参考文献は list 環境で組む（ぶら下げインデントが、欄や頁の切れ目でも消えない）。1件を欄またぎで割らない
+    body.append(r"\begingroup\scriptsize\raggedright\interlinepenalty=10000 ")
+    body.append(r"\begin{list}{}{\setlength{\leftmargin}{1.5\zw}\setlength{\itemindent}{-1.5\zw}\setlength{\labelwidth}{0pt}"
+                r"\setlength{\labelsep}{0pt}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\setlength{\topsep}{0pt}\setlength{\listparindent}{0pt}}")
     for r_ in p.references:
-        body.append(r"\par\hangindent=1.5\zw\hangafter=1 " + tex(r_) + r"\vspace{1pt}")
-    body.append(r"\endgroup")
+        body.append(r"\item " + tex(r_))
+    body.append(r"\end{list}\endgroup")
     body.append(r"\section*{Summary}")
     body.append(r"{\footnotesize\setlength{\parindent}{0pt}" + tex(p.summary_en) + r"\par\smallskip KEYWORDS: " + tex(", ".join(p.keywords_en)) + r"\par}")
     body.append(r"\medskip\noindent\fbox{\parbox{\dimexpr\columnwidth-2\fboxsep-2\fboxrule}{\footnotesize\gtfamily "
