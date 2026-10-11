@@ -86,6 +86,16 @@
       "status": "ready",
       "prepared_on": "2026-10-10",
       "drafted_by": "ollama-gemma4:12b+sonnet-proof"
+    },
+    {
+      "id": "10_unesco_world_ict_skills",
+      "dataset_id": "unesco_world_ict_skills",
+      "angle_id": "unesco_gender_disparity_in_skills",
+      "file": "10_unesco_world_ict_skills.generation.json",
+      "title": "ICTスキルの男女差は，国によってどれだけ違うのか：表計算とプレゼン資料作成を，日本と他の国・地域で比べる†",
+      "status": "ready",
+      "prepared_on": "2026-10-11",
+      "drafted_by": "ollama-gemma4:12b+sonnet-proof"
     }
   ]
 }

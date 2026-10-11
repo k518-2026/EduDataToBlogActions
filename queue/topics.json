@@ -42,8 +42,9 @@
       "angle_id": "unesco_gender_disparity_in_skills",
       "title": "成人のICTスキルの男女差（UNESCO 2021、47の国・地域）。",
       "note": "",
-      "status": "todo",
-      "model_hint": "横断・47か国。重回帰とパス解析（男女のスキル保有率）を試す。"
+      "status": "done",
+      "model_hint": "横断・47か国。重回帰とパス解析（男女のスキル保有率）を試す。",
+      "done_on": "2026-10-11"
     },
     {
       "dataset_id": "unesco_world_ict_skills",
