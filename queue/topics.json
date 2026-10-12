@@ -51,7 +51,8 @@
       "angle_id": "unesco_global_digital_skills_divide",
       "title": "成人のICTスキル（プログラミング・表計算・プレゼン）の国際差。",
       "note": "",
-      "status": "todo",
+      "status": "done",
+      "done_on": "2026-10-13",
       "model_hint": "横断・47か国。重回帰とパス解析、潜在変数のSEM（ICTスキル）を試す。"
     },
     {

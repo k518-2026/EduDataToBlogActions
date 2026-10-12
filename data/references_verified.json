@@ -71,6 +71,27 @@
    ]
   },
   {
+   "reference": "HARGITTAI, E. (2002) Second-level digital divide: Differences in people's online skills. First Monday, <b>7</b> (4).",
+   "evidence": "Crossref DOI 10.5210/fm.v7i4.942",
+   "datasets": [
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "SELWYN, N. (2004) Reconsidering political and popular understandings of the digital divide. New Media & Society, <b>6</b> (3) ：341-362.",
+   "evidence": "Crossref DOI 10.1177/1461444804042519",
+   "datasets": [
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
+   "reference": "VAN DEURSEN, A. J. A. M. and VAN DIJK, J. A. G. M. (2014) The digital divide shifts to differences in usage. New Media & Society, <b>16</b> (3) ：507-526.",
+   "evidence": "Crossref DOI 10.1177/1461444813487959（オンライン先行公開は2013年、巻号は16(3)＝2014年）",
+   "datasets": [
+    "unesco_world_ict_skills"
+   ]
+  },
+  {
    "reference": "WING, J. M. (2006) Computational thinking. Communications of the ACM, <b>49</b> (3) ：33-35.",
    "evidence": "Crossref DOI 10.1145/1118178.1118215",
    "datasets": [

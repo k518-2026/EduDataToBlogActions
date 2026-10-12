@@ -378,7 +378,11 @@ def path_diagram_tikz(result: dict, labels: dict[str, str] | None = None, latent
         p = pth["p"]
         sty = "->" if p < .05 else "->,dashed"
         val = f"{pth['beta']:.2f}".replace("0.", ".").replace("-.", "−.") + _stars(p)
-        out.append(rf"  \draw[{sty}] ({_nid(pth['from'])}) -- node[lab,pos=0.5] {{{val}}} ({_nid(pth['to'])});")
+        if abs(layers[pth["to"]] - layers[pth["from"]]) > 1 and abs(pos[pth["to"]][1] - pos[pth["from"]][1]) < 0.01:
+            # 同じ高さで2層以上またぐ経路は、間のノードを貫くので、上へ曲げて描く
+            out.append(rf"  \draw[{sty}] ({_nid(pth['from'])}.north) to[bend left=38] node[lab,pos=0.5] {{{val}}} ({_nid(pth['to'])}.north);")
+        else:
+            out.append(rf"  \draw[{sty}] ({_nid(pth['from'])}) -- node[lab,pos=0.5] {{{val}}} ({_nid(pth['to'])});")
     out.append(r"\end{tikzpicture}")
     return "\n".join(out)
 

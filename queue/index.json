@@ -96,6 +96,16 @@
       "status": "ready",
       "prepared_on": "2026-10-11",
       "drafted_by": "ollama-gemma4:12b+sonnet-proof"
+    },
+    {
+      "id": "11_unesco_world_ict_skills",
+      "dataset_id": "unesco_world_ict_skills",
+      "angle_id": "unesco_global_digital_skills_divide",
+      "file": "11_unesco_world_ict_skills.generation.json",
+      "title": "日本の大人は，プログラミングや表計算をどれだけしているのか：UNESCOのデータで47の国・地域と比べる†",
+      "status": "ready",
+      "prepared_on": "2026-10-13",
+      "drafted_by": "ollama-gemma4:12b+sonnet-proof"
     }
   ]
 }
