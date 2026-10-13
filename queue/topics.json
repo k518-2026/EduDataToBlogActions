@@ -60,8 +60,9 @@
       "angle_id": "hs_info_curriculum_implementation",
       "title": "高校情報科：臨時免許状と免許外教科担任の使い分け（49自治体）。",
       "note": "queue/03 とは角度を変える（内訳の使い分けが中心）。",
-      "status": "todo",
-      "model_hint": "横断・49自治体。実数どうしで規模の交絡がある。モデルは無理に当てはめない。"
+      "status": "done",
+      "model_hint": "横断・49自治体。実数どうしで規模の交絡がある。モデルは無理に当てはめない。",
+      "done_on": "2026-10-13"
     },
     {
       "dataset_id": "japan_timss_math_science",

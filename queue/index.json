@@ -106,6 +106,16 @@
       "status": "ready",
       "prepared_on": "2026-10-13",
       "drafted_by": "ollama-gemma4:12b+sonnet-proof"
+    },
+    {
+      "id": "12_japan_high_school_informatics",
+      "dataset_id": "japan_high_school_informatics",
+      "angle_id": "hs_info_curriculum_implementation",
+      "file": "12_japan_high_school_informatics.generation.json",
+      "title": "【高校情報科の担当教員】臨時免許状・免許外教科担任の自治体別人数（令和4年5月1日現在）†",
+      "status": "ready",
+      "prepared_on": "2026-10-13",
+      "drafted_by": "ollama-gemma4:12b+sonnet-proof"
     }
   ]
 }
