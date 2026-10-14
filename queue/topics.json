@@ -69,7 +69,8 @@
       "angle_id": "timss_gender_gap",
       "title": "日本の算数・数学の男女差の推移（TIMSS 1995〜2023）。",
       "note": "14行の時系列。相関は主な結果にしない。公表表の『有意』の印（p）は src/data/source の Exhibit にある。",
-      "status": "todo"
+      "status": "done",
+      "done_on": "2026-10-14"
     },
     {
       "dataset_id": "japan_timss_math_science",

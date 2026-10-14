@@ -116,6 +116,16 @@
       "status": "ready",
       "prepared_on": "2026-10-13",
       "drafted_by": "ollama-gemma4:12b+sonnet-proof"
+    },
+    {
+      "id": "13_japan_timss_math_science",
+      "dataset_id": "japan_timss_math_science",
+      "angle_id": "timss_gender_gap",
+      "file": "13_japan_timss_math_science.generation.json",
+      "title": "【TIMSS】日本の小学校4年算数・中学校2年数学の平均得点と男女差の推移（1995〜2023年）†",
+      "status": "ready",
+      "prepared_on": "2026-10-14",
+      "drafted_by": "ollama-gemma4:12b+sonnet-proof"
     }
   ]
 }
